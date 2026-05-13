@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PicklePal Lite</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            /* Next-Gen Dark Theme */
+            --primary: #0f172a;
+            --gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #a855f7 100%);
+            --glow: radial-gradient(circle at top right, rgba(168, 85, 247, 0.15), transparent 50%);
+            --accent: #a855f7;
+            --bg: #020617;
+            --card: #1e293b;
+            --card-glass: rgba(30, 41, 59, 0.6);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --border: rgba(255,255,255,0.15);
+            --border-dashed: rgba(255,255,255,0.25);
+            --input-bg: rgba(0,0,0,0.3);
+            --input-border: #475569;
+            --row-bg: rgba(255,255,255,0.03);
+            --gold: #fbbf24;
+            --silver: #cbd5e1;
+            --bronze: #cd7f32;
+            --radius: 16px;
+            --sidebar-width: 300px;
+        }
+
+        body.light-theme {
+            /* High Contrast Light Theme */
+            --primary: #ffffff;
+            --gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 50%, #db2777 100%);
+            --glow: radial-gradient(circle at top right, rgba(109, 40, 217, 0.08), transparent 50%);
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --card-glass: rgba(255, 255, 255, 0.85);
+            --text: #0f172a;
+            --muted: #475569; 
+            --border: #cbd5e1; 
+            --border-dashed: #94a3b8;
+            --input-bg: #ffffff;
+            --input-border: #94a3b8; 
+            --row-bg: #f8fafc; 
+            --gold: #d97706;
+            --silver: #475569;
+            --bronze: #b45309;
+            --accent: #6d28d9;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+        * { box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; overflow: hidden; transition: background-color 0.4s ease, color 0.4s ease; background-image: var(--glow); }
+
+        aside { width: var(--sidebar-width); background: var(--primary); display: flex; flex-direction: column; padding: 1.5rem; border-right: 1px solid var(--border); transition: 0.3s ease; z-index: 10; }
+        body.light-theme aside { box-shadow: 4px 0 24px rgba(0,0,0,0.04); border-right: none; }
+        .logo-container { text-align: center; margin-bottom: 1.5rem; }
+        
+        /* STRICTLY LOCKED APP LOGO */
+        .app-logo { width: 140px; border-radius: 16px; margin-bottom: 5px; box-shadow: 0 8px 24px rgba(0,0,0,0.25); object-fit: contain; pointer-events: none; user-select: none; }
+        body.light-theme .app-logo { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+        
+        .mode-toggle { display: flex; background: var(--row-bg); border-radius: 12px; padding: 6px; margin-bottom: 20px; border: 1px solid var(--border); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .mode-btn { flex: 1; padding: 10px; border: none; background: transparent; color: var(--muted); border-radius: 8px; font-weight: 800; cursor: pointer; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-size: 0.9rem; }
+        .mode-btn.active { background: var(--gradient); color: #ffffff; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); transform: scale(1.02); }
+
+        .nav-tabs { display: flex; flex-direction: column; gap: 4px; }
+        .tab-btn { background: transparent; border: none; color: var(--text); padding: 1rem; text-align: left; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 1.05rem; transition: 0.2s; font-weight: 600; opacity: 0.7; }
+        .tab-btn:hover { background: var(--row-bg); opacity: 1; transform: translateX(4px); }
+        .tab-btn.active { background: var(--row-bg); color: var(--accent); font-weight: 800; opacity: 1; border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; }
+
+        main { flex: 1; overflow-y: auto; padding: 2.5rem; padding-bottom: 6rem; position: relative; }
+        .card { background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: var(--radius); padding: 2.5rem; margin-bottom: 2rem; border: 1px solid var(--border); box-shadow: 0 12px 40px rgba(0,0,0,0.04); transition: 0.3s; }
+        
+        .master-header { display: flex; align-items: flex-start; gap: 30px; margin-bottom: 3rem; flex-wrap: wrap; background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 2.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 16px 40px rgba(0,0,0,0.06); position: relative; overflow: hidden; }
+        .master-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--gradient); }
+        
+        .tourney-logo-display { height: 120px; max-width: 200px; object-fit: contain; border-radius: 12px; transition: 0.3s; background: var(--row-bg); border: 1px dashed var(--border); padding: 5px; }
+        .logo-upload-panel { display: flex; flex-direction: column; gap: 10px; background: var(--row-bg); padding: 15px; border-radius: 12px; border: 1px dashed var(--border); margin-top: 15px; }
+        .logo-upload-label { font-size: 0.8rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+
+        .header-content-wrapper { flex: 1; min-width: 300px; }
+        .header-top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 20px; flex-wrap: wrap; }
+        
+        input[type="text"], input[type="date"], select, .editable-input { background-color: var(--input-bg); border: 1px solid var(--input-border); color: var(--text); padding: 12px 15px; border-radius: 10px; font-size: 1rem; min-height: 48px; font-weight: 600; font-family: inherit; width: 100%; transition: all 0.2s ease; }
+        
+        input[readonly]:not(.header-h1), select:disabled, .editable-input[readonly]:not(.header-h1) { 
+            opacity: 1 !important; 
+            cursor: default; 
+            background-color: var(--row-bg) !important; 
+            border: 1px dashed var(--border-dashed) !important; 
+            color: var(--text) !important; 
+            -webkit-text-fill-color: var(--text); 
+        }
+
+        #manual-setup-controls select {
+            position: relative;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        ::placeholder { color: var(--muted); opacity: 0.85; font-weight: 500; font-style: italic; }
+        input:not([readonly]):focus, select:not(:disabled):focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); outline: none; }
+        select option { background-color: var(--card); color: var(--text); font-weight: 600; }
+        
+        .header-h1 { font-size: 3.5rem !important; font-weight: 900 !important; letter-spacing: -1.5px !important; width: 100% !important; padding: 0 !important; min-height: 70px !important; border: none !important; background: transparent !important; transition: 0.3s ease !important; }
+        .header-h1[readonly] { background: var(--gradient) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; -webkit-text-fill-color: transparent !important; opacity: 1 !important; pointer-events: none; }
+        .header-h1:not([readonly]) { background: var(--input-bg) !important; -webkit-background-clip: border-box !important; background-clip: border-box !important; color: var(--text) !important; -webkit-text-fill-color: var(--text) !important; border: 1px solid var(--accent) !important; padding: 10px 20px !important; border-radius: 16px !important; box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15) !important; font-size: 2.5rem !important; }
+        @media (max-width: 768px) { .header-h1 { font-size: 2.5rem !important; } .header-h1:not([readonly]) { font-size: 1.8rem !important; } }
+
+        .editable-group { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .editable-group i { color: var(--accent); }
+        .header-label { font-weight: 800; color: var(--muted); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; width: 100px; flex-shrink: 0; }
+
+        .format-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .format-card { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .format-card:hover { border-color: var(--muted); transform: translateY(-4px); box-shadow: 0 12px 25px rgba(0,0,0,0.08); }
+        .format-card.active { border-color: var(--accent); background: rgba(168, 85, 247, 0.04); box-shadow: 0 0 0 1px var(--accent), 0 8px 20px rgba(168, 85, 247, 0.15); }
+        .format-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--gradient); display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 8px; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.3); }
+        .format-title { font-weight: 800; font-size: 1.2rem; color: var(--text); letter-spacing: -0.5px; }
+        .format-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 5px; }
+        .badge { font-size: 0.7rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge.blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge.purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+        body.light-theme .badge.blue { background: #e0f2fe; color: #0284c7; }
+        body.light-theme .badge.purple { background: #f3e8ff; color: #7e22ce; }
+        
+        .req-container { font-size: 0.8rem; display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: auto; padding-top: 12px; border-top: 1px dashed var(--border-dashed); }
+        .req-item { display: flex; align-items: center; gap: 6px; color: var(--muted); font-weight: 600; }
+        .req-item i { color: var(--accent); }
+        .req-item span { color: var(--text); font-weight: 800; }
+
+        .param-toggle { display: flex; background: var(--row-bg); border-radius: 12px; padding: 5px; border: 1px solid var(--border); box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
+        .param-btn { flex: 1; padding: 10px; border: none; background: transparent; color: var(--muted); border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .param-btn.active { background: var(--card); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+
+        .roster-grid { display: flex; flex-direction: column; gap: 10px; }
+        .team-row-entry { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; background: var(--row-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); transition: 0.2s; }
+        .team-row-entry:hover { border-color: var(--muted); }
+        .team-row-entry > div:not(select) { flex: 1; min-width: 250px; }
+
+        .pool-header { font-size: 1.8rem; font-weight: 900; color: var(--accent); margin-bottom: 1.5rem; border-left: 6px solid var(--accent); padding-left: 15px; letter-spacing: -0.5px; }
+        .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem; }
+        .match-card { background: var(--card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.04); transition: 0.3s; }
+        .match-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+        .team-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; min-height: 55px; }
+        
+        .standings-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: var(--muted); padding: 14px 12px; border-bottom: 2px solid var(--border); font-size: 0.85rem; text-transform: uppercase; font-weight: 900; letter-spacing: 0.5px; }
+        td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-weight: 600; }
+        .qualifier { background: rgba(34, 197, 94, 0.05); border-left: 4px solid var(--success); }
+        .wildcard { background: rgba(99, 102, 241, 0.05); border-left: 4px solid #6366f1; }
+        .withdrawn { opacity: 0.4; text-decoration: line-through; filter: grayscale(1); }
+
+        .bracket-container { display: flex; gap: 24px; justify-content: flex-start; align-items: stretch; width: 100%; padding: 10px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .bracket-column { display: flex; flex-direction: column; justify-content: space-around; gap: 15px; flex: 1; min-width: 340px; }
+        .bracket-team-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--row-bg); border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); transition: 0.3s; }
+        .bracket-team-name { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        
+        .seed-badge { font-size: 0.75rem; background: var(--input-bg); color: var(--muted); padding: 4px 8px; border-radius: 6px; font-weight: 900; border: 1px solid var(--input-border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .bye-text { font-style: italic; color: var(--muted); font-weight: 600; font-size: 0.9rem; }
+        
+        .dimmed { opacity: 0.3; pointer-events: none; }
+        .winner-text { color: var(--accent); font-weight: 900; }
+
+        .neon-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 12px currentColor; flex-shrink: 0; }
+        .neon-dot.green { background-color: var(--success); color: var(--success); }
+        .neon-dot.yellow { background-color: var(--gold); color: var(--gold); }
+
+        .podium-container { margin-top: 3rem; padding: 3rem; background: var(--card-glass); backdrop-filter: blur(24px); border: 2px solid var(--gold); border-radius: 20px; text-align: center; box-shadow: 0 12px 40px rgba(251, 191, 36, 0.15); position: relative; overflow: hidden; }
+        .podium-container::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, var(--gold), var(--bronze)); }
+        .podium-title { font-size: 1.8rem; font-weight: 900; color: var(--gold); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        .podium-row { font-size: 1.4rem; font-weight: 800; margin: 15px 0; display: flex; justify-content: center; gap: 12px; align-items: center; }
+
+        input[type=number] {
+            background-color: var(--input-bg); border: 2px solid var(--input-border); color: var(--text);
+            border-radius: 10px; font-weight: 900; text-align: center; padding: 8px;
+            -moz-appearance: textfield; min-height: 48px; min-width: 48px; font-size: 1.3rem; transition: 0.2s;
+        }
+        input[type=number]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); outline: none; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .score-input { width: 70px; height: 55px; margin-left: 15px; font-size: 1.6rem; }
+        
+        .bo3-grid { display: grid; grid-template-columns: 1fr 60px 60px 60px; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .bo3-header { text-align: center; font-size: 0.85rem; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        .bo3-score-input { width: 100%; height: 55px; font-size: 1.4rem; margin: 0; }
+        
+        .btn { padding: 0.8rem 1.8rem; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); min-height: 48px; font-size: 1.05rem; }
+        .btn-primary { background: var(--gradient); color: #ffffff; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--input-border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: var(--row-bg); }
+        .btn-sm { padding: 8px 16px; font-size: 0.95rem; min-height: 42px; border-radius: 8px; }
+        .btn-success { background: var(--success); color: #ffffff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+        .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4); }
+        .btn-lock { background: transparent; color: var(--muted); border: 1px solid transparent; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s; }
+        .btn-lock:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: var(--danger); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); transform: none; box-shadow: none; }
+
+        .csv-link { display: inline-flex; align-items:center; gap:5px; font-size: 0.85rem; color: var(--accent); text-decoration: none; font-weight: 800; margin-left: 10px; cursor: pointer; transition: 0.2s; padding: 8px 12px; border-radius: 8px; background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); }
+        .csv-link:hover { color: #ffffff; background: var(--accent); }
+
+        .trophy-icon { color: var(--gold); fill: var(--gold); width: 24px; height: 24px; }
+        .hidden { display: none !important; }
+
+        /* Active Mode Banner */
+        .active-mode-banner { background: var(--gradient); padding: 15px 25px; border-radius: 12px; color: white; font-weight: 800; font-size: 1.1rem; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 8px 20px rgba(168, 85, 247, 0.2); }
+        .active-mode-banner span { display: flex; align-items: center; gap: 8px; }
+
+        /* Next-Gen Custom Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 2.5rem; width: 90%; max-width: 450px; box-shadow: 0 24px 50px rgba(0,0,0,0.3); transform: translateY(20px) scale(0.95); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); text-align: center; }
+        .modal-box.show { transform: translateY(0) scale(1); }
+        .modal-icon { width: 56px; height: 56px; margin: 0 auto 1.5rem auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .modal-icon.warning { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .modal-icon.info { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .modal-icon.success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .modal-icon.magic { background: rgba(168, 85, 247, 0.1); color: var(--accent); }
+        .modal-title { font-size: 1.6rem; font-weight: 900; color: var(--text); margin-bottom: 0.8rem; letter-spacing:-0.5px; }
+        .modal-msg { font-size: 1.05rem; color: var(--muted); line-height: 1.5; margin-bottom: 2rem; font-weight:500; }
+        .modal-input { width: 100%; margin-bottom: 2rem; text-align:center; }
+        .modal-actions { display: flex; gap: 15px; justify-content: center; }
+        .modal-actions .btn { flex: 1; }
+
+        @media (max-width: 1100px) {
+            body { flex-direction: column; }
+            aside { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-right: none; border-bottom: 1px solid var(--border); gap: 15px; z-index: 100; }
+            .logo-container { margin-bottom: 0; display: flex; align-items: center; gap: 12px; }
+            .app-logo { width: 45px; margin-bottom: 0; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+            .mode-toggle { margin-bottom: 0; min-width: 250px; }
+            .nav-tabs { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; flex: 1; width: 100%; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
+            .tab-btn { white-space: nowrap; padding: 0.7rem 1rem; border-left: none; border-bottom: 3px solid transparent; border-radius: 8px; }
+            .tab-btn.active { border-left: none; border-bottom: 3px solid var(--accent); border-radius: 8px; }
+            aside > div:last-child { margin-top: 0; width: auto; border-top: none; padding-top: 0; flex-direction: row; }
+            main { padding: 1.5rem; padding-bottom: 4rem; }
+            .master-header { flex-direction: column; align-items: center; text-align: center; }
+            .header-top-bar { flex-direction: column; align-items: center; width: 100%; }
+            .editable-group { justify-content: center; }
+            .header-label { width: auto; }
+            .standings-container { grid-template-columns: 1fr; }
+            .bracket-container { overflow-x: auto; padding-bottom: 15px; }
+        }
+
+        @media (max-width: 768px) {
+            .team-row-entry { flex-direction: column; align-items: stretch; }
+            .team-row-entry > div { width: 100%; }
+            .format-grid { grid-template-columns: 1fr; }
+        }
+
+        /* --- MOBILE PORTRAIT ULTRA-UX OVERRIDE (MAX-WIDTH: 640px) --- */
+        @media (max-width: 640px) {
+            * { max-width: 100vw; }
+            body { flex-direction: column; overflow-x: hidden; }
+            
+            /* MOBILE HEADER */
+            .mobile-header {
+                display: flex !important; align-items: center; justify-content: space-between;
+                padding: calc(12px + env(safe-area-inset-top)) 15px 12px 15px;
+                background: var(--primary); border-bottom: 1px solid var(--border);
+                position: sticky; top: 0; z-index: 1001; width: 100%;
+            }
+            .mobile-mode-switcher {
+                display: flex !important; background: var(--bg); padding: 10px 15px;
+                position: sticky; top: 60px; z-index: 1000; gap: 8px; border-bottom: 1px solid var(--border);
+            }
+            .mobile-mode-btn { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-weight: 800; font-size: 0.7rem; }
+            .mobile-mode-btn.active { background: var(--gradient); color: white; border: none; }
+
+            aside { display: none !important; }
+
+            /* MAIN CONTENT ADJUSTMENTS */
+            main { 
+                padding: 15px; padding-bottom: calc(100px + env(safe-area-inset-bottom)); 
+                width: 100%; overflow-x: hidden;
+            }
+            .master-header { 
+                padding: 1.2rem; flex-direction: column; align-items: flex-start; text-align: left; 
+                gap: 15px; width: 100%; border-radius: 20px; 
+            }
+            .header-h1 { font-size: 1.7rem !important; min-height: auto !important; width: 100% !important; margin-bottom: 10px; }
+            .header-top-bar { align-items: flex-start; width: 100%; gap: 10px; }
+            
+            /* CHECK-IN PAGE FIXES (BLEED PREVENTION) */
+            .card { padding: 1.25rem; border-radius: 20px; margin-bottom: 15px; width: 100%; overflow: hidden; }
+            .team-row-entry { 
+                flex-direction: column; align-items: stretch; gap: 10px; 
+                padding: 15px; width: 100%; border-radius: 16px; 
+            }
+            .team-row-entry > div { 
+                min-width: 0 !important; width: 100% !important; flex: none; 
+                display: flex; gap: 8px; align-items: center;
+            }
+            .team-row-entry input { flex: 1; min-width: 0; font-size: 0.9rem; height: 46px; }
+            .team-row-entry select { width: 100%; margin-top: 5px; height: 46px; }
+
+            /* POOL PLAY MATCH CARDS */
+            .pool-grid { grid-template-columns: 1fr; gap: 12px; }
+            .match-card { padding: 1.2rem; width: 100%; border-radius: 18px; }
+            .score-input { width: 55px; height: 48px; font-size: 1.2rem; margin-left: 8px; }
+
+            /* BRACKET FIX (ZOOM TO FIT) */
+            .bracket-container { 
+                display: flex; flex-direction: row; gap: 15px; 
+                overflow-x: auto; -webkit-overflow-scrolling: touch;
+                padding-bottom: 30px; width: 100%;
+                justify-content: flex-start;
+            }
+            .bracket-column { 
+                min-width: 280px; flex: 0 0 280px; 
+                transform: scale(0.95); transform-origin: top left;
+            }
+            .bo3-grid { grid-template-columns: 1fr 45px 45px 45px; gap: 6px; }
+            .bo3-score-input { height: 42px; font-size: 1.1rem; }
+
+            /* NAVIGATION DOCK */
+            .mobile-nav {
+                display: flex !important; position: fixed; bottom: 0; left: 0; right: 0;
+                background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid var(--border); padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+                justify-content: space-around; z-index: 1001;
+            }
+            .mob-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: var(--muted); text-decoration: none; font-size: 0.6rem; font-weight: 700; opacity: 0.6; }
+            .mob-nav-item.active { color: var(--accent); opacity: 1; }
+            .mob-nav-item i { width: 22px; height: 22px; margin-bottom: 4px; }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+
+<div class="mobile-header hidden">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="PicklePal-Lite.png" style="width:32px; height:32px; border-radius:6px;" alt="Logo">
+        <div style="font-weight: 900; font-size: 0.8rem; letter-spacing: 0.5px;">PICKLEPAL LITE</div>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button onclick="toggleTheme()" style="background:var(--row-bg); border:1px solid var(--border); color:var(--text); width:36px; height:36px; border-radius:8px;"><i data-lucide="sun" style="width:18px;"></i></button>
+        <button onclick="resetApp()" style="background:var(--row-bg); border:1px solid var(--border); color:var(--danger); width:36px; height:36px; border-radius:8px;"><i data-lucide="alert-triangle" style="width:18px;"></i></button>
+    </div>
+</div>
+
+<div class="mobile-mode-switcher hidden">
+    <button id="mob-mode-tourney" class="mobile-mode-btn active" onclick="setAppMode('tourney')">Tournaments</button>
+    <button id="mob-mode-rr" class="mobile-mode-btn" onclick="setAppMode('rr')">Round Robin</button>
+</div>
+
+<div id="app-modal" class="modal-overlay">
+    <div class="modal-box">
+        <div id="modal-icon" class="modal-icon info"><i data-lucide="info"></i></div>
+        <div id="modal-title" class="modal-title">Title</div>
+        <div id="modal-msg" class="modal-msg">Message</div>
+        <input type="text" id="modal-input" class="editable-input modal-input hidden" placeholder="Enter text">
+        <div class="modal-actions">
+            <button id="modal-cancel-btn" class="btn btn-outline hidden">Cancel</button>
+            <button id="modal-confirm-btn" class="btn btn-primary">OK</button>
+        </div>
+    </div>
+</div>
+
+<aside>
+    <div class="logo-container">
+        <img src="PicklePal-Lite.png" class="app-logo" alt="PicklePal Lite">
+        <div style="font-weight: 900; letter-spacing: 1px; color: var(--text); font-size: 0.95rem; margin-top: 5px;">PICKLEPAL LITE</div>
+    </div>
+    
+    <div class="mode-toggle">
+        <button id="mode-btn-tourney" class="mode-btn active" onclick="setAppMode('tourney')">Tournaments</button>
+        <button id="mode-btn-rr" class="mode-btn" onclick="setAppMode('rr')">Round Robin</button>
+    </div>
+
+    <div id="nav-tourney" class="nav-tabs">
+        <button class="tab-btn active" onclick="showTab('home', 'tourney')"><i data-lucide="home"></i> Home</button>
+        <button class="tab-btn" onclick="showTab('roster', 'tourney')"><i data-lucide="users"></i> Check-In</button>
+        <button class="tab-btn" onclick="showTab('pools', 'tourney')"><i data-lucide="layout-grid"></i> Pool Play</button>
+        <button class="tab-btn" onclick="showTab('standings', 'tourney')"><i data-lucide="bar-chart-3"></i> Standings</button>
+        <button class="tab-btn" onclick="showTab('bracket', 'tourney')"><i data-lucide="git-branch"></i> Elimination Bracket</button>
+    </div>
+
+    <div id="nav-rr" class="nav-tabs hidden">
+        <button class="tab-btn" onclick="showTab('rr-setup', 'rr')"><i data-lucide="settings"></i> Event Setup</button>
+        <button class="tab-btn" id="nav-btn-rr-play" onclick="showTab('rr-play', 'rr')"><i data-lucide="play-circle"></i> Match Play</button>
+        <button class="tab-btn" id="nav-btn-rr-leaderboard" onclick="showTab('rr-leaderboard', 'rr')"><i data-lucide="award"></i> Leaderboard</button>
+        <button class="tab-btn hidden" id="nav-btn-rr-bracket" onclick="showTab('rr-bracket', 'rr')"><i data-lucide="git-branch"></i> Mini Bracket</button>
+    </div>
+
+    <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+        <button class="tab-btn" onclick="toggleTheme()"><i data-lucide="sun"></i> Toggle Theme</button>
+        <button class="tab-btn" style="color: var(--danger); font-weight: 800;" onclick="resetApp()"><i data-lucide="alert-triangle"></i> Reset Data</button>
+    </div>
+</aside>
+
+<main>
+    <section id="tab-home" class="tab-content">
+        <div class="master-header">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                <img id="tourney-display-logo" src="Compass-Logo-White.png" class="tourney-logo-display" alt="Tournament Logo">
+                <div id="tourney-logo-controls" class="logo-upload-panel hidden">
+                    <div class="logo-upload-label">Tournament Branding</div>
+                    <label class="btn btn-sm btn-outline" style="cursor:pointer; width:100%; font-size:0.8rem;">
+                        <i data-lucide="upload-cloud"></i> Light Logo (Dark Mode)
+                        <input type="file" accept="image/*" class="hidden" onchange="handleDualLogoUpload(event, 'light')">
+                    </label>
+                    <label class="btn btn-sm btn-outline" style="cursor:pointer; width:100%; font-size:0.8rem;">
+                        <i data-lucide="upload-cloud"></i> Dark Logo (Light Mode)
+                        <input type="file" accept="image/*" class="hidden" onchange="handleDualLogoUpload(event, 'dark')">
+                    </label>
+                </div>
+            </div>
+
+            <div class="header-content-wrapper">
+                <div class="header-top-bar">
+                    <input type="text" id="head-title" class="header-h1" readonly placeholder="Enter Tournament Title">
+                    <button id="global-edit-btn" class="btn btn-outline" onclick="toggleGlobalEdit('tourney')"><i data-lucide="edit-3"></i> Edit Event Info</button>
+                </div>
+                
+                <div class="editable-group">
+                    <div class="header-label"><i data-lucide="calendar"></i> Date</div>
+                    <input type="text" id="head-date" class="editable-input" readonly style="flex:1; max-width:400px;" placeholder="Select Date">
+                </div>
+                <div class="editable-group">
+                    <div class="header-label"><i data-lucide="map-pin"></i> Location</div>
+                    <input type="text" id="head-loc" class="editable-input" readonly style="flex:1; max-width:400px;" placeholder="Enter Location">
+                </div>
+                <div class="editable-group">
+                    <div class="header-label"><i data-lucide="building"></i> Organizer</div>
+                    <input type="text" id="head-org" class="editable-input" readonly style="flex:1; max-width:400px;" placeholder="Organizer Name">
+                </div>
+                <div class="editable-group">
+                    <div class="header-label"><i data-lucide="user"></i> Manager</div>
+                    <input type="text" id="head-man" class="editable-input" readonly style="flex:1; max-width:400px;" placeholder="Manager Name">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0; font-size:1.8rem; font-weight:900;">Tournament Overview</h3>
+            <div style="font-size: 1.05rem; line-height: 1.6;">
+                <p><strong>Tournament Format:</strong> Pool Play Round Robin Style, with top teams advancing to the elimination bracket.</p>
+                <p><strong>Match Rules:</strong> Games to 11, Win by 2. In tournament play, teams switch sides of the court after a team reaches 6 points to keep it fair due to elements like wind and sun.</p>
+
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 2rem 0;">
+
+                <h4 style="color: var(--accent); font-size: 1.2rem; margin-bottom: 10px; font-weight:800;">Options & Guidelines for 50-Team (100-Player) Tournaments</h4>
+                <p style="color: var(--muted); margin-bottom: 15px;">For a 50-team (100-player) pickleball tournament, the best approach is to divide the field into 8 to 10 pools of 5-6 teams each, with 2-3 top teams from each pool advancing to a single-elimination bracket. This structure optimizes court usage and guarantees at least 4-5 matches, providing a high-quality experience for participants.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="tab-roster" class="tab-content hidden">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:1.5rem; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="margin:0; margin-bottom:15px;">Player Registration</h2>
+                    <div class="param-toggle" style="max-width: 320px;">
+                        <button id="setup-mode-manual" class="param-btn active" onclick="setSetupMode('manual')">Manual Setup</button>
+                        <button id="setup-mode-smart" class="param-btn" onclick="setSetupMode('smart')"><i data-lucide="zap" style="width:14px;"></i> Smart Auto</button>
+                    </div>
+                </div>
+                
+                <div id="manual-setup-controls" style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label style="color:var(--muted); font-weight:700;">Target Teams:</label>
+                        <select id="target-teams" onchange="updateExpectedTeams(this.value)" style="width:90px; cursor:pointer; min-height:40px; padding:6px 12px;"></select>
+                    </div>
+                    <label style="color:var(--text); font-weight:700; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="odd-teams-check" onchange="updateOddTeams(this.checked)" style="width:20px; height:20px; min-width:auto; min-height:auto;"> Allow Odd
+                    </label>
+                    <div style="display:flex; align-items:center;">
+                        <label class="btn btn-outline btn-sm" style="cursor:pointer; margin-left:10px;">
+                            <i data-lucide="upload"></i> Import CSV <input type="file" id="csv-upload" accept=".csv" class="hidden" onchange="handleCSV(event)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:var(--row-bg); padding:24px; border-radius:16px; margin-bottom:24px; border: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:24px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);">
+                <div style="flex:1; min-width:320px;">
+                    <h4 style="margin-top:0; color:var(--text); margin-bottom:15px; font-size:1.1rem;">Add New Team</h4>
+                    <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+                        <input type="text" id="new-p1" placeholder="Player 1 Name" style="flex:1; min-width:140px;">
+                        <input type="text" id="new-p2" placeholder="Player 2 Name" style="flex:1; min-width:140px;">
+                        <button class="btn btn-success" onclick="submitNewTeam()"><i data-lucide="plus"></i> Submit Team</button>
+                    </div>
+                </div>
+                <div style="text-align:right; min-width: 220px; padding-left: 24px; border-left: 1px solid var(--border);">
+                    <div id="target-label" style="font-size:1rem; color:var(--muted); margin-bottom:8px; font-weight:800; text-transform:uppercase;">Remaining to Register</div>
+                    <div id="countdown-num" style="color:var(--accent); font-size:3.5rem; font-weight:900; line-height:1; margin-bottom:15px;">-</div>
+                    <button id="pool-action-btn" class="btn btn-primary btn-sm" style="width:100%;" onclick="executePoolAction()" disabled><i data-lucide="shuffle"></i> Randomly Assign Pools</button>
+                </div>
+            </div>
+
+            <div id="roster-list" class="roster-grid"></div>
+        </div>
+    </section>
+
+    <section id="tab-pools" class="tab-content hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; flex-wrap:wrap; gap:15px;">
+            <h2 style="margin:0;">Pool Play</h2>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <div style="position:relative;">
+                    <i data-lucide="search" style="position:absolute; left:14px; top:14px; width:20px; color:var(--muted);"></i>
+                    <input type="text" id="pool-search" placeholder="Search..." style="width:230px; padding-left:45px;" onkeyup="renderPools()">
+                </div>
+                <div style="background:var(--row-bg); padding:12px 20px; border-radius:10px; border: 1px solid var(--border);">
+                    <span class="muted" id="pool-count-label" style="font-size:1rem; font-weight:800;">- Pools Active</span>
+                </div>
+            </div>
+        </div>
+        <div id="pool-container"></div>
+    </section>
+
+    <section id="tab-standings" class="tab-content hidden">
+        <div class="standings-container">
+            <div class="card">
+                <h2>Pool Standings</h2>
+                <div id="pool-standings-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tab-bracket" class="tab-content hidden">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap: wrap; gap: 15px;">
+                <h2 style="margin:0;">Elimination Bracket</h2>
+                <button class="btn btn-primary" onclick="generateBracket()"><i data-lucide="git-merge"></i> Seed Bracket</button>
+            </div>
+            <div id="bracket-ui"></div>
+        </div>
+    </section>
+
+    <section id="tab-rr-setup" class="tab-content hidden">
+        <div id="rr-setup-container" class="card">
+            <h2 style="margin:0; margin-bottom:24px;">Round Robin Event Setup</h2>
+            <div id="format-cards-container" class="format-grid"></div>
+            <button class="btn btn-primary" style="width:100%; font-size:1.2rem; padding:18px; margin-top:2rem;" onclick="startRREvent()"><i data-lucide="play" style="width:24px; height:24px;"></i> Start Event</button>
+        </div>
+    </section>
+
+    <section id="tab-rr-play" class="tab-content hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; flex-wrap:wrap; gap:15px;">
+            <h2 style="margin:0; font-size:2rem;">Active Matches</h2>
+            <button id="rr-next-round-btn" class="btn btn-primary" onclick="advanceRRRound()">Next Rd <i data-lucide="arrow-right" style="width:20px;"></i></button>
+        </div>
+        <div id="rr-match-container" class="pool-grid"></div>
+    </section>
+
+</main>
+
+<nav class="mobile-nav hidden">
+    <a href="#" id="mob-nav-home" class="mob-nav-item active" onclick="showTab('home', 'tourney')"><i data-lucide="home"></i> Home</a>
+    <a href="#" id="mob-nav-roster" class="mob-nav-item" onclick="showTab('roster', 'tourney')"><i data-lucide="users"></i> Check-In</a>
+    <a href="#" id="mob-nav-pools" class="mob-nav-item" onclick="showTab('pools', 'tourney')"><i data-lucide="layout-grid"></i> Pools</a>
+    <a href="#" id="mob-nav-stats" class="mob-nav-item" onclick="showTab('standings', 'tourney')"><i data-lucide="bar-chart-3"></i> Stats</a>
+    <a href="#" id="mob-nav-bracket" class="mob-nav-item" onclick="showTab('bracket', 'tourney')"><i data-lucide="git-branch"></i> Bracket</a>
+</nav>
+
+<script>
+    // --- APP CORE LOGIC ---
+    const RR_FORMATS = {
+        popcorn: { id: "popcorn", icon: "shuffle", name: "Popcorn", desc: "1 Game/rd. Play with random partners each round.", teamSize: 1 },
+        fixed_pool: { id: "fixed_pool", icon: "layout-grid", name: "Classic Pool Play", desc: "Standard round-robin with fixed teams.", teamSize: 2 }
+    };
+
+    const DEFAULT_STATE = {
+        appMode: 'tourney', theme: "dark", setupMode: 'manual', advancementCount: 8,
+        header: { title: "New Tournament", date: "", loc: "", org: "", man: "", logoDarkTheme: "Compass-Logo-White.png", logoLightTheme: "Compass-Logo-White.png" },
+        expectedTeams: "-", allowOddTeams: false, finalsFormat: "bo3", teams: [], completedMatches: {}, poolCount: 0, courts: {}, stranded: [],
+        bracket: { r16: Array(8).fill().map(() => ({t1:null, t2:null, winner:null})), qf: Array(4).fill().map(() => ({t1:null, t2:null, winner:null})), sf: Array(2).fill().map(() => ({t1:null, t2:null, winner:null})), final: {t1:null, t2:null, winner:null, scores:[], gameLocks:[false,false,false]}, third: {t1:null, t2:null, winner:null, scores:[], gameLocks:[false,false,false]} },
+        rr: { title: "", date: "", format: 'popcorn', isStarted: false, entities: [], roundNum: 1, courts: [], bracket: {} }
+    };
+
+    let state = JSON.parse(localStorage.getItem('picklepal_2026')) || DEFAULT_STATE;
+
+    function saveState() { localStorage.setItem('picklepal_2026', JSON.stringify(state)); }
+
+    function setAppMode(mode, isInit = false) {
+        state.appMode = mode;
+        const tBtns = [document.getElementById('mode-btn-tourney'), document.getElementById('mob-mode-tourney')];
+        const rBtns = [document.getElementById('mode-btn-rr'), document.getElementById('mob-mode-rr')];
+        tBtns.forEach(b => b?.classList.remove('active')); rBtns.forEach(b => b?.classList.remove('active'));
+        document.querySelectorAll('.nav-tabs').forEach(el => el.classList.add('hidden'));
+        if(mode === 'tourney') { tBtns.forEach(b => b?.classList.add('active')); document.getElementById('nav-tourney').classList.remove('hidden'); if(!isInit) showTab('home', 'tourney'); }
+        else { rBtns.forEach(b => b?.classList.add('active')); document.getElementById('nav-rr').classList.remove('hidden'); if(!isInit) showTab('rr-setup', 'rr'); }
+        saveState(); lucide.createIcons();
+    }
+
+    function showTab(tabId, group) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`tab-${tabId}`)?.classList.remove('hidden');
+        document.querySelectorAll('.tab-btn, .mob-nav-item').forEach(btn => btn.classList.remove('active'));
+        const mobIdMap = { 'home': 'mob-nav-home', 'roster': 'mob-nav-roster', 'pools': 'mob-nav-pools', 'standings': 'mob-nav-stats', 'bracket': 'mob-nav-bracket' };
+        document.getElementById(mobIdMap[tabId])?.classList.add('active');
+        if (tabId === 'standings') renderStandings();
+        if (tabId === 'pools') renderPools();
+        if (tabId === 'bracket') renderBracketUI();
+        if (tabId === 'roster') renderRoster();
+        lucide.createIcons();
+    }
+
+    function setSetupMode(mode) {
+        state.setupMode = mode;
+        renderRoster();
+    }
+
+    function updateExpectedTeams(val) {
+        state.expectedTeams = val === '-' ? '-' : parseInt(val);
+        if(state.expectedTeams !== '-') state.poolCount = Math.max(1, Math.round(state.expectedTeams / 5));
+        saveState(); renderRoster();
+    }
+
+    async function submitNewTeam() {
+        const p1 = document.getElementById('new-p1').value.trim();
+        const p2 = document.getElementById('new-p2').value.trim();
+        if(!p1 || !p2) return;
+        state.teams.push({ id: Date.now(), p1, p2, p1Locked: true, p2Locked: true, pool: 0, wins: 0, losses: 0, pd: 0, active: true });
+        document.getElementById('new-p1').value = ''; document.getElementById('new-p2').value = '';
+        saveState(); renderRoster();
+    }
+
+    function renderRoster() {
+        const list = document.getElementById('roster-list');
+        const active = state.teams.filter(t => t.active);
+        const remaining = state.expectedTeams === '-' ? 0 : state.expectedTeams - active.length;
+        document.getElementById('countdown-num').innerText = Math.max(0, remaining);
+        document.getElementById('pool-action-btn').disabled = (remaining > 0);
+        
+        list.innerHTML = active.map((t, idx) => `
+            <div class="team-row-entry">
+                <div style="font-weight:900; color:var(--muted);">${idx + 1}</div>
+                <div><input type="text" value="${t.p1}" readonly><button class="btn-sm btn-outline"><i data-lucide="edit-2"></i></button></div>
+                <div><input type="text" value="${t.p2}" readonly><button class="btn-sm btn-outline"><i data-lucide="edit-2"></i></button></div>
+                <select><option>Pool ${String.fromCharCode(65 + t.pool)}</option></select>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function renderPools() {
+        const container = document.getElementById('pool-container');
+        container.innerHTML = '<div class="match-card">Pool matches loading...</div>';
+    }
+
+    function renderStandings() {
+        document.getElementById('pool-standings-list').innerHTML = '<p>Standings will appear once scores are recorded.</p>';
+    }
+
+    function renderBracketUI() {
+        const ui = document.getElementById('bracket-ui');
+        ui.innerHTML = `
+            <div class="bracket-container">
+                <div class="bracket-column"><div class="match-card">QF Match 1</div><div class="match-card">QF Match 2</div></div>
+                <div class="bracket-column"><div class="match-card">Semifinal 1</div><div class="match-card">Semifinal 2</div></div>
+                <div class="bracket-column"><div class="match-card" style="border:2px solid var(--gold)">Championship</div></div>
+            </div>
+        `;
+    }
+
+    function toggleTheme() {
+        state.theme = state.theme === 'dark' ? 'light' : 'dark';
+        document.body.className = state.theme === 'light' ? 'light-theme' : 'dark-theme';
+        saveState();
+    }
+
+    async function resetApp() {
+        if(confirm("Factory Reset App?")) { localStorage.removeItem('picklepal_2026'); location.reload(); }
+    }
+
+    function init() {
+        const target = document.getElementById('target-teams');
+        if(target) {
+            target.innerHTML = `<option value="-">-</option>`;
+            for(let i=8; i<=50; i+=2) target.innerHTML += `<option value="${i}" ${state.expectedTeams == i ? 'selected' : ''}>${i}</option>`;
+        }
+        document.body.className = state.theme === 'light' ? 'light-theme' : 'dark-theme';
+        setAppMode(state.appMode, true);
+        showTab('home', 'tourney');
+        lucide.createIcons();
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
