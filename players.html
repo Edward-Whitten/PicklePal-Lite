@@ -6,79 +6,269 @@
     <title>PicklePal Lite - Player Portal</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            --bg: #020617;
-            --card: #1e293b;
-            --text: #f8fafc;
-            --accent: #a855f7;
-            --muted: #94a3b8;
-            --success: #22c55e;
-            --border: rgba(255,255,255,0.15);
-            --gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #a855f7 100%);
-        }
-        * { box-sizing: border-box; font-family: sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
-        .card { background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px; text-align: left; }
-        input[type="number"], input[type="text"] { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 10px; font-size: 1.2rem; width: 100%; text-align: center; }
-        .btn { background: var(--gradient); color: white; border: none; padding: 14px 20px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; cursor: pointer; font-size: 1.1rem; }
-        .hidden { display: none !important; }
-        .score-box { width: 70px; height: 50px; font-size: 1.5rem; }
+        :root { --primary:#0f172a; --bg:#020617; --card:#1e293b; --card-glass:rgba(30,41,59,.6); --text:#f8fafc; --muted:#94a3b8; --accent:#a855f7; --accent-2:#3b82f6; --success:#22c55e; --border:rgba(255,255,255,.15); --input-bg:rgba(0,0,0,.3); --input-border:#475569; --row-bg:rgba(255,255,255,.03); --gradient:linear-gradient(135deg,#06b6d4 0%,#3b82f6 50%,#a855f7 100%); }
+        body.light-theme { --primary:#fff; --bg:#f1f5f9; --card:#fff; --card-glass:rgba(255,255,255,.85); --text:#0f172a; --muted:#475569; --accent:#6d28d9; --border:#cbd5e1; --input-bg:#fff; --input-border:#94a3b8; --row-bg:#f8fafc; --gradient:linear-gradient(135deg,#0284c7 0%,#4f46e5 50%,#db2777 100%); background-image:radial-gradient(circle at top right,rgba(109,40,217,.08),transparent 50%); }
+        * { box-sizing:border-box; font-family:'Inter',-apple-system,sans-serif; }
+        html, body { max-width:100%; overflow-x:hidden; }
+        body { margin:0; min-height:100vh; color:var(--text); background-color:var(--bg); background-image:radial-gradient(circle at top right,rgba(168,85,247,.18),transparent 50%), linear-gradient(90deg,transparent 0 49.8%,rgba(6,182,212,.035) 50%,transparent 50.2%), linear-gradient(0deg,transparent 0 49.8%,rgba(168,85,247,.035) 50%,transparent 50.2%); background-size:auto,180px 180px,180px 180px; }
+        .portal-shell { width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:2.5rem 0 6rem; overflow-wrap:anywhere; }
+        .portal-header { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px 0 28px; border-bottom:1px solid var(--border); }
+        .portal-header > div:last-child { flex-wrap:wrap; justify-content:flex-end; }
+        .brand { display:flex; align-items:center; gap:14px; }
+        .brand img { width:90px; height:90px; object-fit:contain; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+        .brand-kicker { margin:0 0 4px; color:var(--accent); font:800 .75rem/1.2 'Inter',sans-serif; letter-spacing:.16em; text-transform:uppercase; }
+        .brand h1 { margin:0; white-space:nowrap; font-size:clamp(1.6rem,4vw,2.5rem); line-height:1; font-weight:900; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .live-badge { display:flex; align-items:center; gap:8px; color:var(--muted); font:800 .8rem 'Inter',sans-serif; text-transform:uppercase; letter-spacing:.08em; }
+        .live-dot { width:9px; height:9px; border-radius:50%; background:var(--success); box-shadow:0 0 14px var(--success); }
+        .theme-toggle { width:42px; height:42px; border:1px solid var(--border); border-radius:10px; background:var(--row-bg); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .sync-status { display:flex; align-items:center; gap:7px; color:var(--muted); font:700 .72rem 'Inter',sans-serif; white-space:nowrap; }
+        .sync-status-dot { width:8px; height:8px; border-radius:50%; background:var(--success); }
+        .sync-status.pending .sync-status-dot { background:#fbbf24; box-shadow:0 0 10px #fbbf24; }
+        .sync-status.offline .sync-status-dot { background:#ef4444; box-shadow:0 0 10px #ef4444; }
+        .hero { padding:42px 0 26px; max-width:720px; }
+        .hero h2 { margin:0 0 12px; font-size:clamp(1.8rem,3.5vw,3rem); line-height:1; font-weight:900; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .hero p { margin:0; color:var(--muted); font:1rem/1.6 'Inter',sans-serif; }
+        .section-heading { display:flex; align-items:end; justify-content:space-between; gap:16px; margin:34px 0 16px; }
+        .section-heading h3 { margin:0; font-size:1.25rem; font-weight:900; }
+        .section-heading span { color:var(--muted); font:800 .8rem 'Inter',sans-serif; text-transform:uppercase; letter-spacing:.08em; }
+        .board-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+        .card { background:linear-gradient(145deg,rgba(30,41,59,.72),rgba(15,23,42,.86)); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:1px solid rgba(148,163,184,.2); border-radius:16px; padding:2rem; margin-bottom:1.5rem; box-shadow:0 12px 40px rgba(0,0,0,.16), inset 0 1px rgba(255,255,255,.035); }
+        body.light-theme .card { background:var(--card-glass); border-color:var(--border); box-shadow:0 12px 40px rgba(15,23,42,.08), inset 0 1px rgba(255,255,255,.85); }
+        body.light-theme input { background:#e2e8f0; border-color:#94a3b8; color:#0f172a; box-shadow:inset 0 1px 2px rgba(15,23,42,.08); }
+        body.light-theme input:focus { background:#fff; border-color:var(--accent); box-shadow:0 0 0 3px rgba(109,40,217,.18); }
+        .pool-card h4 { margin:0 0 14px; color:var(--accent); font-size:1.15rem; font-weight:900; }
+        .team-line { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 0; border-top:1px solid var(--border); font:700 .95rem 'Inter',sans-serif; }
+        .team-line:first-of-type { border-top:0; }
+        .team-line small { color:var(--muted); font-weight:400; }
+        .match-line { padding:12px 0; border-top:1px solid var(--border); font:700 .9rem 'Inter',sans-serif; }
+        .match-line:first-child { border-top:0; }
+        .match-score { display:block; margin-top:6px; color:var(--accent-2); font-size:.8rem; }
+        .bracket-wrap { overflow-x:auto; padding-bottom:8px; }
+        .bracket { display:grid; grid-template-columns:repeat(4,minmax(190px,1fr)); gap:14px; min-width:820px; }
+        .round h4 { margin:0 0 10px; color:var(--muted); font:700 .75rem Arial,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+        .bracket-match { min-height:72px; padding:12px; margin-bottom:12px; background:var(--row-bg); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:12px; font:700 .82rem/1.45 'Inter',sans-serif; }
+        .rules { border-left:4px solid var(--accent); }
+        .rules h3 { margin-top:0; color:var(--accent); }
+        .rules ul { margin:0; padding-left:20px; color:var(--muted); font:1rem/1.65 'Inter',sans-serif; }
+        .rules li + li { margin-top:8px; }
+        .rules a { display:inline-block; margin-top:16px; color:var(--accent); font:800 .9rem 'Inter',sans-serif; }
+        .score-panel { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:14px; }
+        .tournament-picker { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:end; border-top:4px solid var(--accent); }
+        .tournament-picker input { min-width:220px; }
+        .score-panel h3 { margin:0 0 8px; }
+        .score-panel p { margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif; }
+        input { background:var(--input-bg); border:1px solid var(--input-border); color:var(--text); border-radius:10px; padding:13px; font:700 1rem 'Inter',sans-serif; }
+        .btn { background:var(--gradient); color:#fff; border:0; border-radius:10px; padding:13px 18px; font:800 .9rem 'Inter',sans-serif; cursor:pointer; white-space:nowrap; box-shadow:0 4px 15px rgba(168,85,247,.3); }
+        .btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+        .hidden { display:none !important; }
+        .app-copyright { color:var(--muted); font:700 .72rem 'Inter',sans-serif; letter-spacing:.04em; text-align:center; padding:18px 24px; }
+        .public-view { display:none; }
+        .public-view.active { display:block; }
+        .private-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+        .private-head h3 { margin:0; }
+        @media (max-width:640px) { .portal-shell { width:min(100% - 24px,1180px); padding-top:12px; } .portal-header { align-items:flex-start; flex-direction:column; gap:14px; } .portal-header > div:last-child { width:100%; justify-content:flex-start; gap:10px; } .live-badge { padding-top:0; font-size:.65rem; white-space:nowrap; } .brand img { width:50px; height:50px; } .brand h1 { font-size:1.55rem; } .hero { padding-top:28px; } .hero h2 { font-size:1.8rem; line-height:1.02; } .hero p { font-size:.92rem; } .section-heading { margin-top:26px; } .section-heading h3 { font-size:1.15rem; } .section-heading span { font-size:.68rem; } .card { padding:1.25rem; } .score-panel, .tournament-picker { grid-template-columns:1fr; } .score-panel .btn, .tournament-picker .btn { width:100%; } .tournament-picker input { min-width:0; width:100%; } }
     </style>
-    <!-- Firebase Realtime Database SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-bridge.js"></script>
 </head>
 <body>
+    <div class="portal-shell">
+        <header class="portal-header">
+            <div class="brand"><img src="PicklePal-Lite.png" alt="PicklePal Lite logo"><div><p class="brand-kicker">Tournament portal</p><h1>PicklePal Lite</h1></div></div>
+            <div style="display:flex; align-items:center; gap:12px;"><a href="/" class="live-badge" style="text-decoration:none;">Home</a><button class="live-badge" onclick="logoutPortal()" style="border:0; background:transparent; cursor:pointer; padding:0;">Log out</button><div class="live-badge"><span class="live-dot"></span> Live board</div><div id="sync-status" class="sync-status"><span class="sync-status-dot"></span><span id="sync-status-text">Cloud authentication required</span></div><button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme"><i data-lucide="sun"></i></button></div>
+        </header>
 
-    <h2 style="color:var(--accent);">PICKLEPAL LITE - PLAYER PORTAL</h2>
+        <section class="hero"><h2>Watch the tournament unfold.</h2><p>Follow pool play, standings, and the elimination bracket in real time. A player PIN is only needed when submitting a score for your own match.</p></section>
 
-    <div id="login-card" class="card">
-        <h3>Enter 4-Digit Player PIN</h3>
-        <input type="number" id="player-pin-input" placeholder="e.g. 4821">
-        <button class="btn" onclick="loginPlayer()">Access Schedule</button>
-    </div>
+        <section class="card tournament-picker">
+            <div><h3 style="margin:0 0 8px;">Choose a tournament</h3><p style="margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif;">Enter the one-word tournament code supplied by the organizer.</p></div>
+            <div><input type="text" id="tournament-nickname" placeholder="One-word tournament code" aria-label="One-word tournament code"><button class="btn" onclick="loadTournament()">View tournament</button></div>
+            <p id="tournament-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
+        </section>
 
-    <div id="player-dashboard" class="hidden">
-        <div class="card" style="border-color:var(--accent);">
-            <h3 id="player-team-title" style="margin:0; color:var(--accent);">Team Schedule</h3>
-        </div>
+        <section id="player-finder" class="card score-panel hidden">
+            <div><h3>Find your matches</h3><p>Enter your first and last name exactly as the organizer registered it.</p></div>
+            <div><input type="text" id="player-name-input" placeholder="Your name" autocomplete="name" aria-label="Your name"><button class="btn" onclick="findPlayerMatches()">Show my matches</button></div>
+            <p id="player-finder-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
+        </section>
 
-        <h3>Your Assigned Matches</h3>
-        <div id="player-matches-container"></div>
+        <section id="public-pool-section" class="public-view">
+            <div class="section-heading"><h3>Pool Play</h3><span id="pool-status">Waiting for tournament data</span></div>
+            <div id="public-pools" class="board-grid"><div class="card">Loading pool play...</div></div>
+        </section>
+
+        <section id="public-bracket-section" class="public-view">
+            <div class="section-heading"><h3>Elimination Bracket</h3><span>Live results</span></div>
+            <div id="public-bracket" class="card bracket-wrap">Loading bracket...</div>
+        </section>
+
+        <section class="card rules">
+            <h3>Official Pickleball Rules (2026)</h3>
+            <ul>
+                <li><strong>Scoring:</strong> Only the serving side scores. Games are played to 11 points and must be won by 2.</li>
+                <li><strong>Two-Bounce Rule:</strong> The serve must bounce before the receiver returns it, and the return must bounce before the serving side plays it.</li>
+                <li><strong>Serve:</strong> The serve is made diagonally, clears the non-volley zone, and must be made underhand with the contact below the waist.</li>
+                <li><strong>Non-Volley Zone:</strong> A player may not volley while touching the non-volley zone or its line, including when momentum carries the player into it.</li>
+                <li><strong>Line Calls:</strong> Players call the lines on their side of the court. When uncertain, the call is made in favor of the opponent.</li>
+            </ul>
+            <a href="https://usapickleball.org/docs/2026-USA-Pickleball-Official-Rulebook.pdf" target="_blank" rel="noopener">Read the complete 2026 USA Pickleball Official Rulebook</a>
+        </section>
+
+        <section class="card score-panel">
+            <div><h3>Submit a match score</h3><p>Enter your PIN to unlock score entry for matches associated with your team. The public board above never requires a code.</p></div>
+            <div><input type="number" id="player-pin-input" placeholder="4-digit PIN" inputmode="numeric" aria-label="4-digit player PIN"><button class="btn" onclick="loginPlayer()">Unlock scores</button></div>
+        </section>
+
+        <section id="player-dashboard" class="hidden card">
+            <div class="private-head"><h3 id="player-team-title">Your assigned matches</h3><span class="live-badge"><span class="live-dot"></span> PIN verified</span></div>
+            <div id="player-matches-container"></div>
+        </section>
+        <footer class="app-copyright">Copyright 2026 Auralogic Solutions</footer>
     </div>
 
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBDiFkpHAgA0dyTliSBxPGrC2ec0VEa0is",
-      authDomain: "picklepal-lite.firebaseapp.com",
-      databaseURL: "https://picklepal-lite-default-rtdb.firebaseio.com",
-      projectId: "picklepal-lite",
-      storageBucket: "picklepal-lite.firebasestorage.app",
-      messagingSenderId: "163325965141",
-      appId: "1:163325965141:web:1d3ab0c65158399a8bf5dc",
-      measurementId: "G-F9WEECS7TX"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        // --- SUPABASE CLOUD INTEGRATION ---
 
     let state = {};
     let loggedInTeam = null;
+    let tournamentSlug = '';
+    let tournamentRef = null;
+    let cloudConnected = false;
+    let syncPending = false;
+    let syncRetryTimer = null;
+    const portalRole = localStorage.getItem('picklepal_portal_role') || 'player';
 
-    db.ref('tournament_state').on('value', (snapshot) => {
-        state = snapshot.val() || {};
-        if(loggedInTeam) renderPlayerSchedule();
-    });
+    function toggleTheme() {
+        const isLight = document.body.classList.toggle('light-theme');
+        localStorage.setItem('picklepal_theme', isLight ? 'light' : 'dark');
+    }
 
-    function loginPlayer() {
+    function logoutPortal() {
+        localStorage.removeItem('picklepal_portal_role');
+        localStorage.removeItem('picklepal_portal_nickname');
+        window.location.href = '/';
+    }
+
+    function normalizeTournamentNickname(value) { return value.trim().toLowerCase(); }
+    function isOneWordTournamentCode(value) { return /^[A-Za-z0-9]{1,48}$/.test(value.trim()); }
+    function tournamentStateKey(slug) { return `picklepal_tournament_${slug}`; }
+
+    function updateSyncStatus() {
+        const status = document.getElementById('sync-status');
+        const text = document.getElementById('sync-status-text');
+        if(!status || !text) return;
+        status.classList.remove('pending', 'offline');
+        if(!cloudConnected) { status.classList.add('offline'); text.innerText = syncPending ? 'Cloud sync pending · Recovery backup active' : 'Supabase disconnected · Recovery backup active'; }
+        else if(!auth || !auth.currentUser) { text.innerText = 'Connected to Supabase · Sign in to sync'; }
+        else if(syncPending) { status.classList.add('pending'); text.innerText = 'Cloud sync pending · Recovery backup active'; }
+        else text.innerText = 'Connected to Supabase';
+    }
+
+    function syncPlayerState() {
+        if(!tournamentRef || !syncPending || !cloudConnected) return;
+        if(!auth || !auth.currentUser || !functions) { updateSyncStatus(); return; }
+        const save = functions.httpsCallable('saveTournamentState')({ state });
+        save.then(() => { syncPending = false; localStorage.removeItem(`picklepal_pending_sync_${tournamentSlug}`); localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); updateSyncStatus(); }).catch(error => { syncPending = true; localStorage.setItem(`picklepal_pending_sync_${tournamentSlug}`, 'true'); updateSyncStatus(); if(!syncRetryTimer) syncRetryTimer = setTimeout(() => { syncRetryTimer = null; syncPlayerState(); }, 3000); console.warn('Tournament sync unavailable:', error.message); });
+    }
+
+    async function loadTournament() {
+        const nickname = document.getElementById('tournament-nickname').value.trim();
+        tournamentSlug = normalizeTournamentNickname(nickname);
+        const message = document.getElementById('tournament-message');
+        if(!isOneWordTournamentCode(nickname)) { message.innerText = 'Enter the one-word tournament code supplied by the organizer.'; return; }
+
+        let loaded = null;
+        tournamentRef = db.ref('tournaments').child(tournamentSlug).child('state');
+        try { loaded = (await tournamentRef.once('value')).val(); } catch (error) { loaded = null; }
+        if(!loaded) {
+            try { loaded = JSON.parse(localStorage.getItem(tournamentStateKey(tournamentSlug))); } catch (error) { loaded = null; }
+        }
+        if(!loaded || !Array.isArray(loaded.teams)) { message.innerText = 'Tournament not found. Check the nickname and try again.'; return; }
+        state = loaded;
+        syncPending = localStorage.getItem(`picklepal_pending_sync_${tournamentSlug}`) === 'true';
+        message.innerText = '';
+        db.ref('.info/connected').on('value', snapshot => { cloudConnected = snapshot.val() === true; updateSyncStatus(); if(cloudConnected) syncPlayerState(); });
+        document.getElementById('public-pool-section').classList.add('active');
+        document.getElementById('public-bracket-section').classList.add('active');
+        if(portalRole === 'player') document.getElementById('player-finder').classList.remove('hidden');
+        renderPublicPools(); renderPublicBracket();
+        tournamentRef.on('value', snapshot => {
+            const remote = snapshot.val();
+            if(remote && Array.isArray(remote.teams) && (!syncPending || Number(remote.updatedAt || 0) >= Number(state.updatedAt || 0))) { state = remote; localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); renderPublicPools(); renderPublicBracket(); if(loggedInTeam) renderPlayerSchedule(); }
+        });
+    }
+
+    try {
+        const sharedTournament = new URLSearchParams(window.location.search).get('event');
+        const preferredTournament = sharedTournament || localStorage.getItem('picklepal_portal_nickname') || localStorage.getItem('picklepal_active_tournament');
+        if(preferredTournament) {
+            document.getElementById('tournament-nickname').value = preferredTournament;
+            if(sharedTournament) loadTournament();
+        }
+    } catch (error) {}
+
+    if(portalRole === 'spectator') document.querySelector('.score-panel').classList.add('hidden');
+
+    function findPlayerMatches() {
+        const name = document.getElementById('player-name-input').value.trim().toLowerCase();
+        const message = document.getElementById('player-finder-message');
+        if (!name) { message.innerText = 'Enter the name used during registration.'; return; }
+        const matches = state.teams.filter(team => [team.p1, team.p2].some(player => String(player || '').trim().toLowerCase() === name));
+        if (!matches.length) { message.innerText = 'No registered team matches that name. Check the spelling with the organizer.'; return; }
+        if (matches.length > 1) { message.innerText = 'More than one team matches that name. Ask the organizer for your player PIN to unlock the right team.'; return; }
+        loggedInTeam = matches[0];
+        message.innerText = '';
+        document.getElementById('player-dashboard').classList.remove('hidden');
+        document.getElementById('player-team-title').innerText = `${loggedInTeam.p1} & ${loggedInTeam.p2}`;
+        renderPlayerSchedule();
+    }
+
+    function teamName(team) {
+        if(!team) return 'TBD';
+        if(typeof team === 'string') return team;
+        return `${team.p1 || 'Player 1'} & ${team.p2 || 'Player 2'}`;
+    }
+
+    function renderPublicPools() {
+        const container = document.getElementById('public-pools');
+        const activeTeams = Array.isArray(state.teams) ? state.teams.filter(team => team.active) : [];
+        const poolCount = Number(state.poolCount) || (activeTeams.length ? Math.ceil(activeTeams.length / 5) : 0);
+        document.getElementById('pool-status').innerText = activeTeams.length ? `${activeTeams.length} teams · ${poolCount} pools` : 'Waiting for tournament data';
+        if(!activeTeams.length) { container.innerHTML = '<div class="card">Pool play will appear here once teams are registered.</div>'; return; }
+
+        container.innerHTML = Array.from({length: poolCount}, (_, poolIndex) => {
+            const teams = activeTeams.filter(team => Number(team.pool) === poolIndex);
+            return `<article class="card pool-card"><h4>Pool ${String.fromCharCode(65 + poolIndex)}</h4>${teams.length ? teams.map(team => `<div class="team-line"><span>${teamName(team)}</span><small>${team.wins || 0}-${team.losses || 0}</small></div>`).join('') : '<p style="color:var(--muted);font: .9rem Arial,sans-serif;">No teams assigned yet.</p>'}</article>`;
+        }).join('');
+    }
+
+    function renderPublicBracket() {
+        const container = document.getElementById('public-bracket');
+        const bracket = state.bracket || {};
+        const rounds = [['Round of 32', bracket.r32], ['Round of 16', bracket.r16], ['Quarterfinals', bracket.qf], ['Semifinals', bracket.sf]];
+        const visibleRounds = rounds.filter(([, matches]) => Array.isArray(matches) && matches.some(match => match && (match.t1 || match.t2 || match.winner)));
+        if(!visibleRounds.length && !(bracket.final && (bracket.final.t1 || bracket.final.t2 || bracket.final.winner))) { container.innerHTML = '<p style="color:var(--muted);font:1rem Arial,sans-serif;">The elimination bracket will appear once pool play is complete.</p>'; return; }
+        const finalRound = bracket.final && (bracket.final.t1 || bracket.final.t2 || bracket.final.winner) ? [['Final', [bracket.final]]] : [];
+        container.innerHTML = `<div class="bracket">${visibleRounds.concat(finalRound).map(([title, matches]) => `<div class="round"><h4>${title}</h4>${matches.filter(Boolean).map(match => `<div class="bracket-match">${teamName(match.t1)}<br>${teamName(match.t2)}${match.winner ? `<span class="match-score">Winner: ${teamName(match.winner === 1 ? match.t1 : match.t2)}</span>` : ''}</div>`).join('')}</div>`).join('')}</div>`;
+    }
+
+    async function loginPlayer() {
         const pin = document.getElementById('player-pin-input').value.trim();
-        if(!state.teams) return alert("No active tournament data found.");
+        if(!Array.isArray(state.teams)) return alert("Choose a tournament first.");
 
-        const team = state.teams.find(t => t.pin === pin);
+        let team = null;
+        try {
+            if(functions && auth) {
+                const session = await functions.httpsCallable('playerSession')({ tournament: tournamentSlug, playerPin: pin });
+                await auth.signInWithCustomToken(session.data.token);
+                team = state.teams.find(t => String(t.id) === String(session.data.teamId));
+            }
+        } catch (error) { console.warn('Secure player session unavailable; local recovery remains active:', error.message); }
+        if(!team) team = state.teams.find(t => t.pin === pin);
         if(!team) return alert("Invalid 4-Digit PIN. Ask tournament manager for help.");
 
         loggedInTeam = team;
-        document.getElementById('login-card').classList.add('hidden');
         document.getElementById('player-dashboard').classList.remove('hidden');
         document.getElementById('player-team-title').innerText = `${team.p1} & ${team.p2}`;
         renderPlayerSchedule();
@@ -99,13 +289,19 @@
                     matchesFound++;
                     const mId = `m-${pTeams[a].id}-${pTeams[b].id}`;
                     const match = (state.completedMatches && state.completedMatches[mId]) ? state.completedMatches[mId] : null;
+                    const report = state.scoreReports && state.scoreReports[mId];
 
                     const opponent = pTeams[a].id === loggedInTeam.id ? pTeams[b] : pTeams[a];
                     const isTeamA = pTeams[a].id === loggedInTeam.id;
+                    const reportKey = isTeamA ? 'teamA' : 'teamB';
 
                     let statusHTML = '';
                     if(match) {
                         statusHTML = `<strong style="color:var(--success);">COMPLETED: ${match.s1} - ${match.s2}</strong>`;
+                    } else if(report && report[reportKey]) {
+                        const otherReport = report[reportKey === 'teamA' ? 'teamB' : 'teamA'];
+                        const disputed = otherReport && (otherReport.s1 !== report[reportKey].s1 || otherReport.s2 !== report[reportKey].s2);
+                        statusHTML = `<strong style="color:${disputed ? 'var(--danger)' : 'var(--muted)'};">${disputed ? 'SCORE DISPUTED - ADMIN REVIEW' : 'SCORE SUBMITTED - AWAITING OPPONENT'}</strong>`;
                     } else {
                         statusHTML = `
                             <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
@@ -129,7 +325,7 @@
         if(matchesFound === 0) container.innerHTML = '<p style="color:var(--muted);">No pool matches assigned yet.</p>';
     }
 
-    function submitScore(mId, id1, id2, isTeamA) {
+    async function submitScore(mId, id1, id2, isTeamA) {
         const s1 = parseInt(document.getElementById(`s1-${mId}`).value);
         const s2 = parseInt(document.getElementById(`s2-${mId}`).value);
 
@@ -142,19 +338,50 @@
         const minScore = Math.min(myScore, oppScore);
         if(maxScore < 11 || (maxScore - minScore < 2)) return alert("Invalid score. Must reach at least 11 points and win by 2.");
 
+        if(!tournamentRef) return alert("Choose a tournament first.");
+        if(!state.scoreReports) state.scoreReports = {};
         if(!state.completedMatches) state.completedMatches = {};
-        state.completedMatches[mId] = { s1: isTeamA ? s1 : s2, s2: isTeamA ? s2 : s1 };
+        const team1Score = isTeamA ? s1 : s2;
+        const team2Score = isTeamA ? s2 : s1;
+        const report = state.scoreReports[mId] || {};
+        const reportKey = isTeamA ? 'teamA' : 'teamB';
+        report[reportKey] = { s1: team1Score, s2: team2Score, submittedAt: new Date().toISOString(), teamId: isTeamA ? id1 : id2 };
+        state.scoreReports[mId] = report;
+        state.updatedAt = Date.now();
+        syncPending = true;
+        localStorage.setItem(`picklepal_pending_sync_${tournamentSlug}`, 'true');
 
         // Update Win/Loss/PD
         const t1 = state.teams.find(t => t.id === id1);
         const t2 = state.teams.find(t => t.id === id2);
 
-        if (s1 > s2) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
-        t1.pd += (s1 - s2); t2.pd += (s2 - s1);
+        const otherKey = reportKey === 'teamA' ? 'teamB' : 'teamA';
+        const otherReport = report[otherKey];
+        if(otherReport && otherReport.s1 === team1Score && otherReport.s2 === team2Score && !state.completedMatches[mId]) {
+            if (team1Score > team2Score) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
+            t1.pd += team1Score - team2Score; t2.pd += team2Score - team1Score;
+            state.completedMatches[mId] = { s1: team1Score, s2: team2Score, status:'confirmed', resolvedBy:'teams', resolvedAt:new Date().toISOString() };
+            delete state.scoreReports[mId];
+        }
 
-        db.ref('tournament_state').set(state);
-        alert("Score submitted and updated in real time!");
+        localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+        if (auth && auth.currentUser && functions) {
+            try {
+                await functions.httpsCallable('submitScoreReport')({ matchId:mId, teamAId:id1, teamBId:id2, teamAScore:team1Score, teamBScore:team2Score });
+                syncPending = false;
+                localStorage.removeItem(`picklepal_pending_sync_${tournamentSlug}`);
+            } catch (error) { syncPlayerState(); }
+        } else syncPlayerState();
+        alert(otherReport && otherReport.s1 !== team1Score ? "Score submitted. The match is disputed and awaiting admin review." : (state.completedMatches[mId] ? "Score confirmed by both teams." : "Score submitted. Awaiting the other team."));
+        renderPublicPools(); renderPublicBracket(); renderPlayerSchedule();
     }
-</script>
+
+    window.onload = () => {
+        if(localStorage.getItem('picklepal_theme') === 'light') document.body.classList.add('light-theme');
+        lucide.createIcons();
+        renderPublicPools();
+        renderPublicBracket();
+    };
+ </script>
 </body>
 </html>

@@ -6,9 +6,9 @@
     <title>PicklePal Lite</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- Firebase Realtime Database SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-bridge.js"></script>
     <style>
         :root {
             /* Next-Gen Dark Theme */
@@ -62,7 +62,8 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
         * { box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; overflow: hidden; transition: background-color 0.4s ease, color 0.4s ease; background-image: var(--glow); }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; overflow: hidden; transition: background-color 0.4s ease, color 0.4s ease; background-image: var(--glow), linear-gradient(90deg, transparent 0 49.8%, rgba(6,182,212,.035) 50%, transparent 50.2%), linear-gradient(0deg, transparent 0 49.8%, rgba(168,85,247,.035) 50%, transparent 50.2%); background-size:auto, 180px 180px, 180px 180px; }
 
         aside { width: var(--sidebar-width); background: var(--primary); display: flex; flex-direction: column; padding: 1.5rem; border-right: 1px solid var(--border); transition: 0.3s ease; z-index: 10; }
         body.light-theme aside { box-shadow: 4px 0 24px rgba(0,0,0,0.04); border-right: none; }
@@ -94,7 +95,14 @@
         .header-content-wrapper { flex: 1; min-width: 300px; }
         .header-top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 20px; flex-wrap: wrap; }
         
-        input[type="text"], input[type="date"], select, .editable-input { background-color: var(--input-bg); border: 1px solid var(--input-border); color: var(--text); padding: 12px 15px; border-radius: 10px; font-size: 1rem; min-height: 48px; font-weight: 600; font-family: inherit; width: 100%; transition: all 0.2s ease; }
+        input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]), select, textarea, .editable-input {
+            width: 100%; min-height: 48px; padding: 12px 15px;
+            background: linear-gradient(145deg, rgba(255,255,255,.075), rgba(0,0,0,.16)), var(--input-bg);
+            border: 1px solid var(--input-border); border-radius: 8px; color: var(--text);
+            box-shadow: inset 0 1px rgba(255,255,255,.07), 0 1px 2px rgba(0,0,0,.14);
+            font: 600 1rem/1.25 inherit; letter-spacing: 0; transition: border-color .2s ease, background .2s ease, box-shadow .2s ease, transform .2s ease;
+        }
+        textarea { min-height: 112px; resize: vertical; }
         
         input[readonly]:not(.header-h1), select:disabled, .editable-input[readonly]:not(.header-h1) { 
             opacity: 1 !important; 
@@ -111,8 +119,8 @@
             cursor: pointer;
         }
 
-        ::placeholder { color: var(--muted); opacity: 0.85; font-weight: 500; font-style: italic; }
-        input:not([readonly]):focus, select:not(:disabled):focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); outline: none; }
+        ::placeholder { color: var(--muted); opacity: .72; font-weight: 500; font-style: normal; }
+        input:not([readonly]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus, select:not(:disabled):focus, textarea:not([readonly]):focus, .editable-input:not([readonly]):focus { border-color: var(--accent); background: var(--input-bg); box-shadow: 0 0 0 3px rgba(168, 85, 247, .2), inset 0 1px rgba(255,255,255,.1); outline: none; }
         select option { background-color: var(--card); color: var(--text); font-weight: 600; }
         
         .header-h1 { font-size: 3.5rem !important; font-weight: 900 !important; letter-spacing: -1.5px !important; width: 100% !important; padding: 0 !important; min-height: 70px !important; border: none !important; background: transparent !important; transition: 0.3s ease !important; }
@@ -123,6 +131,11 @@
         .editable-group { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
         .editable-group i { color: var(--accent); }
         .header-label { font-weight: 800; color: var(--muted); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; width: 100px; flex-shrink: 0; }
+        .share-panel { display:grid; grid-template-columns:auto minmax(0,1fr); gap:20px; align-items:center; }
+        .share-qr { width:116px; height:116px; padding:7px; border-radius:8px; background:#fff; }
+        .share-link { display:flex; align-items:center; gap:10px; min-width:0; padding:11px 12px; border:1px solid var(--input-border); border-radius:8px; background:var(--input-bg); }
+        .share-link code { flex:1; min-width:0; overflow:hidden; color:var(--text); font-size:.85rem; text-overflow:ellipsis; white-space:nowrap; }
+        @media (max-width:640px) { .share-panel { grid-template-columns:1fr; } .share-qr { margin:auto; } }
 
         .format-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
         .format-card { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
@@ -147,9 +160,14 @@
         .param-btn.active { background: var(--card); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid var(--border); }
 
         .roster-grid { display: flex; flex-direction: column; gap: 10px; }
-        .team-row-entry { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; background: var(--row-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); transition: 0.2s; }
+        .team-row-entry { display: grid; grid-template-columns: 36px minmax(0, 1fr) minmax(0, 1fr) 140px; gap: 12px; align-items: center; background: var(--row-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); transition: 0.2s; }
         .team-row-entry:hover { border-color: var(--muted); }
-        .team-row-entry > div:not(select) { flex: 1; min-width: 250px; }
+        .team-row-entry > div { min-width: 0; }
+        .team-row-entry > div:nth-child(2), .team-row-entry > div:nth-child(3) { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 5px; align-items: center; }
+        .team-row-entry > div input[type="text"] { min-width: 0; }
+        .team-row-entry > select { width: 100%; min-width: 0 !important; }
+        .check-in-control { display:grid; grid-template-columns:minmax(100px,1fr) auto; gap:8px; align-items:center; }
+        .check-in-control .btn { white-space:nowrap; }
 
         .pool-header { font-size: 1.8rem; font-weight: 900; color: var(--accent); margin-bottom: 1.5rem; border-left: 6px solid var(--accent); padding-left: 15px; letter-spacing: -0.5px; }
         .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem; }
@@ -219,6 +237,8 @@
 
         .trophy-icon { color: var(--gold); fill: var(--gold); width: 24px; height: 24px; }
         .hidden { display: none !important; }
+        .app-copyright { color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.04em; text-align:center; padding:18px 24px; }
+        .lobby-copyright { flex:0 0 auto; }
 
         /* Active Mode Banner */
         .active-mode-banner { background: var(--gradient); padding: 15px 25px; border-radius: 12px; color: white; font-weight: 800; font-size: 1.1rem; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 8px 20px rgba(168, 85, 247, 0.2); }
@@ -240,6 +260,107 @@
         .modal-actions { display: flex; gap: 15px; justify-content: center; }
         .modal-actions .btn { flex: 1; }
 
+        .lobby-screen { position:fixed; inset:0; z-index:20000; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:24px; overflow-y:auto; background:var(--bg); background-image:var(--glow); }
+        .lobby-card { width:min(1120px,100%); min-height:min(680px,calc(100dvh - 48px)); padding:clamp(1.5rem,4vw,4rem); background:linear-gradient(135deg,rgba(30,41,59,.78),rgba(15,23,42,.88)); border:1px solid rgba(148,163,184,.22); border-radius:24px; box-shadow:0 24px 60px rgba(0,0,0,.28), 0 0 80px rgba(59,130,246,.08); text-align:left; position:relative; display:grid; grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr); align-items:center; gap:clamp(2rem,7vw,7rem); overflow:hidden; }
+        body.light-theme .lobby-card { background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(241,245,249,.96)); border-color:var(--border); box-shadow:0 24px 60px rgba(15,23,42,.14), 0 0 80px rgba(79,70,229,.08); }
+        .lobby-card::before { content:""; position:absolute; inset:0 auto 0 0; width:45%; background:linear-gradient(145deg,rgba(6,182,212,.12),transparent 65%); pointer-events:none; }
+        .lobby-intro { position:relative; z-index:1; }
+        .lobby-theme-toggle { position:absolute; top:18px; right:18px; width:40px; height:40px; border:1px solid var(--border); border-radius:10px; background:var(--row-bg); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .sync-status { position:fixed; right:18px; bottom:18px; z-index:1200; display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--border); border-radius:999px; background:var(--card-glass); color:var(--muted); box-shadow:0 8px 24px rgba(0,0,0,.16); font-size:.75rem; font-weight:800; }
+        .sync-status-dot { width:8px; height:8px; border-radius:50%; background:var(--success); }
+        .sync-status.pending .sync-status-dot { background:var(--gold); box-shadow:0 0 10px var(--gold); }
+        .sync-status.offline .sync-status-dot { background:var(--danger); box-shadow:0 0 10px var(--danger); }
+        .lobby-logo { width:clamp(100px,13vw,168px); border-radius:20px; box-shadow:0 8px 24px rgba(0,0,0,.25); margin-bottom:1.5rem; }
+        .lobby-card h1 { margin:0 0 1rem; max-width:650px; font-size:clamp(2.8rem,6vw,6rem); line-height:.95; letter-spacing:-2px; font-weight:900; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .lobby-intro > p { max-width:590px; font-size:clamp(1rem,1.5vw,1.25rem); }
+        .lobby-kicker { color:var(--accent); font-size:.8rem; font-weight:900; letter-spacing:2px; text-transform:uppercase; margin:0 0 1rem; }
+        .lobby-card p { color:var(--muted); line-height:1.5; margin:0 0 1.5rem; }
+        .lobby-panel { position:relative; z-index:1; padding:clamp(1.25rem,3vw,2rem); border:1px solid rgba(148,163,184,.24); border-radius:16px; background:linear-gradient(155deg,rgba(2,6,23,.42),rgba(15,23,42,.7)); box-shadow:0 16px 40px rgba(0,0,0,.22), inset 0 1px rgba(255,255,255,.04); }
+        body.light-theme .lobby-panel { background:var(--card-glass); border-color:var(--border); box-shadow:0 16px 40px rgba(15,23,42,.1), inset 0 1px rgba(255,255,255,.8); }
+        body.light-theme .lobby-panel input { background:#e2e8f0; border-color:#94a3b8; color:#0f172a; box-shadow:inset 0 1px 2px rgba(15,23,42,.08); }
+        body.light-theme .lobby-panel input:focus { background:#fff; border-color:var(--accent); box-shadow:0 0 0 3px rgba(109,40,217,.18); }
+        body.light-theme #lobby-nickname, body.light-theme #lobby-admin-pin { background:#e2e8f0 !important; border-color:#94a3b8 !important; color:#0f172a !important; -webkit-text-fill-color:#0f172a; }
+        body.light-theme #lobby-nickname:focus, body.light-theme #lobby-admin-pin:focus { background:#fff !important; border-color:var(--accent) !important; }
+        .lobby-panel h2 { margin:0 0 .5rem; font-size:1.5rem; }
+        .lobby-panel > p { font-size:.9rem; margin-bottom:1.25rem; }
+        .lobby-panel input { display:block; width:100%; min-width:0; min-height:48px; padding:12px 15px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font:600 1rem 'Inter',sans-serif; }
+        .lobby-panel input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(168,85,247,.2); outline:none; }
+        .lobby-field { display:flex; gap:10px; margin-bottom:12px; }
+        .lobby-actions { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; min-width:0; }
+        .lobby-actions .btn { width:100%; min-width:0; overflow:hidden; }
+        .lobby-secondary-action { margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+        .lobby-secondary-action .btn { background:var(--gradient); color:#fff; box-shadow:0 8px 24px rgba(59,130,246,.28), 0 0 28px rgba(168,85,247,.16); border:1px solid rgba(255,255,255,.25); }
+        .lobby-secondary-action .btn:hover { box-shadow:0 12px 30px rgba(59,130,246,.38), 0 0 38px rgba(168,85,247,.24); }
+        .lobby-create-action { margin-top:18px; padding:18px; border:1px solid rgba(34,197,94,.4); border-radius:10px; background:linear-gradient(145deg,rgba(34,197,94,.13),rgba(6,182,212,.08)); }
+        .lobby-create-action h3 { margin:0 0 5px; color:var(--text); font-size:1rem; }
+        .lobby-create-action p { margin:0 0 14px; font-size:.84rem; }
+        .lobby-create-action .btn { width:100%; }
+        .rr-page-header { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:2rem; padding:1.5rem 0; border-bottom:1px solid var(--border); }
+        .rr-page-header h1 { margin:0 0 .5rem; font-size:clamp(1.8rem,4vw,3rem); font-weight:900; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .rr-page-header p { margin:0; color:var(--muted); font-size:1rem; }
+        .rr-page-badge { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid rgba(6,182,212,.35); border-radius:999px; color:#fff; background:linear-gradient(135deg,#06b6d4,#3b82f6); font-size:.75rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; }
+        .rr-current-mode { display:flex; align-items:center; gap:8px; margin-top:12px; padding:11px 14px; border:1px solid rgba(168,85,247,.3); border-radius:10px; background:linear-gradient(90deg,rgba(168,85,247,.12),rgba(59,130,246,.08)); color:var(--text); font-size:.85rem; font-weight:800; }
+        .rr-current-mode strong { color:var(--accent); }
+        .rr-current-mode i { color:var(--accent); width:16px; height:16px; }
+        .rr-event-access { display:grid; grid-template-columns:minmax(210px,.7fr) minmax(0,1.3fr); gap:22px; align-items:center; padding:20px 22px; border-top:3px solid var(--accent-2); }
+        .rr-event-access strong { display:block; margin-bottom:5px; font-size:1rem; }
+        .rr-event-access span { color:var(--muted); font-size:.8rem; line-height:1.4; }
+        .rr-event-access-controls { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto; gap:10px; align-items:center; min-width:0; }
+        .rr-event-access-controls input { min-width:0; }
+        .rr-access-section { grid-column:2; display:flex; align-items:center; gap:10px; min-width:0; }
+        .rr-access-section::before { content:""; width:3px; align-self:stretch; border-radius:3px; background:var(--accent); }
+        .rr-access-label { flex:0 0 112px; color:var(--muted); font-size:.7rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+        .rr-access-fields { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto; gap:10px; flex:1; min-width:0; }
+        .rr-access-fields input { width:100%; min-width:0; }
+        #rr-event-message { grid-column:1/-1; min-height:1.2rem; margin:0; color:var(--danger); font-size:.8rem; font-weight:800; }
+        body.rr-standalone .mode-toggle, body.rr-standalone .mobile-mode-switcher { display:none !important; }
+        body.rr-standalone .rr-hide-standalone { display:none !important; }
+        body.rr-standalone .rr-home-action { display:flex !important; }
+        .rr-home-action { display:none !important; }
+        .format-help { align-self:flex-start; display:inline-flex; align-items:center; gap:6px; padding:7px 10px; margin-top:2px; border:1px solid var(--input-border); border-radius:8px; background:var(--row-bg); color:var(--accent); font-size:.78rem; font-weight:800; cursor:pointer; }
+        .format-help:hover { border-color:var(--accent); background:rgba(168,85,247,.1); }
+        .rules-modal-list { margin:0; padding-left:20px; text-align:left; color:var(--muted); line-height:1.55; }
+        .rules-modal-list li + li { margin-top:8px; }
+        .lobby-features { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:2rem; text-align:left; }
+        .lobby-feature { padding:12px; border:1px solid var(--border); border-radius:10px; background:var(--row-bg); }
+        .lobby-feature i { color:var(--accent); width:18px; height:18px; }
+        .lobby-feature strong { display:block; margin:7px 0 3px; font-size:.85rem; }
+        .lobby-feature span { display:block; color:var(--muted); font-size:.72rem; line-height:1.35; }
+        .lobby-field input { min-width:0; }
+        .lobby-card .btn { width:100%; }
+        .lobby-divider { display:flex; align-items:center; gap:12px; margin:1.5rem 0; color:var(--muted); font-weight:800; font-size:.8rem; text-transform:uppercase; }
+        .lobby-divider::before, .lobby-divider::after { content:""; height:1px; flex:1; background:var(--border); }
+        body.lobby-active aside, body.lobby-active main, body.lobby-active .mobile-header, body.lobby-active .mobile-mode-switcher, body.lobby-active .mobile-nav { display:none !important; }
+        .setup-wizard { position:fixed; inset:0; z-index:21000; display:flex; align-items:center; justify-content:center; padding:24px; background:rgba(2,6,23,.82); backdrop-filter:blur(14px); }
+        .setup-wizard.hidden { display:none; }
+        .wizard-card { width:min(720px,100%); max-height:calc(100dvh - 48px); overflow:auto; padding:clamp(1.5rem,4vw,3rem); background:var(--card); border:1px solid var(--border); border-radius:20px; box-shadow:0 28px 80px rgba(0,0,0,.4); }
+        .wizard-head { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:1.5rem; }
+        .wizard-head h2 { margin:0 0 .5rem; font-size:2rem; }
+        .wizard-step { color:var(--accent); font-weight:900; text-transform:uppercase; letter-spacing:1px; font-size:.75rem; }
+        .wizard-close { border:0; background:var(--row-bg); color:var(--text); width:38px; height:38px; border-radius:9px; cursor:pointer; }
+        .wizard-progress { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:2rem; }
+        .wizard-progress span { height:4px; border-radius:4px; background:var(--border); }
+        .wizard-progress span.active { background:var(--gradient); }
+        .wizard-view { display:none; }
+        .wizard-view.active { display:block; }
+        .wizard-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .wizard-field label { display:block; margin-bottom:6px; color:var(--muted); font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
+        .wizard-field.full { grid-column:1/-1; }
+        .wizard-actions { display:flex; justify-content:space-between; gap:10px; margin-top:2rem; }
+        .wizard-actions .btn { min-width:130px; }
+        .wizard-notice { padding:14px; margin-top:1rem; color:var(--muted); background:var(--row-bg); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:10px; font-size:.85rem; line-height:1.45; }
+        .pin-directory { display:grid; grid-template-columns:minmax(0,1fr) 160px; gap:8px 16px; align-items:center; }
+        .pin-directory-head { color:var(--muted); font-size:.75rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; padding-bottom:8px; border-bottom:1px solid var(--border); }
+        .pin-directory-cell { min-width:0; padding:12px 0; border-bottom:1px solid var(--border); }
+        .pin-directory-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:800; }
+        .pin-directory-code { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--accent); font-weight:900; letter-spacing:2px; }
+        .pin-copy { border:1px solid var(--border); background:var(--row-bg); color:var(--muted); border-radius:7px; padding:5px 7px; cursor:pointer; }
+        @media (max-width:760px) { .lobby-screen { padding:12px; } .lobby-card { display:block; min-height:0; padding:1.25rem; border:0; border-radius:16px; background:transparent; box-shadow:none; } .lobby-card::before { display:none; } .lobby-intro { padding-top:2rem; margin-bottom:2rem; } .lobby-card h1 { font-size:2.5rem; letter-spacing:-1px; } .lobby-intro > p { font-size:1rem; } .lobby-panel { margin-top:1rem; } .wizard-grid, .lobby-field, .lobby-actions, .lobby-features { grid-template-columns:1fr; flex-direction:column; } .wizard-field.full { grid-column:auto; } }
+        @media (max-width:760px) { .rr-event-access { grid-template-columns:1fr; gap:14px; padding:16px; } .rr-access-section { grid-column:1; align-items:stretch; flex-direction:column; } .rr-access-section::before { width:100%; height:3px; align-self:auto; } .rr-access-label { flex-basis:auto; } .rr-access-fields, .rr-event-access-controls { grid-template-columns:1fr; width:100%; } .rr-access-fields .btn, .rr-event-access-controls .btn { width:100%; } }
+        @media (max-width:360px) { .lobby-card h1 { font-size:2rem; line-height:1; letter-spacing:-.8px; } .lobby-logo { width:92px; } .lobby-intro { padding-top:1.5rem; } }
+        @media (max-width:360px) { .lobby-panel .btn { white-space:nowrap; font-size:.8rem; padding:11px 10px; gap:7px; } }
+        @media (max-height:560px) and (orientation:landscape) { .lobby-card { min-height:0; align-items:start; } .lobby-logo { width:72px; margin-bottom:.75rem; } .lobby-card h1 { font-size:2.8rem; } .lobby-intro > p { margin-bottom:.75rem; } .lobby-features { margin-top:1rem; } }
+
         @media (max-width: 1100px) {
             body { flex-direction: column; }
             aside { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-right: none; border-bottom: 1px solid var(--border); gap: 15px; z-index: 100; }
@@ -260,8 +381,9 @@
         }
 
         @media (max-width: 768px) {
-            .team-row-entry { flex-direction: column; align-items: stretch; }
-            .team-row-entry > div { width: 100%; }
+            .team-row-entry { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr); }
+            .team-row-entry > div:first-child { grid-column: 1; grid-row: 1 / span 2; align-self: start; }
+            .team-row-entry > select { grid-column: 2 / -1; }
             .format-grid { grid-template-columns: 1fr; }
         }
 
@@ -322,8 +444,9 @@
             .card { padding: 1.25rem; border-radius: 20px; width: 100%; margin-bottom: 1.25rem; }
             
             /* ROSTER & POOLS */
-            .team-row-entry { padding: 10px; gap: 10px; }
-            .team-row-entry > div { flex: 1; min-width: 0 !important; width: 100%; }
+            .team-row-entry { grid-template-columns: 1fr; padding: 10px; gap: 10px; }
+            .team-row-entry > div:first-child, .team-row-entry > select { grid-column: auto; grid-row: auto; }
+            .team-row-entry > div:nth-child(2), .team-row-entry > div:nth-child(3) { grid-template-columns: minmax(0, 1fr) auto auto; }
             .roster-grid { gap: 12px; }
             
             .pool-grid { grid-template-columns: 1fr; gap: 1rem; }
@@ -343,7 +466,53 @@
         }
     </style>
 </head>
-<body class="dark-theme">
+<body class="dark-theme lobby-active">
+
+<section id="lobby-screen" class="lobby-screen">
+    <div class="lobby-card">
+        <button class="lobby-theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme"><i data-lucide="sun"></i></button>
+        <div class="lobby-intro">
+            <p class="lobby-kicker">Tournament command center</p>
+            <img src="PicklePal-Lite.png" class="lobby-logo" alt="PicklePal Lite">
+            <h1>Make every match count.</h1>
+            <p>PicklePal Lite keeps registration, live scoring, pool play, and championship brackets in one calm, confident place.</p>
+            <div class="lobby-features">
+                <div class="lobby-feature"><i data-lucide="layout-grid"></i><strong>Live pools</strong><span>Follow teams, matches, and standings.</span></div>
+                <div class="lobby-feature"><i data-lucide="shield-alert"></i><strong>Protected scoring</strong><span>PIN-scoped entries and dispute review.</span></div>
+                <div class="lobby-feature"><i data-lucide="git-branch"></i><strong>Final brackets</strong><span>Track every round through the championship.</span></div>
+            </div>
+        </div>
+        <div class="lobby-panel">
+            <h2>Enter your tournament</h2>
+            <p>Choose a view, then enter the organizer's one-word tournament code.</p>
+            <div class="lobby-field"><input type="text" id="lobby-nickname" placeholder="One-word tournament code" autocomplete="off"></div>
+            <div class="lobby-actions">
+                <button class="btn btn-outline" onclick="openPlayerPortal('spectator')"><i data-lucide="eye"></i> Spectator</button>
+                <button class="btn btn-outline" onclick="openPlayerPortal('player')"><i data-lucide="user-check"></i> Player</button>
+            </div>
+            <div class="lobby-divider">Admin access</div>
+            <input type="password" id="lobby-admin-pin" inputmode="numeric" maxlength="4" placeholder="Four-digit admin PIN" autocomplete="off">
+            <button class="btn btn-primary" onclick="enterTournament()" style="margin-top:10px;"><i data-lucide="shield-check"></i> Open manager</button>
+            <div class="lobby-create-action"><h3>Starting a new tournament?</h3><p>Create an event first. You will choose its shared nickname and private manager PIN during setup.</p><button class="btn btn-success" onclick="openSetupWizard()"><i data-lucide="plus-circle"></i> Setup new tournament</button></div>
+            <div class="lobby-secondary-action"><button class="btn" onclick="openRoundRobin()"><i data-lucide="sparkles"></i> Enter Round Robin Play</button><p style="font-size:.78rem; margin:.65rem 0 0;">A separate casual-play workspace for your group. No tournament code required.</p></div>
+            <p id="lobby-message" style="min-height:1.5rem; margin:1rem 0 0; color:var(--danger); font-weight:700;"></p>
+        </div>
+    </div>
+    <footer class="app-copyright lobby-copyright">Copyright 2026 Auralogic Solutions</footer>
+</section>
+
+<section id="setup-wizard" class="setup-wizard hidden" aria-label="Tournament setup wizard">
+    <div class="wizard-card">
+        <div class="wizard-head"><div><div class="wizard-step" id="wizard-step-label">Step 1 of 3</div><h2 id="wizard-title">Build your event</h2></div><button class="wizard-close" onclick="closeSetupWizard()" aria-label="Close setup wizard"><i data-lucide="x"></i></button></div>
+        <div class="wizard-progress"><span class="active"></span><span></span><span></span></div>
+        <div id="wizard-step-1" class="wizard-view active"><p>Start with the event details your players and spectators will recognize.</p><div class="wizard-grid"><div class="wizard-field full"><label for="wizard-title-input">Event title</label><input id="wizard-title-input" type="text" placeholder="e.g. Compass Summer Classic"></div><div class="wizard-field"><label for="wizard-date-input">Date</label><input id="wizard-date-input" type="date"></div><div class="wizard-field"><label for="wizard-location-input">Location</label><input id="wizard-location-input" type="text" placeholder="Venue or city"></div><div class="wizard-field"><label for="wizard-organizer-input">Organizer</label><input id="wizard-organizer-input" type="text" placeholder="Organization name"></div><div class="wizard-field"><label for="wizard-manager-input">Manager</label><input id="wizard-manager-input" type="text" placeholder="Tournament manager"></div></div></div>
+        <div id="wizard-step-2" class="wizard-view"><p>Choose the starting structure. You can fine-tune pools and brackets inside the manager.</p><div class="wizard-grid"><div class="wizard-field"><label for="wizard-teams-input">Target teams</label><input id="wizard-teams-input" type="number" min="4" max="80" step="2" value="4" inputmode="numeric" placeholder="4-80"></div><div class="wizard-field"><label for="wizard-mode-input">Setup mode</label><select id="wizard-mode-input"><option value="manual">Manual registration</option><option value="smart">Smart auto setup</option></select></div><label class="wizard-field full" style="display:flex; align-items:center; gap:10px; color:var(--text); font-weight:800; text-transform:none; letter-spacing:0;"><input id="wizard-odd-input" type="checkbox" style="width:20px; min-height:20px; accent-color:var(--accent);"><span>Allow an odd number of teams</span></label></div><div class="wizard-notice">PicklePal Lite supports 4 to 80 teams. Use even targets for two-team rounds, or allow odd teams for balanced pools with rotating byes so every team gets equal rest.</div></div>
+        <div id="wizard-step-3" class="wizard-view"><p>These two details identify and protect this tournament. Players and spectators will use the code to find the right event and view its live results.</p><div class="wizard-grid"><div class="wizard-field full"><label for="wizard-nickname-input">One-word tournament code</label><input id="wizard-nickname-input" type="text" placeholder="e.g. Compass" autocomplete="off"></div><div class="wizard-field full"><label for="wizard-pin-input">Create admin PIN</label><input id="wizard-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="Four digits" autocomplete="new-password"></div></div><div class="wizard-notice"><strong>Important:</strong> This one-word code is shared with players and spectators. They will enter it on the home page to view this tournament and its live results. Players will use their player PIN separately to submit scores. Keep your four-digit admin PIN private.</div></div>
+        <div class="wizard-actions"><button id="wizard-back" class="btn btn-outline" onclick="wizardBack()" style="visibility:hidden;"><i data-lucide="arrow-left"></i> Back</button><button id="wizard-next" class="btn btn-primary" onclick="wizardNext()">Continue <i data-lucide="arrow-right"></i></button></div>
+    </div>
+</section>
+
+<div id="sync-status" class="sync-status hidden" aria-live="polite"><span class="sync-status-dot"></span><span id="sync-status-text">Cloud authentication required</span></div>
 
 <div class="mobile-header hidden">
     <div class="mobile-logo-wrap">
@@ -352,6 +521,8 @@
     </div>
     <div class="mobile-actions">
         <button class="action-icon-btn" onclick="toggleTheme()"><i data-lucide="sun" style="width:18px;"></i></button>
+        <button class="action-icon-btn rr-hide-standalone" onclick="switchTournament()" title="Log out"><i data-lucide="log-out" style="width:18px;"></i></button>
+        <button class="action-icon-btn rr-home-action" onclick="goToHome()" title="Home"><i data-lucide="home" style="width:18px;"></i></button>
         <button class="action-icon-btn" style="color:var(--danger);" onclick="resetApp()"><i data-lucide="alert-triangle" style="width:18px;"></i></button>
     </div>
 </div>
@@ -403,6 +574,8 @@
 
     <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
         <button class="tab-btn" onclick="toggleTheme()"><i data-lucide="sun"></i> Toggle Theme</button>
+        <button class="tab-btn rr-hide-standalone" onclick="switchTournament()"><i data-lucide="log-out"></i> Log Out / Switch Tournament</button>
+        <button class="tab-btn rr-home-action" onclick="goToHome()"><i data-lucide="home"></i> Home</button>
         <button class="tab-btn" style="color: var(--danger); font-weight: 800;" onclick="resetApp()"><i data-lucide="alert-triangle"></i> Reset Data</button>
     </div>
 </aside>
@@ -450,27 +623,43 @@
             </div>
         </div>
 
+        <section id="tournament-share-panel" class="card hidden">
+            <div class="share-panel"><img id="tournament-qr" class="share-qr" alt="Tournament join QR code"><div><h2 style="margin:0 0 6px; font-size:1.45rem;">Share this tournament</h2><p style="margin:0 0 14px; color:var(--muted);">Players can scan the QR code or use this direct event link.</p><div class="share-link"><code id="tournament-share-url"></code><button class="btn btn-outline btn-sm" onclick="copyTournamentLink()" title="Copy player link" aria-label="Copy player link"><i data-lucide="copy"></i></button></div></div></div>
+        </section>
+
         <div class="card">
             <h3 style="margin-top:0; font-size:1.8rem; font-weight:900;">Tournament Overview</h3>
             <div style="font-size: 1.05rem; line-height: 1.6;">
                 <p><strong>Tournament Format:</strong> Pool Play Round Robin Style, with top teams advancing to the elimination bracket.</p>
                 <p><strong>Match Rules:</strong> Games to 11, Win by 2. In tournament play, teams switch sides of the court after a team reaches 6 points to keep it fair due to elements like wind and sun.</p>
 
+                <div style="margin:2rem 0; padding:1.5rem; background:var(--row-bg); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:12px;">
+                    <h4 style="margin:0 0 1rem; color:var(--accent);">Official Pickleball Rules (2026)</h4>
+                    <ul style="color:var(--muted); margin:0; padding-left:20px;">
+                        <li style="margin-bottom:8px;"><strong>Scoring:</strong> Only the serving side scores. Games are played to 11 points and must be won by 2.</li>
+                        <li style="margin-bottom:8px;"><strong>Two-Bounce Rule:</strong> The serve must bounce before the receiver returns it, and the return must bounce before the serving side plays it.</li>
+                        <li style="margin-bottom:8px;"><strong>Serve:</strong> The serve is made diagonally, clears the non-volley zone, and must be made underhand with the contact below the waist.</li>
+                        <li style="margin-bottom:8px;"><strong>Non-Volley Zone:</strong> A player may not volley while touching the non-volley zone or its line, including when momentum carries the player into it.</li>
+                        <li><strong>Line Calls:</strong> Players call the lines on their side of the court. When uncertain, the call is made in favor of the opponent.</li>
+                    </ul>
+                    <a href="https://usapickleball.org/docs/2026-USA-Pickleball-Official-Rulebook.pdf" target="_blank" rel="noopener" style="display:inline-flex; margin-top:1rem; color:var(--accent); font-weight:800;">Read the complete 2026 USA Pickleball Official Rulebook</a>
+                </div>
+
                 <hr style="border: 0; border-top: 1px solid var(--border); margin: 2rem 0;">
 
-                <h4 style="color: var(--accent); font-size: 1.2rem; margin-bottom: 10px; font-weight:800;">Options & Guidelines for 50-Team (100-Player) Tournaments</h4>
-                <p style="color: var(--muted); margin-bottom: 15px;">For a 50-team (100-player) pickleball tournament, the best approach is to divide the field into 8 to 10 pools of 5-6 teams each, with 2-3 top teams from each pool advancing to a single-elimination bracket. This structure optimizes court usage and guarantees at least 4-5 matches, providing a high-quality experience for participants.</p>
+                <h4 style="color: var(--accent); font-size: 1.2rem; margin-bottom: 10px; font-weight:800;">Options & Guidelines for 80-Team (160-Player) Tournaments</h4>
+                <p style="color: var(--muted); margin-bottom: 15px;">For a 80-team (160-player) pickleball tournament, the best approach is to divide the field into 14 to 16 pools of 5-6 teams each, with 2-3 top teams from each pool advancing to a single-elimination bracket. This structure optimizes court usage and guarantees at least 4-5 matches, providing a high-quality experience for participants.</p>
 
-                <h5 style="margin-bottom: 5px; font-size: 1.1rem; font-weight:800;">Recommended Structure (50 Teams)</h5>
+                <h5 style="margin-bottom: 5px; font-size: 1.1rem; font-weight:800;">Recommended Structure (80 Teams)</h5>
                 <ul style="color: var(--muted); margin-bottom: 20px; padding-left: 20px;">
-                    <li style="margin-bottom: 5px;"><strong>Pool Setup:</strong> 10 pools of 5 teams (allows for efficient 4-5 matches per team) or 8 pools of 6–7 teams.</li>
-                    <li style="margin-bottom: 5px;"><strong>Advancement:</strong> Take the top 2-3 teams from each pool to form a 16 or 24-team single-elimination bracket (depending on court availability and time).</li>
+                    <li style="margin-bottom: 5px;"><strong>Pool Setup:</strong> 16 pools of 5 teams (allows for efficient 4-5 matches per team) or 12 pools of 6–7 teams.</li>
+                    <li style="margin-bottom: 5px;"><strong>Advancement:</strong> Take the top 2-3 teams from each pool to form a 16 or 32-team single-elimination bracket (depending on court availability and time).</li>
                     <li><strong>Game Format:</strong> Single games to 15 (win by 1 or 2) are ideal for large round-robins.</li>
                 </ul>
 
                 <h5 style="margin-bottom: 5px; font-size: 1.1rem; color: var(--gold); font-weight:800;">Key Considerations</h5>
                 <ul style="color: var(--muted); padding-left: 20px;">
-                    <li style="margin-bottom: 5px;"><strong>Time Management:</strong> Pool play with 50 teams takes time. Ensure you have enough courts—aim for at least 12-16 courts to avoid long waits.</li>
+                    <li style="margin-bottom: 5px;"><strong>Time Management:</strong> Pool play with 80 teams takes time. Ensure you have enough courts—aim for at least 16-20 courts to avoid long waits.</li>
                     <li style="margin-bottom: 5px;"><strong>Tie-Breakers:</strong> With many pools, use point differential or head-to-head results to determine tie-breakers for bracket seeding.</li>
                     <li><strong>"Best of" Scenario:</strong> To maximize "bang for your buck," allow 4 teams to advance from each pool to a larger bracket if you have time, or a shorter, higher-stakes bracket if time is tight.</li>
                 </ul>
@@ -522,6 +711,7 @@
                 <div style="text-align:right; min-width: 220px; padding-left: 24px; border-left: 1px solid var(--border);">
                     <div id="target-label" style="font-size:1rem; color:var(--muted); margin-bottom:8px; font-weight:800; text-transform:uppercase;">Remaining to Register</div>
                     <div id="countdown-num" style="color:var(--accent); font-size:3.5rem; font-weight:900; line-height:1; margin-bottom:15px;">-</div>
+                    <div id="check-in-status" style="color:var(--muted); font-size:.78rem; font-weight:800; margin:-8px 0 14px;"></div>
                     <button id="pool-action-btn" class="btn btn-primary btn-sm" style="width:100%;" onclick="executePoolAction()" disabled><i data-lucide="shuffle"></i> Randomly Assign Pools</button>
                 </div>
             </div>
@@ -537,9 +727,9 @@
     </section>
 
     <section id="tab-player-ids" class="tab-content hidden">
-        <div class="card">
-            <h2 style="margin-top:0; font-size:2rem; margin-bottom: 1.5rem;"><i data-lucide="key" style="color:var(--accent);"></i> Player PIN Directory</h2>
-            <div id="player-pin-directory-list" class="roster-grid"></div>
+        <div class="card pin-directory-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:15px; flex-wrap:wrap; margin-bottom:1rem;"><div><h2 style="margin:0 0 6px; font-size:2rem;"><i data-lucide="key" style="color:var(--accent);"></i> Player PIN Directory</h2><p style="color:var(--muted); margin:0;">Private check-in reference for tournament staff.</p></div><button class="btn btn-outline btn-sm" onclick="copyAllPins()"><i data-lucide="copy"></i> Copy all PINs</button></div>
+            <div id="player-pin-directory-list" class="pin-directory"></div>
         </div>
     </section>
 
@@ -597,34 +787,12 @@
     </section>
 
     <section id="tab-rr-setup" class="tab-content hidden">
-        <div class="master-header">
-            <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-                <img id="rr-display-logo" src="Compass-Logo-White.png" class="tourney-logo-display" alt="Event Logo">
-                <div id="rr-logo-controls" class="logo-upload-panel hidden">
-                    <div class="logo-upload-label">Event Branding</div>
-                    <label class="btn btn-sm btn-outline" style="cursor:pointer; width:100%; font-size:0.8rem;">
-                        <i data-lucide="upload-cloud"></i> Light Logo (Dark Mode)
-                        <input type="file" accept="image/*" class="hidden" onchange="handleDualLogoUpload(event, 'light')">
-                    </label>
-                    <label class="btn btn-sm btn-outline" style="cursor:pointer; width:100%; font-size:0.8rem;">
-                        <i data-lucide="upload-cloud"></i> Dark Logo (Light Mode)
-                        <input type="file" accept="image/*" class="hidden" onchange="handleDualLogoUpload(event, 'dark')">
-                    </label>
-                </div>
-            </div>
-
-            <div class="header-content-wrapper">
-                <div class="header-top-bar">
-                    <input type="text" id="rr-head-title" class="header-h1" readonly placeholder="Enter Event Title (e.g. Sunday Mixer)">
-                    <button id="rr-global-edit-btn" class="btn btn-outline" onclick="toggleGlobalEdit('rr')"><i data-lucide="edit-3"></i> Edit Event Info</button>
-                </div>
-                
-                <div class="editable-group">
-                    <div class="header-label"><i data-lucide="calendar"></i> Date</div>
-                    <input type="text" id="rr-head-date" class="editable-input" readonly style="flex:1; max-width:400px;" placeholder="Select Date">
-                </div>
-            </div>
+        <div class="rr-page-header">
+            <div><h1>Round Robin Play</h1><p>Set up a relaxed, replayable session with smart court rotation.</p><div class="rr-current-mode"><i id="rr-current-mode-icon" data-lucide="shuffle"></i><span>Current mode: <strong id="rr-current-mode-name">Popcorn</strong></span></div></div>
+            <span class="rr-page-badge"><i data-lucide="sparkles" style="width:16px;"></i> Casual mode</span>
         </div>
+
+        <div class="card rr-event-access"><div><strong>Round Robin event</strong><span>Creating an event automatically gives it a short nickname players can use from any device.</span></div><div class="rr-access-section"><div class="rr-access-label">Player access</div><div class="rr-access-fields"><input id="rr-event-code" type="text" placeholder="Enter event nickname" autocomplete="off"><button class="btn btn-outline btn-sm" onclick="loadRREvent()"><i data-lucide="download"></i> Open event</button></div></div><div class="rr-access-section"><div class="rr-access-label">Admin setup</div><div class="rr-access-fields"><input id="rr-admin-pin" type="password" inputmode="numeric" maxlength="4" placeholder="Create four-digit admin PIN" autocomplete="off"><button class="btn btn-primary btn-sm" onclick="createRREvent()"><i data-lucide="cloud"></i> Create event</button></div></div><p id="rr-event-message"></p></div>
 
         <div id="rr-setup-container" class="card">
             <h2 style="margin:0; margin-bottom:24px;">Event Setup</h2>
@@ -745,6 +913,7 @@
         </div>
     </section>
 
+    <footer class="app-copyright">Copyright 2026 Auralogic Solutions</footer>
 </main>
 
 <nav class="mobile-nav hidden">
@@ -756,20 +925,7 @@
 </nav>
 
 <script>
-    // --- FIREBASE REALTIME CLOUD INTEGRATION ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyBDiFkpHAgA0dyTliSBxPGrC2ec0VEa0is",
-      authDomain: "picklepal-lite.firebaseapp.com",
-      databaseURL: "https://picklepal-lite-default-rtdb.firebaseio.com",
-      projectId: "picklepal-lite",
-      storageBucket: "picklepal-lite.firebasestorage.app",
-      messagingSenderId: "163325965141",
-      appId: "1:163325965141:web:1d3ab0c65158399a8bf5dc",
-      measurementId: "G-F9WEECS7TX"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        // --- SUPABASE CLOUD INTEGRATION ---
 
     // --- PROMISE MODAL ---
     function customModal({ type = 'alert', title = 'Alert', message = '', placeholder = '', confirmText = 'OK', cancelText = 'Cancel', icon = 'info', isDanger = false, extraBtnText = null, extraBtnValue = null }) {
@@ -852,7 +1008,7 @@
     const DEFAULT_STATE = {
         appMode: 'tourney', theme: "dark", setupMode: 'manual', advancementCount: 8,
         header: { title: "", date: "", loc: "", org: "", man: "", logoDarkTheme: "Compass-Logo-White.png", logoLightTheme: "Compass-Logo-White.png" },
-        expectedTeams: "-", allowOddTeams: false, finalsFormat: "bo3", teams: [], completedMatches: {}, poolCount: 0, courts: {}, stranded: [],
+        expectedTeams: "-", allowOddTeams: false, finalsFormat: "bo3", tournamentNickname: "", adminPinHash: "", teams: [], completedMatches: {}, scoreReports: {}, poolCount: 0, poolSchedule: [], courts: {}, stranded: [],
         bracket: { 
             r32: Array(16).fill().map(() => ({t1:null, t2:null, winner:null})),
             r16: Array(8).fill().map(() => ({t1:null, t2:null, winner:null})), 
@@ -862,8 +1018,8 @@
             third: {t1:null, t2:null, winner:null, scores:[], gameLocks:[false,false,false]}
         },
         rr: {
-            title: "", date: "", format: 'popcorn', matchRules: '11', targetRounds: 5, courtsAvailable: 2, finalsFormat: "bo3",
-            isStarted: false, entities: [], roundNum: 1, courts: [],
+            title: "", date: "", eventCode: "", format: 'popcorn', matchRules: '11', targetRounds: 5, courtsAvailable: 2, finalsFormat: "bo3",
+            isStarted: false, entities: [], roundNum: 1, courts: [], fixedSchedule: [], scheduleIndex: 0,
             bracket: { 
                 r16: Array(8).fill().map(() => ({t1:null, t2:null, winner:null})), qf: Array(4).fill().map(() => ({t1:null, t2:null, winner:null})), sf: Array(2).fill().map(() => ({t1:null, t2:null, winner:null})), 
                 final: {t1:null, t2:null, winner:null, scores:[], gameLocks:[false,false,false]}, third: {t1:null, t2:null, winner:null, scores:[], gameLocks:[false,false,false]}
@@ -871,25 +1027,350 @@
         }
     };
 
-    let state = JSON.parse(localStorage.getItem('picklepal_2026')) || DEFAULT_STATE;
-
-    function saveState() { 
-        localStorage.setItem('picklepal_2026', JSON.stringify(state)); 
-        db.ref('tournament_state').set(state);
+    function cloneDefaultState() {
+        return JSON.parse(JSON.stringify(DEFAULT_STATE));
     }
 
-    // Live Sync Listener
-    db.ref('tournament_state').on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            state = data;
-            renderRoster();
-            renderPools();
-            renderStandings();
-            renderBracketUI();
-            renderPinDirectory();
+    function normalizeBracket(bracket, fallback) {
+        const source = bracket && typeof bracket === 'object' ? bracket : {};
+        const normalized = { ...fallback, ...source };
+        ['r32', 'r16', 'qf', 'sf'].forEach(round => {
+            const defaults = fallback[round] || [];
+            normalized[round] = (Array.isArray(source[round]) ? source[round] : defaults).map((match, index) => ({
+                ...defaults[index], ...match,
+                scores: Array.isArray(match && match.scores) ? match.scores : [],
+                gameLocks: Array.isArray(match && match.gameLocks) ? match.gameLocks : [false, false, false]
+            }));
+        });
+        ['final', 'third'].forEach(round => {
+            const match = source[round] || fallback[round];
+            normalized[round] = {
+                ...fallback[round], ...match,
+                scores: Array.isArray(match.scores) ? match.scores : [],
+                gameLocks: Array.isArray(match.gameLocks) ? match.gameLocks : [false, false, false]
+            };
+        });
+        return normalized;
+    }
+
+    function normalizeState(candidate) {
+        const source = candidate && typeof candidate === 'object' ? candidate : {};
+        const normalized = cloneDefaultState();
+
+        Object.keys(normalized).forEach(key => {
+            if (source[key] !== undefined && source[key] !== null) {
+                if (Array.isArray(normalized[key])) normalized[key] = Array.isArray(source[key]) ? source[key] : normalized[key];
+                else if (typeof normalized[key] === 'object') normalized[key] = { ...normalized[key], ...source[key] };
+                else normalized[key] = source[key];
+            }
+        });
+
+        normalized.header = { ...DEFAULT_STATE.header, ...(source.header || {}) };
+        normalized.bracket = normalizeBracket(source.bracket, DEFAULT_STATE.bracket);
+        normalized.rr = { ...DEFAULT_STATE.rr, ...(source.rr || {}) };
+        normalized.rr.bracket = normalizeBracket(source.rr && source.rr.bracket, DEFAULT_STATE.rr.bracket);
+        normalized.teams = Array.isArray(source.teams) ? source.teams : [];
+        normalized.completedMatches = source.completedMatches && typeof source.completedMatches === 'object' ? source.completedMatches : {};
+        normalized.scoreReports = source.scoreReports && typeof source.scoreReports === 'object' ? source.scoreReports : {};
+        normalized.poolSchedule = Array.isArray(source.poolSchedule) ? source.poolSchedule : [];
+        normalized.rr.fixedSchedule = Array.isArray(normalized.rr.fixedSchedule) ? normalized.rr.fixedSchedule : [];
+        normalized.rr.scheduleIndex = Number.isInteger(normalized.rr.scheduleIndex) ? normalized.rr.scheduleIndex : 0;
+        normalized.courts = source.courts && typeof source.courts === 'object' ? source.courts : {};
+        normalized.stranded = Array.isArray(source.stranded) ? source.stranded : [];
+        return normalized;
+    }
+
+    let storedState = null;
+    try { storedState = JSON.parse(localStorage.getItem('picklepal_2026')); } catch (error) { storedState = null; }
+    let state = normalizeState(storedState);
+    let tournamentSlug = localStorage.getItem('picklepal_active_tournament') || '';
+    let rrPlayerEntityId = null;
+    let liveSyncStarted = false;
+    let syncPending = Boolean(tournamentSlug && localStorage.getItem(`picklepal_pending_sync_${tournamentSlug}`) === 'true');
+    let cloudConnected = false;
+    let syncRetryTimer = null;
+
+    function normalizeTournamentNickname(value) {
+        return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
+    }
+
+    function isOneWordTournamentCode(value) { return /^[A-Za-z0-9]{1,48}$/.test(value.trim()); }
+
+    function generateRREventNickname() {
+        return `rr${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`.slice(0, 48);
+    }
+
+    async function hashPin(pin) {
+        const bytes = new TextEncoder().encode(pin);
+        const digest = await crypto.subtle.digest('SHA-256', bytes);
+        return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    function tournamentStateKey(slug) { return `picklepal_tournament_${slug}`; }
+    function tournamentRef() { return tournamentSlug ? db.ref('tournaments').child(tournamentSlug).child('state') : null; }
+
+    function getTournamentShareUrl() {
+        const nickname = state.tournamentNickname || tournamentSlug;
+        return nickname ? `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}players.html?event=${encodeURIComponent(nickname)}` : '';
+    }
+
+    function renderTournamentSharePanel() {
+        const panel = document.getElementById('tournament-share-panel');
+        const link = getTournamentShareUrl();
+        if (!panel || !link) { if (panel) panel.classList.add('hidden'); return; }
+        document.getElementById('tournament-share-url').innerText = link;
+        document.getElementById('tournament-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}`;
+        panel.classList.remove('hidden');
+    }
+
+    async function copyTournamentLink() {
+        const link = getTournamentShareUrl();
+        if (!link) return;
+        await navigator.clipboard.writeText(link);
+        await appAlert('Player link copied to your clipboard.', 'Link copied', 'success');
+    }
+
+    function updateSyncStatus() {
+        const status = document.getElementById('sync-status');
+        const text = document.getElementById('sync-status-text');
+        if(!status) return;
+        status.classList.remove('hidden', 'pending', 'offline');
+        if(state.appMode === 'rr' && !tournamentSlug) { if(!cloudConnected) status.classList.add('offline'); text.innerText = cloudConnected ? 'Round Robin ready · Connected to Supabase' : 'Round Robin ready · Supabase disconnected'; return; }
+        if(!cloudConnected) { status.classList.add('offline'); text.innerText = syncPending ? 'Cloud sync pending · Recovery backup active' : 'Supabase disconnected · Recovery backup active'; }
+        else if(!auth || !auth.currentUser) { text.innerText = 'Connected to Supabase · Sign in to sync'; }
+        else if(syncPending) { status.classList.add('pending'); text.innerText = 'Cloud sync pending · Recovery backup active'; }
+        else text.innerText = 'Connected to Supabase';
+    }
+
+    function startConnectionMonitor() {
+        db.ref('.info/connected').on('value', snapshot => {
+            cloudConnected = snapshot.val() === true;
+            updateSyncStatus();
+            if(cloudConnected) syncStateNow();
+        });
+    }
+
+    function syncStateNow() {
+        const ref = tournamentRef();
+        if(!ref || !syncPending || !cloudConnected || !auth || !auth.currentUser || !functions) { updateSyncStatus(); return; }
+        const save = functions.httpsCallable('saveTournamentState')({ state });
+        save.then(() => { syncPending = false; localStorage.removeItem(`picklepal_pending_sync_${tournamentSlug}`); localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); updateSyncStatus(); }).catch(error => { syncPending = true; localStorage.setItem(`picklepal_pending_sync_${tournamentSlug}`, 'true'); updateSyncStatus(); if(!syncRetryTimer) syncRetryTimer = setTimeout(() => { syncRetryTimer = null; syncStateNow(); }, 3000); console.warn('Tournament sync unavailable:', error.message); });
+    }
+
+    function showManager() {
+        document.body.classList.remove('lobby-active');
+        document.getElementById('lobby-screen').classList.add('hidden');
+        updateSyncStatus();
+        initManager();
+    }
+
+    function showLobby(message = '') {
+        document.body.classList.add('lobby-active');
+        document.getElementById('lobby-screen').classList.remove('hidden');
+        document.getElementById('lobby-message').innerText = message;
+        lucide.createIcons();
+    }
+
+    function switchTournament() {
+        localStorage.removeItem('picklepal_admin_session');
+        localStorage.removeItem('picklepal_active_tournament');
+        localStorage.removeItem('picklepal_rr_access');
+        location.reload();
+    }
+
+    function goToHome() {
+        localStorage.removeItem('picklepal_rr_access');
+        localStorage.removeItem('picklepal_admin_session');
+        localStorage.removeItem('picklepal_active_tournament');
+        window.location.href = 'index.html';
+    }
+
+    function openRoundRobin() {
+        localStorage.setItem('picklepal_rr_access', 'true');
+        window.location.href = 'rr.html';
+    }
+
+    async function loadRREvent() {
+        const codeInput = document.getElementById('rr-event-code');
+        const message = document.getElementById('rr-event-message');
+        const code = codeInput.value.trim().toLowerCase();
+        if (!isOneWordTournamentCode(code)) { message.innerText = 'Enter the one-word Round Robin event code.'; return; }
+        try {
+            const result = await window.roundRobinApi.load({ tournament: code });
+            state = normalizeState(result.state);
+            state.appMode = 'rr'; state.rr.eventCode = code; tournamentSlug = code;
+            localStorage.setItem('picklepal_rr_access', 'true');
+            localStorage.setItem(`picklepal_rr_${code}`, JSON.stringify(state));
+            message.innerText = '';
+            updateRRFormat();
+            showTab('rr-setup', 'rr');
+        } catch (error) { message.innerText = error.message; }
+    }
+
+    async function createRREvent() {
+        const adminPin = document.getElementById('rr-admin-pin').value.trim();
+        const message = document.getElementById('rr-event-message');
+        if (!/^\d{4}$/.test(adminPin)) { message.innerText = 'Create a four-digit admin PIN for this Round Robin event.'; return; }
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const code = generateRREventNickname();
+            state.rr.eventCode = code;
+            tournamentSlug = code;
+            try {
+                await window.roundRobinApi.create({ tournament: code, adminPin, displayName: state.rr.title || code, state });
+                document.getElementById('rr-event-code').value = code;
+                localStorage.setItem('picklepal_rr_access', 'true');
+                localStorage.setItem(`picklepal_rr_${code}`, JSON.stringify(state));
+                message.innerText = `Event created. Share nickname: ${code}`;
+                updateRRFormat();
+                return;
+            } catch (error) {
+                if (!String(error.message).includes('already in use') || attempt === 4) { message.innerText = error.message; return; }
+            }
         }
-    });
+    }
+
+    let wizardStep = 1;
+    function openSetupWizard() {
+        wizardStep = 1;
+        document.getElementById('setup-wizard').classList.remove('hidden');
+        renderWizardStep();
+    }
+
+    function closeSetupWizard() { document.getElementById('setup-wizard').classList.add('hidden'); }
+
+    function renderWizardStep() {
+        document.querySelectorAll('.wizard-view').forEach(view => view.classList.remove('active'));
+        document.getElementById(`wizard-step-${wizardStep}`).classList.add('active');
+        document.getElementById('wizard-step-label').innerText = `Step ${wizardStep} of 3`;
+        document.getElementById('wizard-title').innerText = wizardStep === 1 ? 'Build your event' : wizardStep === 2 ? 'Choose your structure' : 'Name and protect it';
+        document.querySelectorAll('.wizard-progress span').forEach((bar, index) => bar.classList.toggle('active', index < wizardStep));
+        document.getElementById('wizard-back').style.visibility = wizardStep === 1 ? 'hidden' : 'visible';
+        document.getElementById('wizard-next').innerHTML = wizardStep === 3 ? 'Create tournament <i data-lucide="check"></i>' : 'Continue <i data-lucide="arrow-right"></i>';
+        lucide.createIcons();
+    }
+
+    function wizardNext() {
+        if (wizardStep === 1 && !document.getElementById('wizard-title-input').value.trim()) return appAlert('Add an event title before continuing.', 'Event title required', 'warning');
+        if (wizardStep === 2) {
+            const targetTeams = Number(document.getElementById('wizard-teams-input').value);
+            const allowOdd = document.getElementById('wizard-odd-input').checked;
+            if (!Number.isInteger(targetTeams) || targetTeams < 4 || targetTeams > 80 || (!allowOdd && targetTeams % 2 !== 0)) return appAlert(allowOdd ? 'Target teams must be a whole number from 4 through 80.' : 'Target teams must be an even number from 4 through 80, or enable odd teams.', 'Invalid team target', 'warning');
+            wizardStep = 3; renderWizardStep(); return;
+        }
+        if (wizardStep === 3) { createTournamentFromWizard(); return; }
+        wizardStep++;
+        renderWizardStep();
+    }
+
+    function wizardBack() { if (wizardStep > 1) { wizardStep--; renderWizardStep(); } }
+
+    function openPlayerPortal(role) {
+        const nickname = document.getElementById('lobby-nickname').value.trim();
+        if (!isOneWordTournamentCode(nickname)) return showLobby('Enter the one-word tournament code first.');
+        localStorage.setItem('picklepal_portal_role', role);
+        localStorage.setItem('picklepal_portal_nickname', nickname);
+        window.location.href = 'players.html';
+    }
+
+    async function createTournament() {
+        openSetupWizard();
+    }
+
+    async function createTournamentFromWizard() {
+        const nickname = document.getElementById('wizard-nickname-input').value.trim();
+        const pin = document.getElementById('wizard-pin-input').value.trim();
+        const slug = normalizeTournamentNickname(nickname);
+        if (!isOneWordTournamentCode(nickname)) return appAlert('Enter a one-word tournament code using letters or numbers only.', 'Code required', 'warning');
+        if (!/^\d{4}$/.test(pin)) return appAlert('Create a four-digit admin PIN.', 'PIN required', 'warning');
+
+        tournamentSlug = slug;
+        try {
+            const existing = await db.ref('tournaments').child(tournamentSlug).child('state').once('value');
+            if (existing.exists()) { tournamentSlug = ''; return appAlert('That tournament nickname is already in use. Choose another.', 'Nickname unavailable', 'warning'); }
+        } catch (error) {}
+        const wizardTarget = parseInt(document.getElementById('wizard-teams-input').value);
+        state = normalizeState({ ...state, tournamentNickname: nickname, adminPinHash: await hashPin(pin), expectedTeams: wizardTarget, allowOddTeams: document.getElementById('wizard-odd-input').checked, setupMode: document.getElementById('wizard-mode-input').value, poolCount: calculatePoolCount(wizardTarget), header: { ...state.header, title: document.getElementById('wizard-title-input').value.trim(), date: document.getElementById('wizard-date-input').value, loc: document.getElementById('wizard-location-input').value.trim(), org: document.getElementById('wizard-organizer-input').value.trim(), man: document.getElementById('wizard-manager-input').value.trim(), nickname } });
+        state.header.nickname = nickname;
+        try {
+            const result = await functions.httpsCallable('createTournament')({ nickname, adminPin: pin, state });
+            await auth.signInWithCustomToken(result.data.token);
+        } catch (error) {
+            if (window.supabaseBridge && window.supabaseBridge.configured) return appAlert(`Supabase could not create this tournament: ${error.message}`, 'Cloud setup required', 'warning');
+            console.warn('Secure cloud setup unavailable; local recovery remains active:', error.message);
+        }
+        localStorage.setItem('picklepal_active_tournament', tournamentSlug);
+        localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+        localStorage.setItem('picklepal_admin_session', tournamentSlug);
+        saveState();
+        closeSetupWizard();
+        showManager();
+    }
+
+    async function enterTournament() {
+        const nickname = document.getElementById('lobby-nickname').value.trim();
+        const pin = document.getElementById('lobby-admin-pin').value.trim();
+        const slug = normalizeTournamentNickname(nickname);
+        if (!isOneWordTournamentCode(nickname) || !/^\d{4}$/.test(pin)) return showLobby('Enter the one-word tournament code and four-digit admin PIN.');
+
+        let candidate = null;
+        let secureSession = false;
+        try {
+            const session = await functions.httpsCallable('adminSession')({ tournament: slug, adminPin: pin });
+            await auth.signInWithCustomToken(session.data.token);
+            secureSession = true;
+        } catch (error) { console.warn('Secure admin session unavailable; trying local recovery copy:', error.message); }
+        try {
+            const snapshot = await db.ref('tournaments').child(slug).child('state').once('value');
+            candidate = snapshot.val();
+        } catch (error) { candidate = null; }
+        if (!candidate) {
+            try { candidate = JSON.parse(localStorage.getItem(tournamentStateKey(slug))); } catch (error) { candidate = null; }
+        }
+        if (!candidate || (!secureSession && !candidate.adminPinHash) || (candidate.adminPinHash && await hashPin(pin) !== candidate.adminPinHash)) return showLobby('Tournament not found or admin PIN is incorrect.');
+
+        tournamentSlug = slug;
+        state = normalizeState(candidate);
+        localStorage.setItem('picklepal_active_tournament', tournamentSlug);
+        localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+        localStorage.setItem('picklepal_admin_session', tournamentSlug);
+        showManager();
+    }
+
+    function saveState() { 
+        state.updatedAt = Date.now();
+        syncPending = true;
+        if (tournamentSlug) localStorage.setItem(`picklepal_pending_sync_${tournamentSlug}`, 'true');
+        localStorage.setItem('picklepal_2026', JSON.stringify(state)); 
+        if (tournamentSlug) {
+            localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+            syncStateNow();
+        }
+        updateSyncStatus();
+    }
+
+    function startLiveSync() {
+        if (liveSyncStarted || !tournamentRef()) return;
+        liveSyncStarted = true;
+        tournamentRef().on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && (!data.adminPinHash || data.adminPinHash === state.adminPinHash) && (!syncPending || Number(data.updatedAt || 0) >= Number(state.updatedAt || 0))) {
+                state = normalizeState(data);
+                localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+                renderRoster(); renderPools(); renderStandings(); renderBracketUI(); renderPinDirectory();
+            }
+        });
+    }
+
+    function initManager() {
+        state = normalizeState(state);
+        startConnectionMonitor();
+        startLiveSync();
+        const activeSession = localStorage.getItem('picklepal_admin_session') === tournamentSlug;
+        const casualRoundRobin = localStorage.getItem('picklepal_rr_access') === 'true';
+        if (!activeSession && !casualRoundRobin) return showLobby('Enter your tournament to continue.');
+        // Manager initialization continues below in init().
+        initializeManagerUI();
+    }
 
     function generate4DigitPin() { return Math.floor(1000 + Math.random() * 9000).toString(); }
 
@@ -919,11 +1400,13 @@
     function toggleTheme() {
         if (state.theme === 'dark') { state.theme = 'light'; document.body.classList.add('light-theme'); } 
         else { state.theme = 'dark'; document.body.classList.remove('light-theme'); }
+        localStorage.setItem('picklepal_theme', state.theme);
         saveState(); updateDisplayLogo();
     }
 
     function setAppMode(mode, isInit = false) {
         state.appMode = mode;
+        document.body.classList.toggle('rr-standalone', mode === 'rr');
         const tourneyBtns = [document.getElementById('mode-btn-tourney'), document.getElementById('mob-mode-tourney')];
         const rrBtns = [document.getElementById('mode-btn-rr'), document.getElementById('mob-mode-rr')];
         
@@ -1086,7 +1569,7 @@
         if(!targetSelect) return;
         targetSelect.innerHTML = `<option value="-" disabled ${state.expectedTeams === '-' ? 'selected' : ''}>-</option>`;
         const step = state.allowOddTeams ? 1 : 2;
-        for(let i = 8; i <= 80; i += step) {
+        for(let i = 4; i <= 80; i += step) {
             const opt = document.createElement('option');
             opt.value = i; opt.text = i;
             if(i == state.expectedTeams) opt.selected = true;
@@ -1097,13 +1580,56 @@
     function updateOddTeams(checked) {
         state.allowOddTeams = checked;
         if (!checked && state.expectedTeams !== '-' && state.expectedTeams % 2 !== 0) { state.expectedTeams = '-'; }
+        if (state.expectedTeams !== '-') state.poolCount = calculatePoolCount(state.expectedTeams);
         saveState(); renderTargetDropdown(); renderRoster();
     }
 
     function updateExpectedTeams(val) {
         state.expectedTeams = val === '-' ? '-' : parseInt(val);
-        if(state.expectedTeams !== '-') { state.poolCount = Math.max(1, Math.round(state.expectedTeams / 5)); }
+        if(state.expectedTeams !== '-') { state.poolCount = calculatePoolCount(state.expectedTeams); }
         saveState(); renderRoster(); renderPools();
+    }
+
+    function calculatePoolCount(teamCount) {
+        if (!Number.isInteger(teamCount) || teamCount < 1) return 0;
+        return Math.max(1, Math.round(teamCount / 5));
+    }
+
+    function assignBalancedPools(teams, poolCount) {
+        const ordered = [...teams];
+        const pools = Array.from({ length: poolCount }, () => []);
+        ordered.forEach((team, index) => {
+            const cycle = Math.floor(index / poolCount);
+            const offset = cycle % 2 === 0 ? index % poolCount : poolCount - 1 - (index % poolCount);
+            pools[offset].push(team);
+        });
+        pools.flat().forEach(team => { team.pool = pools.findIndex(pool => pool.includes(team)); });
+        return pools;
+    }
+
+    function buildRoundRobinSchedule(pool) {
+        const rotation = [...pool];
+        if (rotation.length % 2 !== 0) rotation.push(null);
+        const rounds = [];
+        const roundCount = rotation.length - 1;
+        for (let round = 0; round < roundCount; round++) {
+            const games = [];
+            for (let index = 0; index < rotation.length / 2; index++) {
+                const teamA = rotation[index];
+                const teamB = rotation[rotation.length - 1 - index];
+                if (teamA && teamB) games.push([teamA.id, teamB.id]);
+            }
+            rounds.push({ round: round + 1, games, bye: null });
+            rotation.splice(1, 0, rotation.pop());
+        }
+        if (pool.length % 2 !== 0) {
+            rounds.forEach((round, index) => { round.bye = pool[index % pool.length].id; });
+        }
+        return rounds;
+    }
+
+    function buildPoolSchedule(pools) {
+        return pools.map((pool, index) => ({ pool: index, rounds: buildRoundRobinSchedule(pool) }));
     }
 
     async function submitNewTeam() {
@@ -1122,7 +1648,7 @@
             return await appAlert(`Maximum tournament capacity of 80 teams reached.`, "Capacity Reached", "info");
         }
 
-        state.teams.push({ id: Date.now() + Math.random(), pin: generate4DigitPin(), p1: p1, p2: p2, p1Locked: true, p2Locked: true, pool: 0, wins: 0, losses: 0, pd: 0, active: true });
+        state.teams.push({ id: Date.now() + Math.random(), pin: generate4DigitPin(), p1: p1, p2: p2, p1Locked: true, p2Locked: true, checkedIn: false, pool: 0, wins: 0, losses: 0, pd: 0, active: true });
         p1Input.value = ''; p2Input.value = ''; p1Input.focus();
         saveState(); renderRoster(); renderPinDirectory();
     }
@@ -1160,7 +1686,7 @@
                         if(state.setupMode === 'manual' && activeCount < state.expectedTeams) canAdd = true;
                         
                         if(canAdd) {
-                            state.teams.push({ id: Date.now() + Math.random(), pin: generate4DigitPin(), p1: p1, p2: p2, p1Locked: true, p2Locked: true, pool: 0, wins: 0, losses: 0, pd: 0, active: true });
+                            state.teams.push({ id: Date.now() + Math.random(), pin: generate4DigitPin(), p1: p1, p2: p2, p1Locked: true, p2Locked: true, checkedIn: false, pool: 0, wins: 0, losses: 0, pd: 0, active: true });
                             added++;
                         }
                     }
@@ -1176,6 +1702,8 @@
     async function executePoolAction() {
         const activeTeams = state.teams.filter(t => t.active);
         const tCount = activeTeams.length;
+        const missingCheckIns = activeTeams.filter(team => !team.checkedIn);
+        if (missingCheckIns.length) return await appAlert(`Check in all ${missingCheckIns.length} remaining team${missingCheckIns.length === 1 ? '' : 's'} before generating pools. Mark no-shows inactive first.`, 'Check-in required', 'warning');
 
         if (state.setupMode === 'smart') {
             if (tCount < 8) return await appAlert("Smart Setup requires at least 8 teams to optimize a tournament structure.", "Not Enough Teams", "warning");
@@ -1204,7 +1732,8 @@
                     const j = Math.floor(Math.random() * (i + 1));
                     [activeTeams[i], activeTeams[j]] = [activeTeams[j], activeTeams[i]];
                 }
-                activeTeams.forEach((t, i) => { t.pool = i % state.poolCount; });
+                const balancedPools = assignBalancedPools(activeTeams, state.poolCount);
+                state.poolSchedule = buildPoolSchedule(balancedPools);
             }
             
             saveState(); renderRoster(); renderPools();
@@ -1214,7 +1743,8 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [activeTeams[i], activeTeams[j]] = [activeTeams[j], activeTeams[i]];
             }
-            activeTeams.forEach((t, i) => { t.pool = i % state.poolCount; });
+            const pools = assignBalancedPools(activeTeams, state.poolCount);
+            state.poolSchedule = buildPoolSchedule(pools);
             saveState(); renderRoster(); renderPools();
             await appAlert(`Generated ${state.poolCount} balanced pools!`, "Pools Generated", "success");
         }
@@ -1224,9 +1754,12 @@
         const list = document.getElementById('roster-list');
         if(!list) return;
         const activeTeams = state.teams.filter(t => t.active);
+        const checkedInCount = activeTeams.filter(team => team.checkedIn).length;
         
         const numDisplay = document.getElementById('countdown-num');
         const actionBtn = document.getElementById('pool-action-btn');
+        const checkInStatus = document.getElementById('check-in-status');
+        if (checkInStatus) checkInStatus.innerText = `${checkedInCount} of ${activeTeams.length} teams checked in`;
 
         if(state.setupMode === 'smart') {
             numDisplay.innerText = activeTeams.length;
@@ -1275,9 +1808,7 @@
                         <button class="btn btn-sm ${t.p2Locked ? 'btn-outline' : 'btn-success'}" style="${t.p2Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p2')" title="${t.p2Locked ? 'Edit' : 'Save'}"><i data-lucide="${t.p2Locked ? 'edit-2' : 'save'}"></i></button>
                         <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p2')" title="Mark No-Show"><i data-lucide="user-x"></i></button>
                     </div>
-                    <select onchange="updatePool(${t.id}, this.value)" style="min-width:120px;">
-                        ${Array.from({length: state.poolCount}).map((_, v) => `<option value="${v}" ${t.pool === v ? 'selected' : ''}>Pool ${String.fromCharCode(65+v)}</option>`).join('')}
-                    </select>
+                    <div class="check-in-control"><select onchange="updatePool(${t.id}, this.value)">${Array.from({length: state.poolCount}).map((_, v) => `<option value="${v}" ${t.pool === v ? 'selected' : ''}>Pool ${String.fromCharCode(65+v)}</option>`).join('')}</select><button class="btn btn-sm ${t.checkedIn ? 'btn-success' : 'btn-outline'}" onclick="toggleTeamCheckIn(${t.id})" title="${t.checkedIn ? 'Mark not checked in' : 'Mark checked in'}"><i data-lucide="${t.checkedIn ? 'user-check' : 'user-round-check'}"></i> ${t.checkedIn ? 'Here' : 'Check in'}</button></div>
                 </div>
             `).join('');
         }
@@ -1290,16 +1821,15 @@
         if(!list) return;
         const activeTeams = state.teams.filter(t => t.active);
         if (activeTeams.length === 0) {
-            list.innerHTML = '<p style="color:var(--muted); text-align:center; padding:20px; font-weight:600;">No teams registered yet.</p>';
+            list.innerHTML = '<p style="grid-column:1/-1; color:var(--muted); text-align:center; padding:20px; font-weight:600;">No teams registered yet.</p>';
         } else {
-            list.innerHTML = activeTeams.map((t, idx) => `
-                <div class="team-row-entry" style="justify-content:space-between;">
-                    <div><strong style="font-size:1.1rem; color:var(--text);">${t.p1} & ${t.p2}</strong></div>
-                    <div><span class="pin-badge" style="font-size:1.1rem; padding:6px 14px;">PIN: ${t.pin || 'N/A'}</span></div>
-                </div>
-            `).join('');
+            list.innerHTML = `<div class="pin-directory-head">Team</div><div class="pin-directory-head">Player PIN</div>${activeTeams.map(t => `<div class="pin-directory-cell pin-directory-name" title="${t.p1} & ${t.p2}">${t.p1} & ${t.p2}</div><div class="pin-directory-cell pin-directory-code"><span>${t.pin || 'N/A'}</span><button class="pin-copy" onclick="copyPin('${t.pin || ''}')" title="Copy PIN" aria-label="Copy PIN"><i data-lucide="copy" style="width:14px;"></i></button></div>`).join('')}`;
         }
+        lucide.createIcons();
     }
+
+    async function copyPin(pin) { if (pin) await navigator.clipboard.writeText(pin); }
+    async function copyAllPins() { const pins = state.teams.filter(t => t.active).map(t => `${t.p1} & ${t.p2}: ${t.pin || 'N/A'}`).join('\n'); if (pins) await navigator.clipboard.writeText(pins); }
 
     function toggleLock(id, playerKey) {
         const team = state.teams.find(t => t.id === id);
@@ -1311,6 +1841,13 @@
     }
 
     function updatePool(id, val) { state.teams.find(t => t.id === id).pool = parseInt(val); saveState(); }
+
+    function toggleTeamCheckIn(id) {
+        const team = state.teams.find(team => team.id === id);
+        if (!team) return;
+        team.checkedIn = !team.checkedIn;
+        saveState(); renderRoster();
+    }
 
     async function markNoShow(id, missingKey) {
         const t = state.teams.find(team => team.id === id);
@@ -1396,6 +1933,7 @@
                 for (let b = a + 1; b < pTeams.length; b++) {
                     const mId = `m-${pTeams[a].id}-${pTeams[b].id}`;
                     const match = state.completedMatches[mId];
+                    const report = state.scoreReports[mId];
                     
                     if(filterStatus === 'pending' && match) continue;
                     if(filterStatus === 'completed' && !match) continue;
@@ -1419,6 +1957,16 @@
                                 <span style="font-size:0.8rem; color:var(--muted); font-weight:800; display:flex; align-items:center; gap:5px;"><i data-lucide="lock" style="width:14px;"></i> SCORE LOCKED</span>
                                 <button class="btn-lock" onclick="unlockTourneyScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})" title="Override & Edit">Unlock <i data-lucide="unlock" style="width:16px;"></i></button>
                             </div>
+                        `;
+                    } else if(report) {
+                        const reportA = report.teamA;
+                        const reportB = report.teamB;
+                        const isDisputed = reportA && reportB && (reportA.s1 !== reportB.s1 || reportA.s2 !== reportB.s2);
+                        inputArea = `
+                            <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; flex:1; color:var(--text);">${formatTeamName(pTeams[a])}</span><div style="width:65px; text-align:center; font-weight:900; font-size:1.4rem;">${reportA ? `${reportA.s1}-${reportA.s2}` : 'Waiting'}</div></div>
+                            <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; flex:1; color:var(--text);">${formatTeamName(pTeams[b])}</span><div style="width:65px; text-align:center; font-weight:900; font-size:1.4rem;">${reportB ? `${reportB.s1}-${reportB.s2}` : 'Waiting'}</div></div>
+                            <div style="margin-top:12px; padding:10px; border-radius:8px; background:${isDisputed ? 'rgba(239,68,68,.12)' : 'var(--row-bg)'}; color:${isDisputed ? 'var(--danger)' : 'var(--muted)'}; font-size:.8rem; font-weight:800;">${isDisputed ? 'SCORE DISPUTED' : 'AWAITING BOTH TEAM REPORTS'}</div>
+                            ${isDisputed ? `<div style="display:flex; gap:8px; margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'a')">Accept Team A</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'b')">Accept Team B</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'custom')">Correct Score</button></div>` : ''}
                         `;
                     } else {
                         inputArea = `
@@ -1472,14 +2020,31 @@
         
         if(!await appConfirm(`Lock in final score of ${s1} to ${s2}? This permanently locks the match.`, "Confirm Match", "Lock It")) return;
 
+        finalizePoolMatch(mId, id1, id2, s1, s2, 'admin');
+    }
+
+    function finalizePoolMatch(mId, id1, id2, s1, s2, resolvedBy = 'teams') {
         const t1 = state.teams.find(t => t.id === id1);
         const t2 = state.teams.find(t => t.id === id2);
-
+        if(!t1 || !t2 || state.completedMatches[mId]) return;
         if (s1 > s2) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
-        t1.pd += (s1 - s2); t2.pd += (s2 - s1);
-        
-        state.completedMatches[mId] = { s1, s2 };
-        saveState(); renderPools();
+        t1.pd += s1 - s2; t2.pd += s2 - s1;
+        state.completedMatches[mId] = { s1, s2, status:'confirmed', resolvedBy, resolvedAt: new Date().toISOString() };
+        delete state.scoreReports[mId];
+        saveState(); renderPools(); renderStandings();
+    }
+
+    async function resolveDispute(mId, id1, id2, choice) {
+        const report = state.scoreReports[mId];
+        if(!report || !report.teamA || !report.teamB) return;
+        let selected = choice === 'a' ? report.teamA : report.teamB;
+        if(choice === 'custom') {
+            const value = await appPrompt('Enter the official score as Team A-Team B, for example 11-8.', 'Resolve Score', '11-8', 'Resolve');
+            const parts = value ? value.split('-').map(Number) : [];
+            if(parts.length !== 2 || parts.some(score => !Number.isInteger(score) || score < 0)) return;
+            selected = { s1: parts[0], s2: parts[1] };
+        }
+        finalizePoolMatch(mId, id1, id2, selected.s1, selected.s2, 'admin');
     }
 
     async function unlockTourneyScore(mId, id1, id2) {
@@ -1886,6 +2451,25 @@
         lucide.createIcons();
     }
 
+    function showRRHowTo(id) {
+        const rules = {
+            popcorn: ['Everyone is randomly matched each round.', 'Play one game, then report the score.', 'New matchups are generated for the next round.'],
+            gauntlet: ['Players are ranked by results.', 'Win and your next opponent is stronger; lose and the next opponent is easier.', 'Report one game per round.'],
+            claim: ['Start on assigned courts.', 'Winners move up one court and losers move down after each game.', 'The top court is the stage to defend.'],
+            river: ['Play three games with the players on your court.', 'Rank players by wins, then point differential.', 'Top performers move up and lower performers move down.'],
+            cream: ['Round 1 is randomized.', 'Later rounds group players by current standings.', 'Play three games per round and climb by performance.'],
+            double: ['Play six games on your court.', 'Partners rotate through the available combinations.', 'Results determine movement for the next round.'],
+            mixed: ['Players are registered by gender.', 'Each round pairs male and female players into mixed games.', 'New partners and opponents are generated each round.'],
+            scramble: ['Players are randomly assigned to courts.', 'Play three games with the players on your court.', 'A new random court assignment is generated each round.'],
+            fixed_pool: ['Teams keep their partners.', 'Each team faces every other team exactly once.', 'Odd fields receive rotating byes so rest is shared fairly.'],
+            fixed_shuffle: ['Teams keep their partners.', 'Opponents rotate to prioritize unique matchups.', 'Report one game per round; byes rotate when needed.'],
+            fixed_bracket: ['Teams are seeded into a single-elimination bracket.', 'Win a match to advance; lose and your run ends.', 'The admin records the official bracket result.']
+        };
+        const steps = rules[id] || ['Follow the assigned matchup for your court.', 'Play the configured game format.', 'Enter the final score when complete.'];
+        const fmt = RR_FORMATS[id];
+        appAlert(`<strong>${fmt.name}</strong><ul class="rules-modal-list">${steps.map(step => `<li>${step}</li>`).join('')}</ul><p style="margin:1rem 0 0; color:var(--muted);"><strong>Scoring:</strong> ${state.rr.matchRules === 'timed' ? 'Timed / casual scoring: any non-tied result.' : `Games to ${state.rr.matchRules}, win by 2.`}</p>`, `How to play: ${fmt.name}`, 'info');
+    }
+
     let currentPartnerParam = 'dynamic';
 
     function setRRParam(type, val) {
@@ -1923,6 +2507,7 @@
                     <div class="format-title">${fmt.name}</div>
                     <div class="format-badges"><span class="badge blue">${b1}</span><span class="badge purple">${b2}</span></div>
                     <div style="font-size: 0.85rem; color: var(--muted); line-height: 1.4; font-weight: 500; margin-bottom: 10px;">${fmt.desc}</div>
+                    <button class="format-help" onclick="event.stopPropagation(); showRRHowTo('${fmt.id}')"><i data-lucide="book-open" style="width:14px;"></i> How to play</button>
                     <div class="req-container">
                         <div class="req-item"><i data-lucide="users" style="width:14px;"></i> Requires: <span>${fmt.minEnts}</span></div>
                         <div class="req-item"><i data-lucide="map" style="width:14px;"></i> Courts: <span>${fmt.sugCourts}</span></div>
@@ -1943,6 +2528,11 @@
     function updateRRFormat() {
         const fmt = RR_FORMATS[state.rr.format];
         filterRRCards(); 
+
+        const modeName = document.getElementById('rr-current-mode-name');
+        const modeIcon = document.getElementById('rr-current-mode-icon');
+        if (modeName) modeName.innerText = fmt.name;
+        if (modeIcon) { modeIcon.setAttribute('data-lucide', fmt.icon); lucide.createIcons(); }
 
         const rmr = document.getElementById('rr-match-rules');
         const rtr = document.getElementById('rr-target-rounds');
@@ -2157,7 +2747,8 @@
             return await appAlert(`${fmt.name} is a Ladder format and requires at least 2 Available Courts for players to move up and down.`, "Court Error", "warning");
         }
         
-        state.rr.isStarted = true; state.rr.roundNum = 1;
+        state.rr.isStarted = true; state.rr.roundNum = 1; state.rr.scheduleIndex = 0;
+        state.rr.fixedSchedule = fmt.teamSize === 2 && (fmt.id === 'fixed_pool' || fmt.id === 'fixed_shuffle') ? buildFixedTeamSchedule(activeEnts) : [];
         saveState(); 
 
         if (state.rr.format === 'fixed_bracket') {
@@ -2166,6 +2757,42 @@
     }
 
     // --- 6. ROUND ROBIN PLAY & MATCHUPS ---
+    function buildFixedTeamSchedule(entities) {
+        const rotation = [...entities];
+        if (rotation.length % 2 !== 0) rotation.push(null);
+        const rounds = [];
+        for (let round = 0; round < rotation.length - 1; round++) {
+            const games = [];
+            let bye = null;
+            for (let index = 0; index < rotation.length / 2; index++) {
+                const teamA = rotation[index];
+                const teamB = rotation[rotation.length - 1 - index];
+                if (teamA && teamB) games.push([teamA.id, teamB.id]);
+                else if (teamA || teamB) bye = (teamA || teamB).id;
+            }
+            rounds.push({ games, bye });
+            rotation.splice(1, 0, rotation.pop());
+        }
+        return rounds;
+    }
+
+    function generateFixedTeamRound(fmt, activeEnts) {
+        const schedule = state.rr.fixedSchedule[state.rr.scheduleIndex] || { games: [], bye: null };
+        const entitiesById = new Map(activeEnts.map(entity => [entity.id, entity]));
+        const pairs = schedule.games.map(([id1, id2]) => [entitiesById.get(id1), entitiesById.get(id2)]).filter(pair => pair[0] && pair[1]);
+        if (schedule.bye !== null) {
+            const byeEntity = entitiesById.get(schedule.bye);
+            if (byeEntity) byeEntity.byesTaken = (byeEntity.byesTaken || 0) + 1;
+        }
+        const courts = [];
+        for (let index = 0; index < pairs.length; index += state.rr.courtsAvailable) {
+            const courtPairs = pairs.slice(index, index + state.rr.courtsAvailable);
+            courtPairs.forEach((pair, pairIndex) => { courts.push({ id: courts.length + 1, players: pair, games: buildCourtGames(pair, fmt), roundSlot: pairIndex + 1 }); });
+        }
+        state.rr.courts = courts;
+        state.rr.currentBye = schedule.bye;
+    }
+
     function buildCourtGames(players, fmt) {
         let games = [];
         if (fmt.teamSize === 2) {
@@ -2193,6 +2820,12 @@
     async function generateRRRounds() {
         const fmt = RR_FORMATS[state.rr.format];
         const activeEnts = state.rr.entities.filter(e => e.active !== false);
+        if (fmt.teamSize === 2 && (fmt.id === 'fixed_pool' || fmt.id === 'fixed_shuffle')) {
+            generateFixedTeamRound(fmt, activeEnts);
+            await appAlert(`Round ${state.rr.roundNum} of ${state.rr.targetRounds} Generated!<br><br>Every team will face each opponent once, with rotating byes when needed.`, "Matchups Ready", "success");
+            saveState(); updateRRFormat(); showTab('rr-play', 'rr');
+            return;
+        }
         const capacity = fmt.teamSize === 1 ? state.rr.courtsAvailable * 4 : state.rr.courtsAvailable * 2;
         
         let pool = [...activeEnts];
@@ -2279,6 +2912,7 @@
             return;
         }
         state.rr.roundNum++;
+        if (state.rr.fixedSchedule.length) state.rr.scheduleIndex++;
         generateRRRounds();
     }
 
@@ -2663,12 +3297,16 @@
     }
 
     // --- 8. GLOBAL INITIALIZATION (SAFE) ---
-    function init() {
+    function initializeManagerUI() {
         // Restore Reset App Button Logic
         window.resetApp = async function() {
             if(await appConfirm("Are you sure you want to permanently delete ALL app data? This cannot be undone.", "Factory Reset", "Yes, Reset Everything", true)) {
                 localStorage.removeItem('picklepal_2026');
-                db.ref('tournament_state').remove();
+                const ref = tournamentRef();
+                if (ref) ref.remove().catch(error => console.warn('Tournament removal unavailable:', error.message));
+                localStorage.removeItem(tournamentStateKey(tournamentSlug));
+                localStorage.removeItem('picklepal_active_tournament');
+                localStorage.removeItem('picklepal_admin_session');
                 location.reload();
             }
         };
@@ -2676,7 +3314,7 @@
         const target = document.getElementById('target-teams');
         if(target) {
             target.innerHTML = `<option value="-">-</option>`;
-            for(let i=8; i<=80; i+=2) target.innerHTML += `<option value="${i}" ${state.expectedTeams == i ? 'selected' : ''}>${i}</option>`;
+            for(let i=4; i<=80; i+=2) target.innerHTML += `<option value="${i}" ${state.expectedTeams == i ? 'selected' : ''}>${i}</option>`;
         }
         
         const headersTourney = {'head-title': state.header.title, 'head-date': state.header.date, 'head-loc': state.header.loc, 'head-org': state.header.org, 'head-man': state.header.man};
@@ -2691,9 +3329,24 @@
 
         if(state.theme === 'light') document.body.classList.add('light-theme');
         updateDisplayLogo();
+        renderTournamentSharePanel();
         
         setAppMode(state.appMode, true);
         lucide.createIcons();
+    }
+
+    function init() {
+        if (new URLSearchParams(window.location.search).get('mode') === 'round-robin') {
+            localStorage.setItem('picklepal_rr_access', 'true');
+            state.appMode = 'rr';
+        }
+        const hasSession = tournamentSlug && localStorage.getItem('picklepal_admin_session') === tournamentSlug;
+        const casualRoundRobin = localStorage.getItem('picklepal_rr_access') === 'true';
+        if (localStorage.getItem('picklepal_theme') === 'light') { state.theme = 'light'; document.body.classList.add('light-theme'); }
+        if (!hasSession && !casualRoundRobin) return showLobby();
+        try { state = normalizeState(JSON.parse(localStorage.getItem(tournamentStateKey(tournamentSlug))) || state); } catch (error) {}
+        if (state.appMode === 'rr' || localStorage.getItem('picklepal_rr_access') === 'true') document.body.classList.add('rr-standalone');
+        showManager();
     }
 
     window.onload = init;
