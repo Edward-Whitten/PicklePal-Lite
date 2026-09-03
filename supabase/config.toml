@@ -1,0 +1,4 @@
+project_id = "picklepal-lite"
+
+[functions.tournament-api]
+verify_jwt = false
