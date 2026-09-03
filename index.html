@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>PicklePal Lite</title>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@1.40.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-bridge.js"></script>
     <style>
@@ -624,7 +625,7 @@
         </div>
 
         <section id="tournament-share-panel" class="card hidden">
-            <div class="share-panel"><img id="tournament-qr" class="share-qr" alt="Tournament join QR code"><div><h2 style="margin:0 0 6px; font-size:1.45rem;">Share this tournament</h2><p style="margin:0 0 14px; color:var(--muted);">Players can scan the QR code or use this direct event link.</p><div class="share-link"><code id="tournament-share-url"></code><button class="btn btn-outline btn-sm" onclick="copyTournamentLink()" title="Copy player link" aria-label="Copy player link"><i data-lucide="copy"></i></button></div></div></div>
+            <div class="share-panel"><div id="tournament-qr" class="share-qr" role="img" aria-label="Tournament join QR code"></div><div><h2 style="margin:0 0 6px; font-size:1.45rem;">Share this tournament</h2><p style="margin:0 0 14px; color:var(--muted);">Players can scan the QR code or use this direct event link.</p><div class="share-link"><code id="tournament-share-url"></code><button class="btn btn-outline btn-sm" onclick="copyTournamentLink()" title="Copy player link" aria-label="Copy player link"><i data-lucide="copy"></i></button></div></div></div>
         </section>
 
         <div class="card">
@@ -1107,7 +1108,7 @@
     }
 
     function tournamentStateKey(slug) { return `picklepal_tournament_${slug}`; }
-    function tournamentRef() { return tournamentSlug ? db.ref('tournaments').child(tournamentSlug).child('state') : null; }
+    function tournamentRef() { return tournamentSlug ? db.ref(`tournaments/${tournamentSlug}/state`) : null; }
 
     function getTournamentShareUrl() {
         const nickname = state.tournamentNickname || tournamentSlug;
@@ -1119,7 +1120,9 @@
         const link = getTournamentShareUrl();
         if (!panel || !link) { if (panel) panel.classList.add('hidden'); return; }
         document.getElementById('tournament-share-url').innerText = link;
-        document.getElementById('tournament-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(link)}`;
+        const qr = document.getElementById('tournament-qr');
+        qr.innerHTML = '';
+        new QRCode(qr, { text: link, width: 102, height: 102, correctLevel: QRCode.CorrectLevel.M });
         panel.classList.remove('hidden');
     }
 

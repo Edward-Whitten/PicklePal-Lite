@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PicklePal Lite - Player Portal</title>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@1.40.0"></script>
     <style>
         :root { --primary:#0f172a; --bg:#020617; --card:#1e293b; --card-glass:rgba(30,41,59,.6); --text:#f8fafc; --muted:#94a3b8; --accent:#a855f7; --accent-2:#3b82f6; --success:#22c55e; --border:rgba(255,255,255,.15); --input-bg:rgba(0,0,0,.3); --input-border:#475569; --row-bg:rgba(255,255,255,.03); --gradient:linear-gradient(135deg,#06b6d4 0%,#3b82f6 50%,#a855f7 100%); }
         body.light-theme { --primary:#fff; --bg:#f1f5f9; --card:#fff; --card-glass:rgba(255,255,255,.85); --text:#0f172a; --muted:#475569; --accent:#6d28d9; --border:#cbd5e1; --input-bg:#fff; --input-border:#94a3b8; --row-bg:#f8fafc; --gradient:linear-gradient(135deg,#0284c7 0%,#4f46e5 50%,#db2777 100%); background-image:radial-gradient(circle at top right,rgba(109,40,217,.08),transparent 50%); }
@@ -68,7 +68,7 @@
         .private-head h3 { margin:0; }
         @media (max-width:640px) { .portal-shell { width:min(100% - 24px,1180px); padding-top:12px; } .portal-header { align-items:flex-start; flex-direction:column; gap:14px; } .portal-header > div:last-child { width:100%; justify-content:flex-start; gap:10px; } .live-badge { padding-top:0; font-size:.65rem; white-space:nowrap; } .brand img { width:50px; height:50px; } .brand h1 { font-size:1.55rem; } .hero { padding-top:28px; } .hero h2 { font-size:1.8rem; line-height:1.02; } .hero p { font-size:.92rem; } .section-heading { margin-top:26px; } .section-heading h3 { font-size:1.15rem; } .section-heading span { font-size:.68rem; } .card { padding:1.25rem; } .score-panel, .tournament-picker { grid-template-columns:1fr; } .score-panel .btn, .tournament-picker .btn { width:100%; } .tournament-picker input { min-width:0; width:100%; } }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0"></script>
     <script src="supabase-config.js"></script>
     <script src="supabase-bridge.js"></script>
 </head>
@@ -179,7 +179,7 @@
         if(!isOneWordTournamentCode(nickname)) { message.innerText = 'Enter the one-word tournament code supplied by the organizer.'; return; }
 
         let loaded = null;
-        tournamentRef = db.ref('tournaments').child(tournamentSlug).child('state');
+        tournamentRef = db.ref(`tournaments/${tournamentSlug}/state`);
         try { loaded = (await tournamentRef.once('value')).val(); } catch (error) { loaded = null; }
         if(!loaded) {
             try { loaded = JSON.parse(localStorage.getItem(tournamentStateKey(tournamentSlug))); } catch (error) { loaded = null; }
