@@ -56,6 +56,7 @@
         .player-match-card { padding:1.25rem; }.player-match-card h4 { margin:0; line-height:1.35; }.score-entry-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }.score-field { display:grid; gap:6px; min-width:0; }.score-field label { color:var(--muted); font:800 .68rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; }.score-box { width:100%; min-width:0; min-height:54px; padding:8px; text-align:center; font:900 1.35rem/1 'Inter',sans-serif; font-variant-numeric:tabular-nums; }.score-submit { width:100%; margin-top:12px; }
         .score-status { display:flex; align-items:center; gap:8px; margin-top:14px; padding:11px 12px; border-radius:7px; font:800 .78rem/1.35 'Inter',sans-serif; }.score-status.win { color:#bbf7d0; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35); }.score-status.loss { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-status.waiting { color:var(--muted); background:var(--row-bg); border:1px solid var(--border); }.score-status.disputed { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-edit { width:100%; margin-top:10px; }
         .score-confirm-toast { position:fixed; right:20px; bottom:20px; z-index:100; display:none; width:min(420px,calc(100vw - 40px)); padding:18px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.38); }.score-confirm-toast.active { display:block; animation:toast-in .2s ease-out; }.score-confirm-dialog h3 { margin:0 0 5px; }.score-confirm-dialog p { margin:0; color:var(--muted); line-height:1.45; }.score-confirm-value { margin:14px 0; color:var(--text); font:900 1.8rem/1 'Inter',sans-serif; }.score-confirm-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }@keyframes toast-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .score-notice-toast { position:fixed; right:20px; bottom:20px; z-index:101; display:none; width:min(420px,calc(100vw - 40px)); padding:14px 16px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.38); color:#dcfce7; font:800 .88rem/1.35 'Inter',sans-serif; }.score-notice-toast.active { display:flex; align-items:center; gap:9px; animation:toast-in .2s ease-out; }.score-notice-toast.disputed { border-color:rgba(239,68,68,.5); color:#fecaca; }
         .score-panel h3 { margin:0 0 8px; }
         .score-panel p { margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif; }
         input { background:var(--input-bg); border:1px solid var(--input-border); color:var(--text); border-radius:10px; padding:13px; font:700 1rem 'Inter',sans-serif; }
@@ -141,6 +142,7 @@
             <div id="player-matches-container"></div>
         </section>
         <div id="score-confirm-overlay" class="score-confirm-toast" role="status" aria-live="polite" aria-labelledby="score-confirm-title"><div class="score-confirm-dialog"><h3 id="score-confirm-title">Ready to submit?</h3><p>Review the final score before sending it to the other team.</p><div id="score-confirm-value" class="score-confirm-value"></div><div class="score-confirm-actions"><button class="btn btn-outline" onclick="closeScoreConfirmation(false)">Edit</button><button class="btn" onclick="closeScoreConfirmation(true)">Submit score</button></div></div></div>
+        <div id="score-notice-toast" class="score-notice-toast" role="status" aria-live="polite"></div>
         <footer class="app-copyright">Copyright 2026 Auralogic Solutions</footer>
     </div>
 
@@ -157,6 +159,7 @@
     let liveSubscriptionStarted = false;
     let selectedPoolIndex = 0;
     let resolveScoreConfirmation = null;
+    let scoreNoticeTimer = null;
     const portalRole = localStorage.getItem('picklepal_portal_role') || 'player';
 
     function toggleTheme() {
@@ -329,6 +332,16 @@
         document.getElementById('score-confirm-overlay').classList.remove('active');
         if (resolveScoreConfirmation) resolveScoreConfirmation(confirmed);
         resolveScoreConfirmation = null;
+    }
+
+    function showScoreNotice(message, isDisputed = false) {
+        const toast = document.getElementById('score-notice-toast');
+        toast.classList.toggle('disputed', isDisputed);
+        toast.innerHTML = `<i data-lucide="${isDisputed ? 'triangle-alert' : 'circle-check-big'}"></i><span>${message}</span>`;
+        toast.classList.add('active');
+        lucide.createIcons();
+        clearTimeout(scoreNoticeTimer);
+        scoreNoticeTimer = setTimeout(() => toast.classList.remove('active'), 5000);
     }
 
     function editPlayerScore(mId, reportKey) {
@@ -505,7 +518,7 @@
                 localStorage.removeItem(`picklepal_pending_sync_${tournamentSlug}`);
             } catch (error) { syncPlayerState(); }
         } else syncPlayerState();
-        alert(otherReport && otherReport.s1 !== team1Score ? "Score submitted. The match is disputed and awaiting admin review." : (state.completedMatches[mId] ? "Score confirmed by both teams." : "Score submitted. Awaiting the other team."));
+        showScoreNotice(otherReport && otherReport.s1 !== team1Score ? 'Score disputed. Organizer review is required.' : (state.completedMatches[mId] ? 'Score confirmed by both teams.' : 'Score submitted. Waiting for the other team.'), Boolean(otherReport && otherReport.s1 !== team1Score));
         renderPublicPools(); renderPublicBracket(); renderPlayerSchedule();
     }
 
