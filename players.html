@@ -241,6 +241,8 @@
         document.getElementById('player-dashboard').classList.remove('hidden');
         document.getElementById('player-team-title').innerText = `${loggedInTeam.p1} & ${loggedInTeam.p2}`;
         renderPlayerSchedule();
+        showEventView('overview');
+        document.getElementById('player-dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function showEventView(view) {
@@ -344,21 +346,24 @@
         const pin = document.getElementById('player-pin-input').value.trim();
         if(!Array.isArray(state.teams)) return alert("Choose a tournament first.");
 
-        let team = null;
-        try {
-            if(functions && auth) {
+        let team = state.teams.find(t => t.pin === pin) || null;
+        if (!team) {
+            try {
+                if(functions && auth) {
                 const session = await functions.httpsCallable('playerSession')({ tournament: tournamentSlug, playerPin: pin });
                 await auth.signInWithCustomToken(session.data.token);
                 team = state.teams.find(t => String(t.id) === String(session.data.teamId));
-            }
-        } catch (error) { console.warn('Secure player session unavailable; local recovery remains active:', error.message); }
-        if(!team) team = state.teams.find(t => t.pin === pin);
+                }
+            } catch (error) { console.warn('Secure player session unavailable:', error.message); }
+        }
         if(!team) return alert("Invalid 4-Digit PIN. Ask tournament manager for help.");
 
         loggedInTeam = team;
         document.getElementById('player-dashboard').classList.remove('hidden');
         document.getElementById('player-team-title').innerText = `${team.p1} & ${team.p2}`;
         renderPlayerSchedule();
+        showEventView('overview');
+        document.getElementById('player-dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function renderPlayerSchedule() {
