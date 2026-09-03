@@ -54,6 +54,8 @@
         .tournament-picker { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:end; border-top:4px solid var(--accent); }
         .tournament-picker input { min-width:220px; }
         .player-match-card { padding:1.25rem; }.player-match-card h4 { margin:0; line-height:1.35; }.score-entry-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }.score-field { display:grid; gap:6px; min-width:0; }.score-field label { color:var(--muted); font:800 .68rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; }.score-box { width:100%; min-width:0; min-height:54px; padding:8px; text-align:center; font:900 1.35rem/1 'Inter',sans-serif; font-variant-numeric:tabular-nums; }.score-submit { width:100%; margin-top:12px; }
+        .score-status { display:flex; align-items:center; gap:8px; margin-top:14px; padding:11px 12px; border-radius:7px; font:800 .78rem/1.35 'Inter',sans-serif; }.score-status.win { color:#bbf7d0; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35); }.score-status.loss { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-status.waiting { color:var(--muted); background:var(--row-bg); border:1px solid var(--border); }.score-status.disputed { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-edit { width:100%; margin-top:10px; }
+        .score-confirm-overlay { position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(2,6,23,.72); backdrop-filter:blur(8px); }.score-confirm-overlay.active { display:flex; }.score-confirm-dialog { width:min(420px,100%); padding:24px; border:1px solid var(--border); border-radius:10px; background:var(--card); box-shadow:0 24px 56px rgba(0,0,0,.4); }.score-confirm-dialog h3 { margin:0 0 8px; }.score-confirm-dialog p { margin:0; color:var(--muted); line-height:1.45; }.score-confirm-value { margin:18px 0; color:var(--text); font:900 2.3rem/1 'Inter',sans-serif; text-align:center; }.score-confirm-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
         .score-panel h3 { margin:0 0 8px; }
         .score-panel p { margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif; }
         input { background:var(--input-bg); border:1px solid var(--input-border); color:var(--text); border-radius:10px; padding:13px; font:700 1rem 'Inter',sans-serif; }
@@ -138,6 +140,7 @@
             <div class="private-head"><h3 id="player-team-title">Your assigned matches</h3><span class="live-badge"><span class="live-dot"></span> Schedule loaded</span></div>
             <div id="player-matches-container"></div>
         </section>
+        <div id="score-confirm-overlay" class="score-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="score-confirm-title"><div class="score-confirm-dialog"><h3 id="score-confirm-title">Confirm final score</h3><p>Verify this score before submitting it to the other team.</p><div id="score-confirm-value" class="score-confirm-value"></div><div class="score-confirm-actions"><button class="btn btn-outline" onclick="closeScoreConfirmation(false)">Edit score</button><button class="btn" onclick="closeScoreConfirmation(true)">Submit score</button></div></div></div>
         <footer class="app-copyright">Copyright 2026 Auralogic Solutions</footer>
     </div>
 
@@ -153,6 +156,7 @@
     let syncRetryTimer = null;
     let liveSubscriptionStarted = false;
     let selectedPoolIndex = 0;
+    let resolveScoreConfirmation = null;
     const portalRole = localStorage.getItem('picklepal_portal_role') || 'player';
 
     function toggleTheme() {
@@ -305,6 +309,36 @@
         return `<span class="pool-player">${team.p1 || 'Player 1'}</span><span class="pool-player">${team.p2 || 'Player 2'}</span>`;
     }
 
+    function playerScoreEntry(mId, id1, id2, isTeamA, ownScore = '', opponentScore = '', notice = '') {
+        const action = notice ? 'Confirm or dispute score' : 'Submit final score';
+        return `${notice ? `<div class="score-status waiting"><i data-lucide="clipboard-check"></i>${notice}</div>` : ''}<div class="score-entry-grid"><label class="score-field"><span>Your score</span><input type="number" min="0" inputmode="numeric" id="s1-${mId}" class="score-box" value="${ownScore}" placeholder="0"></label><label class="score-field"><span>Opponent</span><input type="number" min="0" inputmode="numeric" id="s2-${mId}" class="score-box" value="${opponentScore}" placeholder="0"></label></div><button class="btn score-submit" onclick="submitScore('${mId}', ${id1}, ${id2}, ${isTeamA})">${action}</button>`;
+    }
+
+    function scoreOutcome(ownScore, opponentScore, label = 'You reported') {
+        const won = ownScore > opponentScore;
+        return `<div class="score-status ${won ? 'win' : 'loss'}"><i data-lucide="${won ? 'circle-check-big' : 'circle-x'}"></i>${label} ${ownScore}-${opponentScore} · ${won ? 'You won' : 'You lost'}</div>`;
+    }
+
+    function confirmPlayerScore(ownScore, opponentScore) {
+        document.getElementById('score-confirm-value').innerText = `${ownScore} - ${opponentScore}`;
+        document.getElementById('score-confirm-overlay').classList.add('active');
+        return new Promise(resolve => { resolveScoreConfirmation = resolve; });
+    }
+
+    function closeScoreConfirmation(confirmed) {
+        document.getElementById('score-confirm-overlay').classList.remove('active');
+        if (resolveScoreConfirmation) resolveScoreConfirmation(confirmed);
+        resolveScoreConfirmation = null;
+    }
+
+    function editPlayerScore(mId, reportKey) {
+        if (!state.scoreReports || !state.scoreReports[mId]) return;
+        delete state.scoreReports[mId][reportKey];
+        if (!Object.keys(state.scoreReports[mId]).length) delete state.scoreReports[mId];
+        localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+        renderPlayerSchedule();
+    }
+
     function renderPublicPools() {
         const container = document.getElementById('public-pools');
         const activeTeams = Array.isArray(state.teams) ? state.teams.filter(team => team.active) : [];
@@ -390,13 +424,23 @@
 
                     let statusHTML = '';
                     if(match) {
-                        statusHTML = `<strong style="color:var(--success);">COMPLETED: ${match.s1} - ${match.s2}</strong>`;
+                        const ownScore = isTeamA ? match.s1 : match.s2;
+                        const opponentScore = isTeamA ? match.s2 : match.s1;
+                        statusHTML = `${scoreOutcome(ownScore, opponentScore, 'Final score')}`;
                     } else if(report && report[reportKey]) {
                         const otherReport = report[reportKey === 'teamA' ? 'teamB' : 'teamA'];
+                        const ownScore = isTeamA ? report[reportKey].s1 : report[reportKey].s2;
+                        const opponentScore = isTeamA ? report[reportKey].s2 : report[reportKey].s1;
                         const disputed = otherReport && (otherReport.s1 !== report[reportKey].s1 || otherReport.s2 !== report[reportKey].s2);
-                        statusHTML = `<strong style="color:${disputed ? 'var(--danger)' : 'var(--muted)'};">${disputed ? 'SCORE DISPUTED - ADMIN REVIEW' : 'SCORE SUBMITTED - AWAITING OPPONENT'}</strong>`;
+                        statusHTML = `${scoreOutcome(ownScore, opponentScore)}<div class="score-status ${disputed ? 'disputed' : 'waiting'}"><i data-lucide="${disputed ? 'triangle-alert' : 'clock-3'}"></i>${disputed ? 'Score disputed - organizer review required' : 'Waiting for the other team to confirm'}</div>${!otherReport ? `<button class="btn btn-outline score-edit" onclick="editPlayerScore('${mId}', '${reportKey}')"><i data-lucide="pencil"></i>Edit submitted score</button>` : ''}`;
+                    } else if(report) {
+                        const otherKey = reportKey === 'teamA' ? 'teamB' : 'teamA';
+                        const otherScore = report[otherKey];
+                        const ownScore = isTeamA ? otherScore.s1 : otherScore.s2;
+                        const opponentScore = isTeamA ? otherScore.s2 : otherScore.s1;
+                        statusHTML = playerScoreEntry(mId, pTeams[a].id, pTeams[b].id, isTeamA, ownScore, opponentScore, `Opponent reported ${ownScore}-${opponentScore}. Submit unchanged to confirm, or edit either score to dispute.`);
                     } else {
-                        statusHTML = `<div class="score-entry-grid"><label class="score-field"><span>Your score</span><input type="number" min="0" inputmode="numeric" id="s1-${mId}" class="score-box" placeholder="0"></label><label class="score-field"><span>Opponent</span><input type="number" min="0" inputmode="numeric" id="s2-${mId}" class="score-box" placeholder="0"></label></div><button class="btn score-submit" onclick="submitScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, ${isTeamA})">Submit Final Score</button>`;
+                        statusHTML = playerScoreEntry(mId, pTeams[a].id, pTeams[b].id, isTeamA);
                     }
 
                     container.innerHTML += `
@@ -410,26 +454,28 @@
         }
 
         if(matchesFound === 0) container.innerHTML = '<p style="color:var(--muted);">No pool matches assigned yet.</p>';
+        lucide.createIcons();
     }
 
     async function submitScore(mId, id1, id2, isTeamA) {
-        const s1 = parseInt(document.getElementById(`s1-${mId}`).value);
-        const s2 = parseInt(document.getElementById(`s2-${mId}`).value);
+        const ownScore = parseInt(document.getElementById(`s1-${mId}`).value);
+        const opponentScore = parseInt(document.getElementById(`s2-${mId}`).value);
 
-        if(isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) return alert("Enter valid scores.");
+        if(isNaN(ownScore) || isNaN(opponentScore) || ownScore < 0 || opponentScore < 0) return alert("Enter valid scores.");
 
-        const myScore = isTeamA ? s1 : s2;
-        const oppScore = isTeamA ? s2 : s1;
+        const myScore = ownScore;
+        const oppScore = opponentScore;
 
         const maxScore = Math.max(myScore, oppScore);
         const minScore = Math.min(myScore, oppScore);
         if(maxScore < 11 || (maxScore - minScore < 2)) return alert("Invalid score. Must reach at least 11 points and win by 2.");
 
         if(!tournamentRef) return alert("Choose a tournament first.");
+        if (!await confirmPlayerScore(myScore, oppScore)) return;
         if(!state.scoreReports) state.scoreReports = {};
         if(!state.completedMatches) state.completedMatches = {};
-        const team1Score = isTeamA ? s1 : s2;
-        const team2Score = isTeamA ? s2 : s1;
+        const team1Score = isTeamA ? ownScore : opponentScore;
+        const team2Score = isTeamA ? opponentScore : ownScore;
         const report = state.scoreReports[mId] || {};
         const reportKey = isTeamA ? 'teamA' : 'teamB';
         report[reportKey] = { s1: team1Score, s2: team2Score, submittedAt: new Date().toISOString(), teamId: isTeamA ? id1 : id2 };
