@@ -37,7 +37,12 @@ async function verifySession(token: string | null, expectedRole: string, tournam
   if (!valid || session.exp < Date.now() || session.role !== expectedRole || session.tournament !== tournament) throw new Error('Session expired or unauthorized.');
   return session;
 }
-function json(data: unknown, status = 200) { return new Response(JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization,content-type' } }); }
+function json(data: unknown, status = 200) { return new Response(status === 204 ? null : JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': 'apikey,authorization,content-type' } }); }
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') return error.message;
+  return String(error);
+}
 
 function publicState(state: unknown) {
   const copy = JSON.parse(JSON.stringify(state || {}));
@@ -104,5 +109,5 @@ Deno.serve(async request => {
     }
     if (action === 'public') return json({ state: tournament.public_state, updatedAt: tournament.updated_at });
     return json({ error: 'Unknown action.' }, 400);
-  } catch (error) { return json({ error: error instanceof Error ? error.message : 'Request failed.' }, 400); }
+  } catch (error) { return json({ error: errorMessage(error) }, 400); }
 });

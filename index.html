@@ -1288,7 +1288,7 @@
 
         tournamentSlug = slug;
         try {
-            const existing = await db.ref('tournaments').child(tournamentSlug).child('state').once('value');
+            const existing = await db.ref(`tournaments/${tournamentSlug}/state`).once('value');
             if (existing.exists()) { tournamentSlug = ''; return appAlert('That tournament nickname is already in use. Choose another.', 'Nickname unavailable', 'warning'); }
         } catch (error) {}
         const wizardTarget = parseInt(document.getElementById('wizard-teams-input').value);
@@ -1297,10 +1297,7 @@
         try {
             const result = await functions.httpsCallable('createTournament')({ nickname, adminPin: pin, state });
             await auth.signInWithCustomToken(result.data.token);
-        } catch (error) {
-            if (window.supabaseBridge && window.supabaseBridge.configured) return appAlert(`Supabase could not create this tournament: ${error.message}`, 'Cloud setup required', 'warning');
-            console.warn('Secure cloud setup unavailable; local recovery remains active:', error.message);
-        }
+        } catch (error) { console.warn('Secure cloud setup unavailable; local recovery remains active:', error.message); }
         localStorage.setItem('picklepal_active_tournament', tournamentSlug);
         localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
         localStorage.setItem('picklepal_admin_session', tournamentSlug);
@@ -1323,7 +1320,7 @@
             secureSession = true;
         } catch (error) { console.warn('Secure admin session unavailable; trying local recovery copy:', error.message); }
         try {
-            const snapshot = await db.ref('tournaments').child(slug).child('state').once('value');
+            const snapshot = await db.ref(`tournaments/${slug}/state`).once('value');
             candidate = snapshot.val();
         } catch (error) { candidate = null; }
         if (!candidate) {
