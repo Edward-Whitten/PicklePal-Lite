@@ -61,6 +61,13 @@
         .btn { background:var(--gradient); color:#fff; border:0; border-radius:10px; padding:13px 18px; font:800 .9rem 'Inter',sans-serif; cursor:pointer; white-space:nowrap; box-shadow:0 4px 15px rgba(168,85,247,.3); }
         .btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
         .hidden { display:none !important; }
+        .event-tabs { display:flex; gap:6px; overflow-x:auto; padding:4px; margin:18px 0; border:1px solid var(--border); border-radius:8px; background:var(--row-bg); }
+        .event-tab { flex:1 0 auto; border:0; border-radius:6px; padding:10px 13px; background:transparent; color:var(--muted); font:800 .78rem 'Inter',sans-serif; cursor:pointer; }
+        .event-tab.active { color:#fff; background:var(--gradient); }
+        .event-view { display:none; }.event-view.active { display:block; }
+        .event-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:16px 0; }
+        .event-summary div { padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--row-bg); }.event-summary strong { display:block; font-size:1.25rem; color:var(--text); }.event-summary span { color:var(--muted); font:700 .7rem 'Inter',sans-serif; text-transform:uppercase; }
+        .advance-badge { display:inline-flex; align-items:center; margin-left:7px; padding:3px 6px; border-radius:5px; font:800 .65rem 'Inter',sans-serif; text-transform:uppercase; }.advance-gold { color:#1f2937; background:var(--gold); }.advance-silver { color:#172033; background:var(--silver); }.advance-bronze { color:#fff; background:var(--bronze); }.advance-wildcard { color:#fff; background:#2563eb; }
         .app-copyright { color:var(--muted); font:700 .72rem 'Inter',sans-serif; letter-spacing:.04em; text-align:center; padding:18px 24px; }
         .public-view { display:none; }
         .public-view.active { display:block; }
@@ -93,15 +100,20 @@
             <p id="player-finder-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
         </section>
 
-        <section id="public-pool-section" class="public-view">
+        <div id="event-tabs" class="event-tabs hidden"><button class="event-tab active" onclick="showEventView('overview')">Overview</button><button class="event-tab" onclick="showEventView('pools')">Pools</button><button class="event-tab" onclick="showEventView('standings')">Standings</button><button class="event-tab" onclick="showEventView('bracket')">Bracket</button></div>
+        <section id="event-view-overview" class="event-view active"><div id="event-summary" class="event-summary hidden"></div></section>
+
+        <section id="event-view-pools" class="event-view"><section id="public-pool-section" class="public-view">
             <div class="section-heading"><h3>Pool Play</h3><span id="pool-status">Waiting for tournament data</span></div>
             <div id="public-pools" class="board-grid"><div class="card">Loading pool play...</div></div>
-        </section>
+        </section></section>
 
-        <section id="public-bracket-section" class="public-view">
+        <section id="event-view-standings" class="event-view"><div class="section-heading"><h3>Overall Standings</h3><span>Qualifiers and wildcards</span></div><div id="public-standings" class="card"></div></section>
+
+        <section id="event-view-bracket" class="event-view"><section id="public-bracket-section" class="public-view">
             <div class="section-heading"><h3>Elimination Bracket</h3><span>Live results</span></div>
             <div id="public-bracket" class="card bracket-wrap">Loading bracket...</div>
-        </section>
+        </section></section>
 
         <section class="card rules">
             <h3>Official Pickleball Rules (2026)</h3>
@@ -137,6 +149,7 @@
     let cloudConnected = false;
     let syncPending = false;
     let syncRetryTimer = null;
+    let liveSubscriptionStarted = false;
     const portalRole = localStorage.getItem('picklepal_portal_role') || 'player';
 
     function toggleTheme() {
@@ -189,11 +202,16 @@
         db.ref('.info/connected').on('value', snapshot => { cloudConnected = snapshot.val() === true; updateSyncStatus(); if(cloudConnected) syncPlayerState(); });
         document.getElementById('public-pool-section').classList.add('active');
         document.getElementById('public-bracket-section').classList.add('active');
+        document.getElementById('event-tabs').classList.remove('hidden');
+        const overview = document.getElementById('event-view-overview');
+        overview.append(document.getElementById('player-finder'), document.getElementById('player-dashboard'));
         if(portalRole === 'player') document.getElementById('player-finder').classList.remove('hidden');
-        renderPublicPools(); renderPublicBracket();
+        renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary();
+        if (liveSubscriptionStarted) return;
+        liveSubscriptionStarted = true;
         tournamentRef.on('value', snapshot => {
             const remote = snapshot.val();
-            if(remote && Array.isArray(remote.teams) && (!syncPending || Number(remote.updatedAt || 0) >= Number(state.updatedAt || 0))) { state = remote; localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); renderPublicPools(); renderPublicBracket(); if(loggedInTeam) renderPlayerSchedule(); }
+            if(remote && Array.isArray(remote.teams) && (!syncPending || Number(remote.updatedAt || 0) >= Number(state.updatedAt || 0))) { state = remote; localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); if(loggedInTeam) renderPlayerSchedule(); }
         });
     }
 
@@ -211,6 +229,7 @@
     function findPlayerMatches() {
         const name = document.getElementById('player-name-input').value.trim().toLowerCase();
         const message = document.getElementById('player-finder-message');
+        if (!Array.isArray(state.teams)) { message.innerText = 'Open the tournament before looking up your matches.'; return; }
         if (!name) { message.innerText = 'Enter the name used during registration.'; return; }
         const matches = state.teams.filter(team => [team.p1, team.p2].some(player => String(player || '').trim().toLowerCase() === name));
         if (!matches.length) { message.innerText = 'No registered team matches that name. Check the spelling with the organizer.'; return; }
@@ -220,6 +239,40 @@
         document.getElementById('player-dashboard').classList.remove('hidden');
         document.getElementById('player-team-title').innerText = `${loggedInTeam.p1} & ${loggedInTeam.p2}`;
         renderPlayerSchedule();
+    }
+
+    function showEventView(view) {
+        document.querySelectorAll('.event-view').forEach(element => element.classList.remove('active'));
+        document.querySelector(`#event-view-${view}`).classList.add('active');
+        document.querySelectorAll('.event-tab').forEach(button => button.classList.toggle('active', button.textContent.trim().toLowerCase() === view));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function qualificationStatus() {
+        const teams = state.teams.filter(team => team.active);
+        const poolCount = Number(state.poolCount) || 1;
+        const bracketSize = Math.min(Number(state.advancementCount) || 8, teams.length);
+        const ranked = [];
+        for (let pool = 0; pool < poolCount; pool++) ranked.push(...teams.filter(team => Number(team.pool) === pool).sort((a, b) => b.wins - a.wins || b.pd - a.pd).map((team, index) => ({ team, poolRank: index + 1 })));
+        const guaranteedPerPool = Math.floor(bracketSize / poolCount);
+        const guaranteed = ranked.filter(entry => entry.poolRank <= guaranteedPerPool);
+        const wildcards = ranked.filter(entry => entry.poolRank > guaranteedPerPool).sort((a, b) => b.team.wins - a.team.wins || b.team.pd - a.team.pd).slice(0, bracketSize - guaranteed.length);
+        return { bracketSize, ranked, guaranteedPerPool, wildcards };
+    }
+
+    function qualifierBadge(poolRank, wildcard) {
+        if (wildcard) return '<span class="advance-badge advance-wildcard">Wildcard</span>';
+        if (poolRank === 1) return '<span class="advance-badge advance-gold">Gold</span>';
+        if (poolRank === 2) return '<span class="advance-badge advance-silver">Silver</span>';
+        return '<span class="advance-badge advance-bronze">Bronze</span>';
+    }
+
+    function renderEventSummary() {
+        const summary = document.getElementById('event-summary');
+        const qualification = qualificationStatus();
+        const completed = Object.keys(state.completedMatches || {}).length;
+        summary.innerHTML = `<div><strong>${state.teams.filter(team => team.active).length}</strong><span>Teams</span></div><div><strong>${completed}</strong><span>Results posted</span></div><div><strong>${qualification.bracketSize}</strong><span>Bracket spots</span></div>`;
+        summary.classList.remove('hidden');
     }
 
     function teamName(team) {
@@ -235,10 +288,20 @@
         document.getElementById('pool-status').innerText = activeTeams.length ? `${activeTeams.length} teams · ${poolCount} pools` : 'Waiting for tournament data';
         if(!activeTeams.length) { container.innerHTML = '<div class="card">Pool play will appear here once teams are registered.</div>'; return; }
 
+        const qualification = qualificationStatus();
         container.innerHTML = Array.from({length: poolCount}, (_, poolIndex) => {
-            const teams = activeTeams.filter(team => Number(team.pool) === poolIndex);
-            return `<article class="card pool-card"><h4>Pool ${String.fromCharCode(65 + poolIndex)}</h4>${teams.length ? teams.map(team => `<div class="team-line"><span>${teamName(team)}</span><small>${team.wins || 0}-${team.losses || 0}</small></div>`).join('') : '<p style="color:var(--muted);font: .9rem Arial,sans-serif;">No teams assigned yet.</p>'}</article>`;
+            const teams = activeTeams.filter(team => Number(team.pool) === poolIndex).sort((a, b) => b.wins - a.wins || b.pd - a.pd);
+            return `<article class="card pool-card"><h4>Pool ${String.fromCharCode(65 + poolIndex)}</h4>${teams.length ? teams.map((team, index) => { const entry = qualification.ranked.find(item => item.team.id === team.id); const wildcard = qualification.wildcards.some(item => item.team.id === team.id); return `<div class="team-line"><span>${teamName(team)}${entry.poolRank <= qualification.guaranteedPerPool || wildcard ? qualifierBadge(entry.poolRank, wildcard) : ''}</span><small>${team.wins || 0}-${team.losses || 0} · ${team.pd || 0} PD</small></div>`; }).join('') : '<p style="color:var(--muted);font: .9rem Arial,sans-serif;">No teams assigned yet.</p>'}</article>`;
         }).join('');
+    }
+
+    function renderPublicStandings() {
+        const container = document.getElementById('public-standings');
+        if (!container || !Array.isArray(state.teams)) return;
+        const qualification = qualificationStatus();
+        const wildcardIds = new Set(qualification.wildcards.map(entry => entry.team.id));
+        const rows = qualification.ranked.sort((a, b) => a.poolRank - b.poolRank || b.team.wins - a.team.wins || b.team.pd - a.team.pd);
+        container.innerHTML = `<div class="event-summary"><div><strong>${qualification.guaranteedPerPool}</strong><span>Automatic per pool</span></div><div><strong>${qualification.wildcards.length}</strong><span>Wildcard spots</span></div><div><strong>${qualification.bracketSize}</strong><span>Total advancing</span></div></div><table><tr><th>Rank</th><th>Pool</th><th>Team</th><th>W-L</th><th>PD</th></tr>${rows.map((entry, index) => `<tr class="${wildcardIds.has(entry.team.id) ? 'wildcard' : entry.poolRank <= qualification.guaranteedPerPool ? 'qualifier' : ''}"><td>${index + 1}</td><td>${String.fromCharCode(65 + entry.team.pool)}</td><td>${teamName(entry.team)}${entry.poolRank <= qualification.guaranteedPerPool || wildcardIds.has(entry.team.id) ? qualifierBadge(entry.poolRank, wildcardIds.has(entry.team.id)) : ''}</td><td>${entry.team.wins}-${entry.team.losses}</td><td>${entry.team.pd}</td></tr>`).join('')}</table>`;
     }
 
     function renderPublicBracket() {
