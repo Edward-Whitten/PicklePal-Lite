@@ -132,11 +132,12 @@
         .editable-group { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
         .editable-group i { color: var(--accent); }
         .header-label { font-weight: 800; color: var(--muted); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; width: 100px; flex-shrink: 0; }
-        .share-panel { display:grid; grid-template-columns:auto minmax(0,1fr); gap:20px; align-items:center; }
+        .share-panel { display:grid; grid-template-columns:auto minmax(0,1fr); gap:20px; align-items:center; min-width:0; }
         .share-qr { width:116px; height:116px; padding:7px; border-radius:8px; background:#fff; }
-        .share-link { display:flex; align-items:center; gap:10px; min-width:0; padding:11px 12px; border:1px solid var(--input-border); border-radius:8px; background:var(--input-bg); }
-        .share-link code { flex:1; min-width:0; overflow:hidden; color:var(--text); font-size:.85rem; text-overflow:ellipsis; white-space:nowrap; }
-        @media (max-width:640px) { .share-panel { grid-template-columns:1fr; } .share-qr { margin:auto; } }
+        .share-link { display:flex; align-items:flex-start; gap:10px; min-width:0; padding:11px 12px; border:1px solid var(--input-border); border-radius:8px; background:var(--input-bg); }
+        .share-link code { flex:1 1 auto; min-width:0; overflow-wrap:anywhere; color:var(--text); font-size:.85rem; line-height:1.4; white-space:normal; }
+        .share-link .btn { flex:0 0 42px; width:42px; min-width:42px; padding:0; }
+        @media (max-width:640px) { .share-panel { grid-template-columns:minmax(0,1fr); gap:14px; } .share-qr { margin:auto; } .share-link { width:100%; } }
 
         .format-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
         .format-card { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
