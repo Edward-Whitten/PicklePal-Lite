@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PicklePal Lite - Player Portal</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #020617;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --accent: #a855f7;
+            --muted: #94a3b8;
+            --success: #22c55e;
+            --border: rgba(255,255,255,0.15);
+            --gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #a855f7 100%);
+        }
+        * { box-sizing: border-box; font-family: sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; text-align: center; }
+        .card { background: var(--card); border-radius: 16px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px; text-align: left; }
+        input[type="number"], input[type="text"] { background: rgba(0,0,0,0.3); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 10px; font-size: 1.2rem; width: 100%; text-align: center; }
+        .btn { background: var(--gradient); color: white; border: none; padding: 14px 20px; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; cursor: pointer; font-size: 1.1rem; }
+        .hidden { display: none !important; }
+        .score-box { width: 70px; height: 50px; font-size: 1.5rem; }
+    </style>
+    <!-- Firebase Realtime Database SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <h2 style="color:var(--accent);">PICKLEPAL LITE - PLAYER PORTAL</h2>
+
+    <div id="login-card" class="card">
+        <h3>Enter 4-Digit Player PIN</h3>
+        <input type="number" id="player-pin-input" placeholder="e.g. 4821">
+        <button class="btn" onclick="loginPlayer()">Access Schedule</button>
+    </div>
+
+    <div id="player-dashboard" class="hidden">
+        <div class="card" style="border-color:var(--accent);">
+            <h3 id="player-team-title" style="margin:0; color:var(--accent);">Team Schedule</h3>
+        </div>
+
+        <h3>Your Assigned Matches</h3>
+        <div id="player-matches-container"></div>
+    </div>
+
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBDiFkpHAgA0dyTliSBxPGrC2ec0VEa0is",
+      authDomain: "picklepal-lite.firebaseapp.com",
+      databaseURL: "https://picklepal-lite-default-rtdb.firebaseio.com",
+      projectId: "picklepal-lite",
+      storageBucket: "picklepal-lite.firebasestorage.app",
+      messagingSenderId: "163325965141",
+      appId: "1:163325965141:web:1d3ab0c65158399a8bf5dc",
+      measurementId: "G-F9WEECS7TX"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let state = {};
+    let loggedInTeam = null;
+
+    db.ref('tournament_state').on('value', (snapshot) => {
+        state = snapshot.val() || {};
+        if(loggedInTeam) renderPlayerSchedule();
+    });
+
+    function loginPlayer() {
+        const pin = document.getElementById('player-pin-input').value.trim();
+        if(!state.teams) return alert("No active tournament data found.");
+
+        const team = state.teams.find(t => t.pin === pin);
+        if(!team) return alert("Invalid 4-Digit PIN. Ask tournament manager for help.");
+
+        loggedInTeam = team;
+        document.getElementById('login-card').classList.add('hidden');
+        document.getElementById('player-dashboard').classList.remove('hidden');
+        document.getElementById('player-team-title').innerText = `${team.p1} & ${team.p2}`;
+        renderPlayerSchedule();
+    }
+
+    function renderPlayerSchedule() {
+        const container = document.getElementById('player-matches-container');
+        container.innerHTML = '';
+
+        const activeTeams = state.teams.filter(t => t.active);
+        const pTeams = activeTeams.filter(t => t.pool === loggedInTeam.pool);
+
+        let matchesFound = 0;
+
+        for (let a = 0; a < pTeams.length; a++) {
+            for (let b = a + 1; b < pTeams.length; b++) {
+                if(pTeams[a].id === loggedInTeam.id || pTeams[b].id === loggedInTeam.id) {
+                    matchesFound++;
+                    const mId = `m-${pTeams[a].id}-${pTeams[b].id}`;
+                    const match = (state.completedMatches && state.completedMatches[mId]) ? state.completedMatches[mId] : null;
+
+                    const opponent = pTeams[a].id === loggedInTeam.id ? pTeams[b] : pTeams[a];
+                    const isTeamA = pTeams[a].id === loggedInTeam.id;
+
+                    let statusHTML = '';
+                    if(match) {
+                        statusHTML = `<strong style="color:var(--success);">COMPLETED: ${match.s1} - ${match.s2}</strong>`;
+                    } else {
+                        statusHTML = `
+                            <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+                                <input type="number" id="s1-${mId}" class="score-box" placeholder="You">
+                                <input type="number" id="s2-${mId}" class="score-box" placeholder="Opp">
+                            </div>
+                            <button class="btn" style="margin-top:10px;" onclick="submitScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, ${isTeamA})">Submit Final Score</button>
+                        `;
+                    }
+
+                    container.innerHTML += `
+                        <div class="card">
+                            <h4>Match vs ${opponent.p1} & ${opponent.p2}</h4>
+                            ${statusHTML}
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        if(matchesFound === 0) container.innerHTML = '<p style="color:var(--muted);">No pool matches assigned yet.</p>';
+    }
+
+    function submitScore(mId, id1, id2, isTeamA) {
+        const s1 = parseInt(document.getElementById(`s1-${mId}`).value);
+        const s2 = parseInt(document.getElementById(`s2-${mId}`).value);
+
+        if(isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) return alert("Enter valid scores.");
+
+        const myScore = isTeamA ? s1 : s2;
+        const oppScore = isTeamA ? s2 : s1;
+
+        const maxScore = Math.max(myScore, oppScore);
+        const minScore = Math.min(myScore, oppScore);
+        if(maxScore < 11 || (maxScore - minScore < 2)) return alert("Invalid score. Must reach at least 11 points and win by 2.");
+
+        if(!state.completedMatches) state.completedMatches = {};
+        state.completedMatches[mId] = { s1: isTeamA ? s1 : s2, s2: isTeamA ? s2 : s1 };
+
+        // Update Win/Loss/PD
+        const t1 = state.teams.find(t => t.id === id1);
+        const t2 = state.teams.find(t => t.id === id2);
+
+        if (s1 > s2) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
+        t1.pd += (s1 - s2); t2.pd += (s2 - s1);
+
+        db.ref('tournament_state').set(state);
+        alert("Score submitted and updated in real time!");
+    }
+</script>
+</body>
+</html>
