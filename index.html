@@ -183,6 +183,8 @@
         td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-weight: 600; }
         .qualifier { background: rgba(34, 197, 94, 0.05); border-left: 4px solid var(--success); }
         .wildcard { background: rgba(99, 102, 241, 0.05); border-left: 4px solid #6366f1; }
+        .advance-medal { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; margin-right:8px; border-radius:50%; vertical-align:middle; }
+        .advance-medal.gold { color:#1f2937; background:var(--gold); }.advance-medal.silver { color:#172033; background:var(--silver); }.advance-medal.bronze { color:#fff; background:var(--bronze); }.advance-medal.wildcard { color:#fff; background:#2563eb; }
         .withdrawn { opacity: 0.4; text-decoration: line-through; filter: grayscale(1); }
 
         .bracket-container { display: flex; gap: 24px; justify-content: flex-start; align-items: stretch; width: 100%; padding: 10px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -1292,7 +1294,7 @@
             if (existing.exists()) { tournamentSlug = ''; return appAlert('That tournament nickname is already in use. Choose another.', 'Nickname unavailable', 'warning'); }
         } catch (error) {}
         const wizardTarget = parseInt(document.getElementById('wizard-teams-input').value);
-        state = normalizeState({ ...state, tournamentNickname: nickname, adminPinHash: await hashPin(pin), expectedTeams: wizardTarget, allowOddTeams: document.getElementById('wizard-odd-input').checked, setupMode: document.getElementById('wizard-mode-input').value, poolCount: calculatePoolCount(wizardTarget), header: { ...state.header, title: document.getElementById('wizard-title-input').value.trim(), date: document.getElementById('wizard-date-input').value, loc: document.getElementById('wizard-location-input').value.trim(), org: document.getElementById('wizard-organizer-input').value.trim(), man: document.getElementById('wizard-manager-input').value.trim(), nickname } });
+        state = normalizeState({ ...state, tournamentNickname: nickname, adminPinHash: await hashPin(pin), expectedTeams: wizardTarget, allowOddTeams: document.getElementById('wizard-odd-input').checked, setupMode: document.getElementById('wizard-mode-input').value, poolCount: getOptimalPoolSizes(wizardTarget).length, advancementCount: recommendedAdvancementCount(wizardTarget), header: { ...state.header, title: document.getElementById('wizard-title-input').value.trim(), date: document.getElementById('wizard-date-input').value, loc: document.getElementById('wizard-location-input').value.trim(), org: document.getElementById('wizard-organizer-input').value.trim(), man: document.getElementById('wizard-manager-input').value.trim(), nickname } });
         state.header.nickname = nickname;
         try {
             const result = await functions.httpsCallable('createTournament')({ nickname, adminPin: pin, state });
@@ -1586,13 +1588,72 @@
 
     function updateExpectedTeams(val) {
         state.expectedTeams = val === '-' ? '-' : parseInt(val);
-        if(state.expectedTeams !== '-') { state.poolCount = calculatePoolCount(state.expectedTeams); }
+        if(state.expectedTeams !== '-') { state.poolCount = getOptimalPoolSizes(state.expectedTeams).length; state.advancementCount = recommendedAdvancementCount(state.expectedTeams); }
         saveState(); renderRoster(); renderPools();
     }
 
-    function calculatePoolCount(teamCount) {
-        if (!Number.isInteger(teamCount) || teamCount < 1) return 0;
-        return Math.max(1, Math.round(teamCount / 5));
+    function getOptimalPoolSizes(teamCount) {
+        if (!Number.isInteger(teamCount) || teamCount < 4 || teamCount > 80) return [];
+        if (teamCount <= 7) return [teamCount];
+        let best = null;
+        for (let poolCount = Math.ceil(teamCount / 6); poolCount <= Math.floor(teamCount / 4); poolCount++) {
+            const base = Math.floor(teamCount / poolCount);
+            const remainder = teamCount % poolCount;
+            if (base < 4 || base > 6 || base + (remainder ? 1 : 0) > 6) continue;
+            const sizes = Array.from({ length: poolCount }, (_, index) => base + (index < remainder ? 1 : 0));
+            const score = sizes.filter(size => size !== 5).length * 10 + sizes.filter(size => size === 4).length;
+            if (!best || score < best.score) best = { sizes, score };
+        }
+        return best ? best.sizes : [teamCount];
+    }
+
+    function calculatePoolCount(teamCount) { return getOptimalPoolSizes(teamCount).length; }
+
+    function nextBracketCapacity(teamCount) { return [4, 8, 16, 32, 64].find(size => size >= teamCount) || 64; }
+
+    function recommendedAdvancementCount(teamCount) {
+        const poolCount = getOptimalPoolSizes(teamCount).length;
+        if (teamCount <= 12) return nextBracketCapacity(teamCount);
+        if (teamCount <= 32) return nextBracketCapacity(Math.ceil(teamCount / 2));
+        return nextBracketCapacity(Math.min(32, poolCount * 2));
+    }
+
+    function teamRanking(a, b) {
+        const aGames = a.wins + a.losses, bGames = b.wins + b.losses;
+        const winRate = bGames ? b.wins / bGames : 0;
+        const otherWinRate = aGames ? a.wins / aGames : 0;
+        if (winRate !== otherWinRate) return winRate - otherWinRate;
+        const headToHead = Object.values(state.completedMatches).find(match => (String(match.teamAId) === String(a.id) && String(match.teamBId) === String(b.id)) || (String(match.teamAId) === String(b.id) && String(match.teamBId) === String(a.id)));
+        if (headToHead) {
+            const aIsTeamA = String(headToHead.teamAId) === String(a.id);
+            const aWon = aIsTeamA ? headToHead.s1 > headToHead.s2 : headToHead.s2 > headToHead.s1;
+            return aWon ? -1 : 1;
+        }
+        if ((b.pd || 0) !== (a.pd || 0)) return (b.pd || 0) - (a.pd || 0);
+        const aAllowed = a.pa || 0, bAllowed = b.pa || 0;
+        const aRatio = aAllowed ? (a.pf || 0) / aAllowed : a.pf || 0;
+        const bRatio = bAllowed ? (b.pf || 0) / bAllowed : b.pf || 0;
+        if (bRatio !== aRatio) return bRatio - aRatio;
+        if (aAllowed !== bAllowed) return aAllowed - bAllowed;
+        return String(a.id).localeCompare(String(b.id));
+    }
+
+    function tournamentQualification() {
+        const active = state.teams.filter(team => team.active);
+        const bracketSize = Math.min(state.advancementCount || recommendedAdvancementCount(active.length), active.length);
+        const ranked = [];
+        for (let pool = 0; pool < state.poolCount; pool++) ranked.push(...active.filter(team => team.pool === pool).sort(teamRanking).map((team, index) => ({ team, poolRank: index + 1 })));
+        const automaticPerPool = Math.max(1, Math.floor(bracketSize / state.poolCount));
+        const automatic = ranked.filter(entry => entry.poolRank <= automaticPerPool).sort((a, b) => a.poolRank - b.poolRank || teamRanking(a.team, b.team)).slice(0, bracketSize);
+        const automaticIds = new Set(automatic.map(entry => entry.team.id));
+        const wildcards = ranked.filter(entry => !automaticIds.has(entry.team.id)).sort((a, b) => teamRanking(a.team, b.team)).slice(0, bracketSize - automatic.length);
+        return { bracketSize, ranked, automaticPerPool, automaticIds, wildcards };
+    }
+
+    function advancementMedal(poolRank, isWildcard) {
+        if (isWildcard) return '<span class="advance-medal wildcard" title="Wildcard qualifier"><i data-lucide="star"></i></span>';
+        const tone = poolRank === 1 ? 'gold' : poolRank === 2 ? 'silver' : 'bronze';
+        return `<span class="advance-medal ${tone}" title="Pool ${poolRank} automatic qualifier"><i data-lucide="medal"></i></span>`;
     }
 
     function assignBalancedPools(teams, poolCount) {
@@ -1648,7 +1709,7 @@
             return await appAlert(`Maximum tournament capacity of 80 teams reached.`, "Capacity Reached", "info");
         }
 
-        state.teams.push({ id: Date.now() + Math.random(), pin: generate4DigitPin(), p1: p1, p2: p2, p1Locked: true, p2Locked: true, checkedIn: false, pool: 0, wins: 0, losses: 0, pd: 0, active: true });
+        state.teams.push({ id: Date.now() + Math.random(), pin: generate4DigitPin(), p1: p1, p2: p2, p1Locked: true, p2Locked: true, checkedIn: false, pool: 0, wins: 0, losses: 0, pf: 0, pa: 0, pd: 0, active: true });
         p1Input.value = ''; p2Input.value = ''; p1Input.focus();
         saveState(); renderRoster(); renderPinDirectory();
     }
@@ -1686,7 +1747,7 @@
                         if(state.setupMode === 'manual' && activeCount < state.expectedTeams) canAdd = true;
                         
                         if(canAdd) {
-                            state.teams.push({ id: Date.now() + Math.random(), pin: generate4DigitPin(), p1: p1, p2: p2, p1Locked: true, p2Locked: true, checkedIn: false, pool: 0, wins: 0, losses: 0, pd: 0, active: true });
+                            state.teams.push({ id: Date.now() + Math.random(), pin: generate4DigitPin(), p1: p1, p2: p2, p1Locked: true, p2Locked: true, checkedIn: false, pool: 0, wins: 0, losses: 0, pf: 0, pa: 0, pd: 0, active: true });
                             added++;
                         }
                     }
@@ -1708,7 +1769,7 @@
         if (state.setupMode === 'smart') {
             if (tCount < 8) return await appAlert("Smart Setup requires at least 8 teams to optimize a tournament structure.", "Not Enough Teams", "warning");
 
-            let pools = 1, adv = 8;
+            let pools = 1, adv = recommendedAdvancementCount(tCount);
             if(tCount >= 8 && tCount <= 11) { pools = 2; adv = 8; }
             else if(tCount >= 12 && tCount <= 17) { pools = 3; adv = 8; }
             else if(tCount >= 18 && tCount <= 23) { pools = 4; adv = 8; }
@@ -1716,7 +1777,7 @@
             else if(tCount >= 30 && tCount <= 35) { pools = 6; adv = 12; }
             else if(tCount >= 36 && tCount <= 41) { pools = 7; adv = 14; }
             else if(tCount >= 42 && tCount <= 50) { pools = 8; adv = 16; }
-            else if(tCount >= 51 && tCount <= 80) { pools = 12; adv = 32; }
+            else if(tCount >= 51 && tCount <= 80) { pools = getOptimalPoolSizes(tCount).length; adv = 32; }
 
             const autoAssign = await customModal({
                 type: 'smart', title: 'AI Optimization', icon: 'magic',
@@ -1743,6 +1804,8 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [activeTeams[i], activeTeams[j]] = [activeTeams[j], activeTeams[i]];
             }
+            state.poolCount = getOptimalPoolSizes(tCount).length;
+            state.advancementCount = recommendedAdvancementCount(tCount);
             const pools = assignBalancedPools(activeTeams, state.poolCount);
             state.poolSchedule = buildPoolSchedule(pools);
             saveState(); renderRoster(); renderPools();
@@ -2028,8 +2091,10 @@
         const t2 = state.teams.find(t => t.id === id2);
         if(!t1 || !t2 || state.completedMatches[mId]) return;
         if (s1 > s2) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
+        t1.pf = (t1.pf || 0) + s1; t1.pa = (t1.pa || 0) + s2;
+        t2.pf = (t2.pf || 0) + s2; t2.pa = (t2.pa || 0) + s1;
         t1.pd += s1 - s2; t2.pd += s2 - s1;
-        state.completedMatches[mId] = { s1, s2, status:'confirmed', resolvedBy, resolvedAt: new Date().toISOString() };
+        state.completedMatches[mId] = { s1, s2, teamAId: id1, teamBId: id2, status:'confirmed', resolvedBy, resolvedAt: new Date().toISOString() };
         delete state.scoreReports[mId];
         saveState(); renderPools(); renderStandings();
     }
@@ -2067,16 +2132,18 @@
         if(!poolDiv || !overDiv) return;
         poolDiv.innerHTML = '';
 
+        const qualification = tournamentQualification();
+        const wildcardIds = new Set(qualification.wildcards.map(entry => entry.team.id));
         for (let i = 0; i < state.poolCount; i++) {
-            const pTeams = active.filter(t => t.pool === i).sort((a,b) => b.wins - a.wins || b.pd - a.pd);
-            poolDiv.innerHTML += `<h3 style="color:var(--accent);">Pool ${String.fromCharCode(65+i)}</h3><table><tr><th>Rank</th><th>Team</th><th>W-L</th><th>PD</th></tr>
-                ${pTeams.map((t, idx) => `<tr class="${idx < 2 ? 'qualifier' : ''}"><td><span class="seed-badge">#${idx+1}</span></td><td style="color:var(--text); font-weight:800;">${formatTeamName(t)}</td><td>${t.wins}-${t.losses}</td><td>${t.pd}</td></tr>`).join('')}</table>`;
+            const pTeams = active.filter(t => t.pool === i).sort(teamRanking);
+            poolDiv.innerHTML += `<h3 style="color:var(--accent);">Pool ${String.fromCharCode(65+i)}</h3><table><tr><th>Rank</th><th>Team</th><th>W-L</th><th>PF</th><th>PA</th><th>PD</th></tr>
+                ${pTeams.map((t, idx) => { const automatic = qualification.automaticIds.has(t.id); const wildcard = wildcardIds.has(t.id); return `<tr class="${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><td><span class="seed-badge">#${idx+1}</span></td><td style="color:var(--text); font-weight:800;">${automatic || wildcard ? advancementMedal(idx + 1, wildcard) : ''}${formatTeamName(t)}</td><td>${t.wins}-${t.losses}</td><td>${t.pf || 0}</td><td>${t.pa || 0}</td><td>${t.pd}</td></tr>`; }).join('')}</table>`;
         }
 
-        const overall = [...active].sort((a,b) => b.wins - a.wins || b.pd - a.pd);
-        overDiv.innerHTML = `<table><tr><th>Rank</th><th>Pool</th><th>Team</th><th>W-L</th><th>PD</th></tr>
-            ${overall.map((t, i) => {
-                return `<tr><td><span class="seed-badge">#${i+1}</span></td><td style="font-weight:900; color:var(--muted);">${String.fromCharCode(65+t.pool)}</td><td style="color:var(--text); font-weight:800;">${formatTeamName(t)}</td><td>${t.wins}-${t.losses}</td><td>${t.pd}</td></tr>`;
+        const overall = [...qualification.ranked].sort((a, b) => a.poolRank - b.poolRank || teamRanking(a.team, b.team));
+        overDiv.innerHTML = `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;"><span class="badge blue">${qualification.bracketSize} bracket spots</span><span class="badge purple">${qualification.automaticPerPool} automatic per pool</span><span class="badge blue">${qualification.wildcards.length} wildcards</span></div><table><tr><th>Rank</th><th>Pool</th><th>Team</th><th>W-L</th><th>PD</th><th>PDR</th></tr>
+            ${overall.map((entry, i) => { const t = entry.team; const automatic = qualification.automaticIds.has(t.id); const wildcard = wildcardIds.has(t.id); const ratio = t.pa ? (t.pf / t.pa).toFixed(2) : '-';
+                return `<tr class="${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><td><span class="seed-badge">#${i+1}</span></td><td style="font-weight:900; color:var(--muted);">${String.fromCharCode(65+t.pool)}</td><td style="color:var(--text); font-weight:800;">${automatic || wildcard ? advancementMedal(entry.poolRank, wildcard) : ''}${formatTeamName(t)}</td><td>${t.wins}-${t.losses}</td><td>${t.pd}</td><td>${ratio}</td></tr>`;
             }).join('')}</table>`;
     }
 
@@ -2243,16 +2310,6 @@
         
         if(tCount < 4) return await appAlert("Tournament needs at least 4 active teams to seed the Elimination Bracket.", "Bracket Error", "warning");
 
-        let allRanked = [];
-        for (let i = 0; i < state.poolCount; i++) {
-            const sorted = active.filter(t => t.pool === i).sort((a,b) => b.wins - a.wins || b.pd - a.pd);
-            sorted.forEach((t, idx) => {
-                t.poolRank = idx + 1;
-                allRanked.push(t);
-            });
-        }
-        allRanked.sort((a,b) => a.poolRank - b.poolRank || b.wins - a.wins || b.pd - a.pd);
-
         let advTarget = state.advancementCount || 8;
         if (state.setupMode === 'manual') {
             const choice = await appPrompt("Enter number of teams to advance to bracket (4, 8, 16, or 32):", "Manual Bracket Setup", "e.g. 8", "Seed Bracket");
@@ -2263,7 +2320,9 @@
             advTarget = pVal;
         }
 
-        const seeded = allRanked.slice(0, advTarget).map((team, idx) => ({...team, seed: idx + 1}));
+        state.advancementCount = advTarget;
+        const qualification = tournamentQualification();
+        const seeded = [...qualification.ranked.filter(entry => qualification.automaticIds.has(entry.team.id)), ...qualification.wildcards].slice(0, advTarget).map((entry, idx) => ({...entry.team, seed: idx + 1}));
 
         state.bracket = {
             r32: Array(16).fill().map(() => ({t1:null, t2:null, winner:null})),
