@@ -45,5 +45,7 @@ test.describe('Home and manager workspace', () => {
     await first.locator('input[id^="s2-"]').fill('8');
     await first.getByRole('button', { name: 'Confirm Score' }).click();
     await expect(page.locator('#modal-title')).toHaveText('Invalid Score');
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#app-modal')).not.toHaveClass(/active/);
   });
 });

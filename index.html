@@ -63,6 +63,7 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
         * { box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        :focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
         html, body { max-width: 100%; overflow-x: hidden; }
         body { background-color: var(--bg); color: var(--text); margin: 0; display: flex; min-height: 100dvh; overflow-y: auto; transition: background-color 0.4s ease, color 0.4s ease; background-image: var(--glow), linear-gradient(90deg, transparent 0 49.8%, rgba(6,182,212,.035) 50%, transparent 50.2%), linear-gradient(0deg, transparent 0 49.8%, rgba(168,85,247,.035) 50%, transparent 50.2%); background-size:auto, 180px 180px, 180px 180px; }
 
@@ -251,7 +252,7 @@
         /* Next-Gen Custom Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; pointer-events: none; transition: 0.3s ease; }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
-        .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 2.5rem; width: 90%; max-width: 450px; box-shadow: 0 24px 50px rgba(0,0,0,0.3); transform: translateY(20px) scale(0.95); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); text-align: center; }
+        .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; width:min(450px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); overflow:auto; box-shadow: 0 24px 50px rgba(0,0,0,0.3); transform: translateY(20px) scale(0.95); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); text-align: center; }
         .modal-box.show { transform: translateY(0) scale(1); }
         .modal-icon { width: 56px; height: 56px; margin: 0 auto 1.5rem auto; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
         .modal-icon.warning { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
@@ -261,8 +262,10 @@
         .modal-title { font-size: 1.6rem; font-weight: 900; color: var(--text); margin-bottom: 0.8rem; letter-spacing:-0.5px; }
         .modal-msg { font-size: 1.05rem; color: var(--muted); line-height: 1.5; margin-bottom: 2rem; font-weight:500; }
         .modal-input { width: 100%; margin-bottom: 2rem; text-align:center; }
-        .modal-actions { display: flex; gap: 15px; justify-content: center; }
+        .modal-actions { display: flex; gap: 12px; justify-content: center; }
         .modal-actions .btn { flex: 1; }
+        .data-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
+        .data-table-wrap table { min-width:620px; margin:0; }.data-table-wrap th { position:sticky; top:0; z-index:1; background:var(--card); }
 
         .lobby-screen { position:fixed; inset:0; z-index:20000; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:24px; overflow-y:auto; background:var(--bg); background-image:var(--glow); }
         .lobby-card { width:min(1120px,100%); min-height:min(680px,calc(100dvh - 48px)); padding:clamp(1.5rem,4vw,4rem); background:linear-gradient(135deg,rgba(30,41,59,.78),rgba(15,23,42,.88)); border:1px solid rgba(148,163,184,.22); border-radius:24px; box-shadow:0 24px 60px rgba(0,0,0,.28), 0 0 80px rgba(59,130,246,.08); text-align:left; position:relative; display:grid; grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr); align-items:center; gap:clamp(2rem,7vw,7rem); overflow:hidden; }
@@ -360,7 +363,7 @@
         .pin-directory-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:800; }
         .pin-directory-code { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--accent); font-weight:900; letter-spacing:2px; }
         .pin-copy { border:1px solid var(--border); background:var(--row-bg); color:var(--muted); border-radius:7px; padding:5px 7px; cursor:pointer; }
-        @media (max-width:760px) { .lobby-screen { position:static; min-height:100dvh; height:auto; overflow:visible; padding:12px; } .lobby-card { display:block; min-height:0; padding:1.25rem; border:0; border-radius:16px; background:transparent; box-shadow:none; } .lobby-card::before { display:none; } .lobby-intro { padding-top:2rem; margin-bottom:2rem; } .lobby-card h1 { font-size:2.5rem; letter-spacing:-1px; } .lobby-intro > p { font-size:1rem; } .lobby-panel { margin-top:1rem; } .wizard-grid, .lobby-field, .lobby-actions, .lobby-features { grid-template-columns:1fr; flex-direction:column; } .wizard-field.full { grid-column:auto; } }
+        @media (max-width:760px) { .lobby-screen { position:static; min-height:100dvh; height:auto; overflow:visible; padding:12px; } .lobby-card { display:block; min-height:0; padding:1.25rem; border:0; border-radius:16px; background:transparent; box-shadow:none; } .lobby-card::before { display:none; } .lobby-intro { padding-top:2rem; margin-bottom:2rem; } .lobby-card h1 { font-size:2.5rem; letter-spacing:-1px; } .lobby-intro > p { font-size:1rem; } .lobby-panel { margin-top:1rem; } .wizard-grid, .lobby-field, .lobby-actions, .lobby-features { grid-template-columns:1fr; flex-direction:column; } .wizard-field.full { grid-column:auto; } .modal-actions { flex-direction:column-reverse; } .modal-actions .btn { width:100%; } }
         @media (max-width:760px) { .rr-event-access { grid-template-columns:1fr; gap:14px; padding:16px; } .rr-access-section { grid-column:1; align-items:stretch; flex-direction:column; } .rr-access-section::before { width:100%; height:3px; align-self:auto; } .rr-access-label { flex-basis:auto; } .rr-access-fields, .rr-event-access-controls { grid-template-columns:1fr; width:100%; } .rr-access-fields .btn, .rr-event-access-controls .btn { width:100%; } }
         @media (max-width:360px) { .lobby-card h1 { font-size:2rem; line-height:1; letter-spacing:-.8px; } .lobby-logo { width:92px; } .lobby-intro { padding-top:1.5rem; } }
         @media (max-width:360px) { .lobby-panel .btn { white-space:nowrap; font-size:.8rem; padding:11px 10px; gap:7px; } }
@@ -969,7 +972,12 @@
 
             const close = (result) => {
                 box.classList.remove('show');
+                document.removeEventListener('keydown', onKeyDown);
                 setTimeout(() => { overlay.classList.remove('active'); resolve(result); }, 300); 
+            };
+
+            const onKeyDown = (event) => {
+                if (event.key === 'Escape') close(type === 'prompt' ? null : false);
             };
 
             confirmBtn.onclick = () => {
@@ -981,6 +989,7 @@
             cancelBtn.onclick = () => { if (type === 'prompt') close(null); else close(false); };
 
             overlay.classList.add('active'); box.classList.add('show');
+            document.addEventListener('keydown', onKeyDown);
             if (type === 'prompt') setTimeout(() => inputEl.focus(), 100);
         });
     }
@@ -1645,10 +1654,12 @@
 
     function tournamentQualification() {
         const active = state.teams.filter(team => team.active);
+        if (!active.length) return { bracketSize: 0, ranked: [], automaticPerPool: 0, automaticIds: new Set(), wildcards: [] };
+        const poolCount = Math.max(1, Number(state.poolCount) || calculatePoolCount(active.length) || 1);
         const bracketSize = Math.min(state.advancementCount || recommendedAdvancementCount(active.length), active.length);
         const ranked = [];
-        for (let pool = 0; pool < state.poolCount; pool++) ranked.push(...active.filter(team => team.pool === pool).sort(teamRanking).map((team, index) => ({ team, poolRank: index + 1 })));
-        const automaticPerPool = Math.max(1, Math.floor(bracketSize / state.poolCount));
+        for (let pool = 0; pool < poolCount; pool++) ranked.push(...active.filter(team => team.pool === pool).sort(teamRanking).map((team, index) => ({ team, poolRank: index + 1 })));
+        const automaticPerPool = Math.max(1, Math.floor(bracketSize / poolCount));
         const automatic = ranked.filter(entry => entry.poolRank <= automaticPerPool).sort((a, b) => a.poolRank - b.poolRank || teamRanking(a.team, b.team)).slice(0, bracketSize);
         const automaticIds = new Set(automatic.map(entry => entry.team.id));
         const wildcards = ranked.filter(entry => !automaticIds.has(entry.team.id)).sort((a, b) => teamRanking(a.team, b.team)).slice(0, bracketSize - automatic.length);
@@ -2094,7 +2105,7 @@
     function finalizePoolMatch(mId, id1, id2, s1, s2, resolvedBy = 'teams') {
         const t1 = state.teams.find(t => t.id === id1);
         const t2 = state.teams.find(t => t.id === id2);
-        if(!t1 || !t2 || state.completedMatches[mId]) return;
+        if(!t1 || !t2 || state.completedMatches[mId] || !Number.isInteger(s1) || !Number.isInteger(s2) || s1 < 0 || s2 < 0 || s1 === s2) return;
         if (s1 > s2) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
         t1.pf = (t1.pf || 0) + s1; t1.pa = (t1.pa || 0) + s2;
         t2.pf = (t2.pf || 0) + s2; t2.pa = (t2.pa || 0) + s1;
@@ -2124,6 +2135,8 @@
             const t2 = state.teams.find(t => t.id === id2);
             const match = state.completedMatches[mId];
             if (match.s1 > match.s2) { t1.wins--; t2.losses--; } else { t2.wins--; t1.losses--; }
+            t1.pf = Math.max(0, (t1.pf || 0) - match.s1); t1.pa = Math.max(0, (t1.pa || 0) - match.s2);
+            t2.pf = Math.max(0, (t2.pf || 0) - match.s2); t2.pa = Math.max(0, (t2.pa || 0) - match.s1);
             t1.pd -= (match.s1 - match.s2); t2.pd -= (match.s2 - match.s1);
             delete state.completedMatches[mId];
             saveState(); renderPools();
@@ -2141,15 +2154,15 @@
         const wildcardIds = new Set(qualification.wildcards.map(entry => entry.team.id));
         for (let i = 0; i < state.poolCount; i++) {
             const pTeams = active.filter(t => t.pool === i).sort(teamRanking);
-            poolDiv.innerHTML += `<h3 style="color:var(--accent);">Pool ${String.fromCharCode(65+i)}</h3><table><tr><th>Rank</th><th>Team</th><th>W-L</th><th>PF</th><th>PA</th><th>PD</th></tr>
-                ${pTeams.map((t, idx) => { const automatic = qualification.automaticIds.has(t.id); const wildcard = wildcardIds.has(t.id); return `<tr class="${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><td><span class="seed-badge">#${idx+1}</span></td><td style="color:var(--text); font-weight:800;">${automatic || wildcard ? advancementMedal(idx + 1, wildcard) : ''}${formatTeamName(t)}</td><td>${t.wins}-${t.losses}</td><td>${t.pf || 0}</td><td>${t.pa || 0}</td><td>${t.pd}</td></tr>`; }).join('')}</table>`;
+            poolDiv.innerHTML += `<h3 style="color:var(--accent);">Pool ${String.fromCharCode(65+i)}</h3><div class="data-table-wrap"><table><tr><th>Rank</th><th>Team</th><th>W-L</th><th>PF</th><th>PA</th><th>PD</th></tr>
+                ${pTeams.map((t, idx) => { const automatic = qualification.automaticIds.has(t.id); const wildcard = wildcardIds.has(t.id); return `<tr class="${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><td><span class="seed-badge">#${idx+1}</span></td><td style="color:var(--text); font-weight:800;">${automatic || wildcard ? advancementMedal(idx + 1, wildcard) : ''}${formatTeamName(t)}</td><td>${t.wins}-${t.losses}</td><td>${t.pf || 0}</td><td>${t.pa || 0}</td><td>${t.pd}</td></tr>`; }).join('')}</table></div>`;
         }
 
         const overall = [...qualification.ranked].sort((a, b) => a.poolRank - b.poolRank || teamRanking(a.team, b.team));
-        overDiv.innerHTML = `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;"><span class="badge blue">${qualification.bracketSize} bracket spots</span><span class="badge purple">${qualification.automaticPerPool} automatic per pool</span><span class="badge blue">${qualification.wildcards.length} wildcards</span></div><table><tr><th>Rank</th><th>Pool</th><th>Team</th><th>W-L</th><th>PD</th><th>PDR</th></tr>
+        overDiv.innerHTML = `<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;"><span class="badge blue">${qualification.bracketSize} bracket spots</span><span class="badge purple">${qualification.automaticPerPool} automatic per pool</span><span class="badge blue">${qualification.wildcards.length} wildcards</span></div><div class="data-table-wrap"><table><tr><th>Rank</th><th>Pool</th><th>Team</th><th>W-L</th><th>PD</th><th>PDR</th></tr>
             ${overall.map((entry, i) => { const t = entry.team; const automatic = qualification.automaticIds.has(t.id); const wildcard = wildcardIds.has(t.id); const ratio = t.pa ? (t.pf / t.pa).toFixed(2) : '-';
                 return `<tr class="${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><td><span class="seed-badge">#${i+1}</span></td><td style="font-weight:900; color:var(--muted);">${String.fromCharCode(65+t.pool)}</td><td style="color:var(--text); font-weight:800;">${automatic || wildcard ? advancementMedal(entry.poolRank, wildcard) : ''}${formatTeamName(t)}</td><td>${t.wins}-${t.losses}</td><td>${t.pd}</td><td>${ratio}</td></tr>`;
-            }).join('')}</table>`;
+            }).join('')}</table></div>`;
     }
 
     // --- BRACKET ENGINE ---
