@@ -72,7 +72,7 @@ Deno.serve(async request => {
       const { data: created, error } = await supabase.from('tournaments').insert({ code: tournamentCode, event_type: kind, display_name: body.displayName || tournamentCode, admin_pin_hash: await hashPin(adminPin), public_state: publicState(initialState) }).select().single();
       if (error) throw error;
       const teams = kind === 'round_robin' && initialState.rr && Array.isArray(initialState.rr.entities) ? initialState.rr.entities : (Array.isArray(initialState.teams) ? initialState.teams : []);
-      const accessRows = await Promise.all((kind === 'tournament' ? teams : []).filter((team: Record<string, unknown>) => team?.id != null && /^\d{4}$/.test(String(team.pin || ''))).map(async (team: Record<string, unknown>) => ({ tournament_id: created.id, team_id: String(team.id), pin_hash: await hashPin(String(team.pin)) })));
+      const accessRows = await Promise.all((kind === 'tournament' ? teams : []).filter((team: Record<string, unknown>) => team?.id != null && /^\d{4}$/.test(String(team.pin || ''))).map(async (team: Record<string, unknown>) => ({ tournament_id: created.id, team_id: String(team.id), pin_hash: await hashPin(String(team.pin)), score_pin: String(team.pin) })));
       if (accessRows.length) { const { error: accessError } = await supabase.from('team_access').insert(accessRows); if (accessError) throw accessError; }
       return json({ sessionToken: await signSession({ tournament: tournamentCode, role: 'admin' }), state: created.public_state });
     }
@@ -92,7 +92,7 @@ Deno.serve(async request => {
       const nextState = body.state || {};
       const teams = tournament.event_type === 'round_robin' && nextState.rr && Array.isArray(nextState.rr.entities) ? nextState.rr.entities : (Array.isArray(nextState.teams) ? nextState.teams : []);
       for (const team of kind === 'tournament' ? teams : []) {
-        if (team?.id != null && /^\d{4}$/.test(String(team.pin || ''))) await supabase.from('team_access').upsert({ tournament_id: tournament.id, team_id: String(team.id), pin_hash: await hashPin(String(team.pin)) }, { onConflict: 'tournament_id,team_id' });
+        if (team?.id != null && /^\d{4}$/.test(String(team.pin || ''))) await supabase.from('team_access').upsert({ tournament_id: tournament.id, team_id: String(team.id), pin_hash: await hashPin(String(team.pin)), score_pin: String(team.pin) }, { onConflict: 'tournament_id,team_id' });
       }
       const { error } = await supabase.from('tournaments').update({ public_state: publicState(nextState), updated_at: new Date().toISOString() }).eq('id', tournament.id);
       if (error) throw error;
@@ -108,16 +108,22 @@ Deno.serve(async request => {
       return json({ status: 'pending' });
     }
     if (action === 'player-checkin') {
-      const session = await verifySession(authToken, 'player', tournamentCode);
+      let session: Record<string, unknown> | null = null;
+      try { session = await verifySession(authToken, 'player', tournamentCode); } catch (error) { session = null; }
+      const requestedTeamId = String(session?.teamId ?? body.teamId ?? '');
+      const playerSlot = body.playerSlot === 'p2' ? 'p2' : body.playerSlot === 'p1' ? 'p1' : null;
       const nextState = JSON.parse(JSON.stringify(tournament.public_state || {}));
       const teams = Array.isArray(nextState.teams) ? nextState.teams : [];
-      const team = teams.find((item: Record<string, unknown>) => String(item.id) === String(session.teamId));
+      const team = teams.find((item: Record<string, unknown>) => String(item.id) === requestedTeamId);
       if (!team) throw new Error('This team is not part of the tournament.');
-      team.checkedIn = true;
+      if (playerSlot) team[`${playerSlot}CheckedIn`] = true;
+      else { team.p1CheckedIn = true; team.p2CheckedIn = true; }
+      team.checkedIn = Boolean(team.p1CheckedIn && team.p2CheckedIn);
       const { error } = await supabase.from('tournaments').update({ public_state: publicState(nextState), updated_at: new Date().toISOString() }).eq('id', tournament.id);
       if (error) throw error;
-      await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'player', actor_id: String(session.teamId), event_type: 'player_checked_in' });
-      return json({ status: 'checked-in', teamId: session.teamId });
+      const { data: access } = await supabase.from('team_access').select('score_pin').eq('tournament_id', tournament.id).eq('team_id', requestedTeamId).maybeSingle();
+      await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'player', actor_id: `${requestedTeamId}:${playerSlot || 'team'}`, event_type: 'player_checked_in' });
+      return json({ status: 'checked-in', teamId: requestedTeamId, playerSlot, scorePin: access?.score_pin });
     }
     if (action === 'public') return json({ state: tournament.public_state, updatedAt: tournament.updated_at });
     return json({ error: 'Unknown action.' }, 400);

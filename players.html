@@ -58,6 +58,7 @@
         .player-match-card { padding:1.25rem; }.player-match-card h4 { margin:0; line-height:1.35; }.score-entry-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }.score-field { display:grid; gap:6px; min-width:0; }.score-field label { color:var(--muted); font:800 .68rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; }.score-box { width:100%; min-width:0; min-height:54px; padding:8px; text-align:center; font:900 1.35rem/1 'Inter',sans-serif; font-variant-numeric:tabular-nums; }.score-submit { width:100%; margin-top:12px; }.score-submit.submitting, .btn.submitting { opacity:.78; cursor:wait; filter:saturate(.75); }
         .score-status { display:flex; align-items:center; gap:8px; margin-top:14px; padding:11px 12px; border-radius:7px; font:800 .78rem/1.35 'Inter',sans-serif; }.score-status.win { color:#bbf7d0; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35); }.score-status.loss { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-status.waiting { color:#dbeafe; background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.34); }.score-status.disputed { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-error { color:#fecaca; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.34); }.score-edit { width:100%; margin-top:10px; }
         .checkin-card { position:relative; overflow:hidden; margin:18px 0 18px; padding:22px; border:1px solid rgba(34,197,94,.34); border-radius:16px; background:radial-gradient(circle at top left,rgba(34,197,94,.2),transparent 38%), radial-gradient(circle at bottom right,rgba(59,130,246,.16),transparent 42%), linear-gradient(145deg,rgba(15,23,42,.94),rgba(30,41,59,.9)); box-shadow:0 18px 44px rgba(0,0,0,.24), 0 0 38px rgba(34,197,94,.1); }.checkin-card::before { content:""; position:absolute; inset:auto -15% -55% 20%; height:120px; background:radial-gradient(circle,rgba(34,197,94,.22),transparent 62%); pointer-events:none; }.checkin-kicker { margin:0 0 8px; color:#86efac; font:900 .72rem/1 'Inter',sans-serif; letter-spacing:.16em; text-transform:uppercase; }.checkin-card h4 { position:relative; margin:0 0 8px; font-size:clamp(1.35rem,4vw,2rem); line-height:1.04; }.checkin-card p { position:relative; max-width:620px; margin:0 0 18px; color:#cbd5e1; font:700 .95rem/1.5 'Inter',sans-serif; }.checkin-btn { position:relative; width:100%; min-height:54px; border-radius:12px; animation:checkin-pulse 1.8s ease-in-out infinite; }.checkin-btn:active { transform:scale(.98); filter:brightness(1.18); }.checkin-btn.submitting { animation:none; }.checkin-spinner { width:17px; height:17px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite; }.checkin-chip { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:11px 14px; border:1px solid rgba(34,197,94,.42); border-radius:999px; background:rgba(34,197,94,.14); color:#bbf7d0; font:900 .8rem/1.2 'Inter',sans-serif; box-shadow:0 8px 28px rgba(34,197,94,.16); animation:checkin-done .24s ease-out; }.checkin-dot { display:inline-flex; width:9px; height:9px; margin-right:7px; border-radius:50%; background:var(--success); box-shadow:0 0 12px var(--success); vertical-align:middle; }.checkin-pill { display:inline-flex; align-items:center; gap:6px; margin-left:7px; padding:4px 7px; border-radius:999px; background:rgba(34,197,94,.14); color:#bbf7d0; font:900 .62rem 'Inter',sans-serif; text-transform:uppercase; }.checkin-pill::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 10px var(--success); }body.light-theme .checkin-card { background:radial-gradient(circle at top left,rgba(34,197,94,.16),transparent 38%), radial-gradient(circle at bottom right,rgba(59,130,246,.12),transparent 42%), linear-gradient(145deg,rgba(255,255,255,.96),rgba(241,245,249,.96)); box-shadow:0 18px 44px rgba(15,23,42,.12), 0 0 38px rgba(34,197,94,.1); }body.light-theme .checkin-card p { color:var(--muted); }body.light-theme .checkin-kicker { color:#15803d; }body.light-theme .checkin-chip, body.light-theme .checkin-pill { color:#166534; background:rgba(34,197,94,.16); }@keyframes checkin-pulse { 0%,100% { box-shadow:0 4px 15px rgba(168,85,247,.3), 0 0 0 0 rgba(34,197,94,.28); } 50% { box-shadow:0 10px 28px rgba(34,197,94,.28), 0 0 0 8px rgba(34,197,94,0); } }@keyframes spin { to { transform:rotate(360deg); } }@keyframes checkin-done { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+        .express-checkin { margin:18px 0; padding:0; overflow:hidden; }.express-checkin-head { padding:22px; background:radial-gradient(circle at top left,rgba(34,197,94,.18),transparent 36%), radial-gradient(circle at bottom right,rgba(168,85,247,.16),transparent 42%); border-bottom:1px solid var(--border); }.express-checkin-head h3 { margin:0 0 7px; font-size:clamp(1.4rem,4vw,2rem); line-height:1.05; }.express-checkin-head p { margin:0; color:var(--muted); font:700 .95rem/1.5 'Inter',sans-serif; }.express-search { padding:18px 22px 8px; }.express-search input { width:100%; }.player-directory { display:grid; gap:10px; padding:14px 22px 22px; }.player-checkin-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; min-height:64px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--row-bg); }.player-checkin-name { min-width:0; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.player-checkin-team { display:block; margin-top:4px; color:var(--muted); font:700 .72rem/1.3 'Inter',sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.player-checkin-row .btn, .player-checkin-row .checkin-chip { min-width:132px; justify-content:center; }.pin-delivery { border-color:rgba(59,130,246,.42); background:radial-gradient(circle at top right,rgba(59,130,246,.2),transparent 42%), linear-gradient(145deg,rgba(15,23,42,.96),rgba(30,41,59,.9)); }.pin-display { margin:14px 0; padding:16px; border:1px solid rgba(59,130,246,.34); border-radius:12px; background:rgba(59,130,246,.13); color:#dbeafe; text-align:center; font:900 clamp(1.1rem,4vw,1.45rem)/1.2 'Inter',sans-serif; letter-spacing:.08em; }.pin-delivery .btn { width:100%; }body.light-theme .pin-delivery { background:radial-gradient(circle at top right,rgba(59,130,246,.13),transparent 42%), linear-gradient(145deg,rgba(255,255,255,.96),rgba(241,245,249,.96)); }body.light-theme .pin-display { color:#1e3a8a; background:#dbeafe; }
         .score-confirm-toast { position:fixed; right:20px; bottom:20px; z-index:100; display:none; width:min(420px,calc(100vw - 40px)); padding:18px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.38); }.score-confirm-toast.active { display:block; animation:toast-in .2s ease-out; }.score-confirm-dialog h3 { margin:0 0 5px; }.score-confirm-dialog p { margin:0; color:var(--muted); line-height:1.45; }.score-confirm-value { margin:14px 0; color:var(--text); font:900 1.8rem/1 'Inter',sans-serif; }.score-confirm-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }@keyframes toast-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
         .score-notice-toast { position:fixed; right:20px; bottom:20px; z-index:101; display:none; width:min(420px,calc(100vw - 40px)); padding:14px 16px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.38); color:#dcfce7; font:800 .88rem/1.35 'Inter',sans-serif; }.score-notice-toast.active { display:flex; align-items:center; gap:9px; animation:toast-in .2s ease-out; }.score-notice-toast.disputed { border-color:rgba(239,68,68,.5); color:#fecaca; }
         .score-panel h3 { margin:0 0 8px; }
@@ -81,7 +82,7 @@
         .public-view.active { display:block; }
         .private-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
         .private-head h3 { margin:0; }
-        @media (max-width:640px) { .portal-shell { width:min(100% - 24px,1180px); padding-top:12px; } .portal-header { align-items:flex-start; flex-direction:column; gap:14px; } .portal-header > div:last-child { width:100%; justify-content:flex-start; gap:10px; } .live-badge { padding-top:0; font-size:.65rem; white-space:nowrap; } .brand img { width:50px; height:50px; } .brand h1 { font-size:1.55rem; } .hero { padding-top:28px; } .hero h2 { font-size:1.8rem; line-height:1.02; } .hero p { font-size:.92rem; } .section-heading { margin-top:26px; } .section-heading h3 { font-size:1.15rem; } .section-heading span { font-size:.68rem; } .card { padding:1.25rem; } .pool-card { padding:0; } .pool-row { grid-template-columns:24px 28px minmax(0,1fr) 44px 38px; min-height:92px; gap:5px; padding:9px 12px; font-size:.79rem; }.pool-row-head { min-height:34px; font-size:.58rem; }.score-panel, .tournament-picker { grid-template-columns:1fr; } .score-panel .btn, .tournament-picker .btn { width:100%; } .tournament-picker input { min-width:0; width:100%; } .player-match-card { padding:1.1rem; }.score-entry-grid { gap:8px; }.score-box { min-height:58px; font-size:1.5rem; }.standing-grid { grid-template-columns:1fr; }.event-tabs { margin-inline:-2px; }.event-tab { min-width:78px; } }
+        @media (max-width:640px) { .portal-shell { width:min(100% - 24px,1180px); padding-top:12px; } .portal-header { align-items:flex-start; flex-direction:column; gap:14px; } .portal-header > div:last-child { width:100%; justify-content:flex-start; gap:10px; } .live-badge { padding-top:0; font-size:.65rem; white-space:nowrap; } .brand img { width:50px; height:50px; } .brand h1 { font-size:1.55rem; } .hero { padding-top:28px; } .hero h2 { font-size:1.8rem; line-height:1.02; } .hero p { font-size:.92rem; } .section-heading { margin-top:26px; } .section-heading h3 { font-size:1.15rem; } .section-heading span { font-size:.68rem; } .card { padding:1.25rem; } .pool-card, .express-checkin { padding:0; } .pool-row { grid-template-columns:24px 28px minmax(0,1fr) 44px 38px; min-height:92px; gap:5px; padding:9px 12px; font-size:.79rem; }.pool-row-head { min-height:34px; font-size:.58rem; }.score-panel, .tournament-picker { grid-template-columns:1fr; } .score-panel .btn, .tournament-picker .btn { width:100%; } .tournament-picker input { min-width:0; width:100%; } .player-match-card { padding:1.1rem; }.score-entry-grid { gap:8px; }.score-box { min-height:58px; font-size:1.5rem; }.standing-grid { grid-template-columns:1fr; }.event-tabs { margin-inline:-2px; }.event-tab { min-width:78px; }.player-checkin-row { grid-template-columns:1fr; }.player-checkin-row .btn, .player-checkin-row .checkin-chip { width:100%; } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0"></script>
     <script src="supabase-config.js"></script>
@@ -109,7 +110,7 @@
         </section>
 
         <div id="event-tabs" class="event-tabs hidden"><button class="event-tab active" aria-label="Overview" title="Show My Matches overview" onclick="showEventView('overview')">Overview</button><button class="event-tab" aria-label="Pools" title="Show pools" onclick="showEventView('pools')">Pools</button><button class="event-tab" aria-label="Standings" title="Show standings" onclick="showEventView('standings')">Standings</button><button class="event-tab" aria-label="Bracket" title="Show bracket" onclick="showEventView('bracket')">Bracket</button></div>
-        <section id="event-view-overview" class="event-view active"><div id="event-summary" class="event-summary hidden"></div></section>
+        <section id="event-view-overview" class="event-view active"><div id="event-summary" class="event-summary hidden"></div><section id="express-checkin" class="card express-checkin hidden" aria-label="Express Player Check-In"><div class="express-checkin-head"><p class="checkin-kicker">Express Player Check-In</p><h3>Check in by name. Get your score PIN instantly.</h3><p>No PIN needed to arrive. Search your name, check in, then save the score PIN for match reporting.</p></div><div class="express-search"><input id="express-player-search" type="search" placeholder="Search your name..." aria-label="Search your name" oninput="renderExpressCheckIn(this.value)"></div><div id="express-player-directory" class="player-directory"></div><div id="express-pin-delivery"></div></section></section>
 
         <section id="event-view-pools" class="event-view"><section id="public-pool-section" class="public-view">
             <div class="section-heading"><h3>Pool Play</h3><span id="pool-status">Waiting for tournament data</span></div>
@@ -251,14 +252,15 @@
         const finder = document.getElementById('player-finder');
         const dashboard = document.getElementById('player-dashboard');
         if (overview && finder && dashboard) overview.append(finder, dashboard);
+        document.getElementById('express-checkin')?.classList.remove('hidden');
         if(portalRole === 'player') finder?.classList.remove('hidden');
-        renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary();
+        renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); renderExpressCheckIn();
         setTournamentLoading(false);
         if (liveSubscriptionStarted) return;
         liveSubscriptionStarted = true;
         tournamentRef.on('value', snapshot => {
             const remote = snapshot.val();
-            if(remote && Array.isArray(remote.teams) && (!syncPending || Number(remote.updatedAt || 0) >= Number(state.updatedAt || 0))) { state = remote; localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); if(loggedInTeam) renderPlayerSchedule(); }
+            if(remote && Array.isArray(remote.teams) && (!syncPending || Number(remote.updatedAt || 0) >= Number(state.updatedAt || 0))) { state = remote; localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); renderExpressCheckIn(document.getElementById('express-player-search')?.value || ''); if(loggedInTeam) renderPlayerSchedule(); }
         });
     }
 
@@ -345,9 +347,74 @@
         return `${team.p1 || 'Player 1'} & ${team.p2 || 'Player 2'}`;
     }
 
+    function firstName(value) { return String(value || 'Player').trim().split(/\s+/)[0] || 'Player'; }
+    function playerCheckedIn(team, slot) { return Boolean(team?.[`${slot}CheckedIn`] || (team?.checkedIn && team?.[`${slot}CheckedIn`] !== false)); }
+    function refreshTeamCheckIn(team) { team.checkedIn = playerCheckedIn(team, 'p1') && playerCheckedIn(team, 'p2'); }
+    function playerEntries() {
+        if (!Array.isArray(state.teams)) return [];
+        return state.teams.filter(team => team.active !== false).flatMap(team => [
+            { team, slot: 'p1', name: team.p1 || 'Player 1', partner: team.p2 || 'Player 2' },
+            { team, slot: 'p2', name: team.p2 || 'Player 2', partner: team.p1 || 'Player 1' },
+        ]);
+    }
+
+    function renderExpressCheckIn(filter = '') {
+        const directory = document.getElementById('express-player-directory');
+        if (!directory) return;
+        const needle = String(filter || '').trim().toLowerCase();
+        const entries = playerEntries().filter(entry => !needle || entry.name.toLowerCase().includes(needle));
+        directory.innerHTML = entries.length ? entries.map(entry => {
+            const checked = playerCheckedIn(entry.team, entry.slot);
+            return `<div class="player-checkin-row"><div><div class="player-checkin-name" title="${entry.name}">${entry.name}</div><span class="player-checkin-team">Partner: ${entry.partner}</span></div>${checked ? '<span class="checkin-chip"><i data-lucide="check"></i> Checked In</span>' : `<button class="btn checkin-btn" onclick="checkInPlayer(${entry.team.id}, '${entry.slot}', this)"><i data-lucide="check"></i> Check In</button>`}</div>`;
+        }).join('') : '<p style="margin:0; color:var(--muted); font-weight:800;">No registered player matches that search.</p>';
+        lucide.createIcons();
+    }
+
+    function showPinDelivery(entry, scorePin) {
+        const container = document.getElementById('express-pin-delivery');
+        if (!container) return;
+        container.innerHTML = `<div class="checkin-card pin-delivery"><p class="checkin-kicker">You're checked in</p><h4>Thanks for checking in, ${firstName(entry.name)}! You're ready to play.</h4><div class="pin-display">YOUR MATCH SCORE PIN: ${scorePin || 'Ask organizer'}</div><p>Take a screenshot or save this PIN. You will use it to report scores after your matches.</p><button class="btn" onclick="goToScoreDesk('${scorePin || ''}')"><i data-lucide="arrow-down-circle"></i> Go to Score Desk</button></div>`;
+        lucide.createIcons();
+    }
+
+    function goToScoreDesk(scorePin) {
+        const input = document.getElementById('player-pin-input');
+        if (input && scorePin) input.value = scorePin;
+        document.getElementById('player-pin-submit')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (scorePin) setTimeout(() => loginPlayer(), 0);
+    }
+
+    async function checkInPlayer(teamId, slot, button) {
+        const entry = playerEntries().find(item => String(item.team.id) === String(teamId) && item.slot === slot);
+        if (!entry || playerCheckedIn(entry.team, entry.slot)) return;
+        if (button) { button.disabled = true; button.classList.add('submitting'); button.innerHTML = '<span class="checkin-spinner"></span> Checking in...'; }
+        entry.team[`${entry.slot}CheckedIn`] = true;
+        refreshTeamCheckIn(entry.team);
+        state.updatedAt = Date.now();
+        syncPending = true;
+        try {
+            localStorage.setItem(`picklepal_pending_sync_${tournamentSlug}`, 'true');
+            localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+        } catch (error) { console.warn('Check-in local persistence unavailable:', error.message); }
+        let scorePin = entry.team.pin || '';
+        if (functions && tournamentSlug) {
+            try {
+                const result = await functions.httpsCallable('checkInPlayer')({ tournament: tournamentSlug, teamId: entry.team.id, playerSlot: entry.slot });
+                scorePin = result.data.scorePin || scorePin;
+                syncPending = false;
+                localStorage.removeItem(`picklepal_pending_sync_${tournamentSlug}`);
+            } catch (error) { syncPending = true; syncPlayerState(); }
+        } else syncPlayerState();
+        renderPublicPools();
+        renderPublicStandings();
+        renderExpressCheckIn(document.getElementById('express-player-search')?.value || '');
+        showPinDelivery(entry, scorePin);
+    }
+
     function poolTeamNames(team) {
-        const status = team.checkedIn ? '<span class="checkin-pill" title="Checked in">Ready</span>' : '';
-        return `<span class="pool-player">${team.p1 || 'Player 1'}</span><span class="pool-player">${team.p2 || 'Player 2'}${status}</span>`;
+        const p1Status = playerCheckedIn(team, 'p1') ? '<span class="checkin-pill" title="Checked in">Ready</span>' : '';
+        const p2Status = playerCheckedIn(team, 'p2') ? '<span class="checkin-pill" title="Checked in">Ready</span>' : '';
+        return `<span class="pool-player">${team.p1 || 'Player 1'}${p1Status}</span><span class="pool-player">${team.p2 || 'Player 2'}${p2Status}</span>`;
     }
 
     function checkInMarkup(team) {
@@ -360,8 +427,8 @@
         if (!loggedInTeam || loggedInTeam.checkedIn) return;
         if (button) { button.disabled = true; button.classList.add('submitting'); button.innerHTML = '<span class="checkin-spinner"></span> Checking in...'; }
         const team = Array.isArray(state.teams) ? state.teams.find(item => String(item.id) === String(loggedInTeam.id)) : null;
-        if (team) team.checkedIn = true;
-        loggedInTeam.checkedIn = true;
+        if (team) { team.p1CheckedIn = true; team.p2CheckedIn = true; refreshTeamCheckIn(team); }
+        loggedInTeam.p1CheckedIn = true; loggedInTeam.p2CheckedIn = true; loggedInTeam.checkedIn = true;
         state.updatedAt = Date.now();
         syncPending = true;
         try {
@@ -453,9 +520,9 @@
         const qualification = qualificationStatus();
         const wildcardIds = new Set(qualification.wildcards.map(entry => entry.team.id));
         const rows = qualification.ranked.sort((a, b) => a.poolRank - b.poolRank || b.team.wins - a.team.wins || b.team.pd - a.team.pd);
-        container.innerHTML = `<div class="event-summary"><div><strong>${qualification.qualifiersPerPool}</strong><span>Automatic per pool</span></div><div><strong>${qualification.wildcards.length}</strong><span>Wildcard spots</span></div><div><strong>${qualification.bracketSize}</strong><span>Total advancing</span></div></div><div class="swipe-surface" aria-label="Swipe overall standings horizontally"><div class="standing-table"><div class="standing-row standing-row-head"><span>Rank</span><span>Team</span><span>Record</span><span>PD</span><span>Pool</span></div>${rows.map((entry, index) => { const wildcard = wildcardIds.has(entry.team.id); const automatic = qualification.automaticIds.has(entry.team.id); return `<div class="standing-row ${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><span class="standing-rank">${index + 1}</span><div class="standing-name" title="${teamName(entry.team)}">${entry.team.checkedIn ? '<span class="checkin-dot" title="Checked in"></span>' : ''}${teamName(entry.team)}<span class="standing-meta">${automatic || wildcard ? qualifierBadge(entry.poolRank, wildcard) : ''} Pool rank ${entry.poolRank}</span></div><span class="standing-record">${entry.team.wins}-${entry.team.losses}</span><span class="standing-pd">${entry.team.pd}</span><span class="standing-pool">${String.fromCharCode(65 + entry.team.pool)}</span></div>`; }).join('')}</div></div>`;
+        container.innerHTML = `<div class="event-summary"><div><strong>${qualification.qualifiersPerPool}</strong><span>Automatic per pool</span></div><div><strong>${qualification.wildcards.length}</strong><span>Wildcard spots</span></div><div><strong>${qualification.bracketSize}</strong><span>Total advancing</span></div></div><div class="swipe-surface" aria-label="Swipe overall standings horizontally"><div class="standing-table"><div class="standing-row standing-row-head"><span>Rank</span><span>Team</span><span>Record</span><span>PD</span><span>Pool</span></div>${rows.map((entry, index) => { const wildcard = wildcardIds.has(entry.team.id); const automatic = qualification.automaticIds.has(entry.team.id); return `<div class="standing-row ${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><span class="standing-rank">${index + 1}</span><div class="standing-name" title="${teamName(entry.team)}">${entry.team.checkedIn ? '<span class="checkin-dot" title="Team checked in"></span>' : ''}${teamName(entry.team)}<span class="standing-meta">${automatic || wildcard ? qualifierBadge(entry.poolRank, wildcard) : ''} ${[playerCheckedIn(entry.team, 'p1') ? `${entry.team.p1} ready` : '', playerCheckedIn(entry.team, 'p2') ? `${entry.team.p2} ready` : ''].filter(Boolean).join(' · ') || `Pool rank ${entry.poolRank}`}</span></div><span class="standing-record">${entry.team.wins}-${entry.team.losses}</span><span class="standing-pd">${entry.team.pd}</span><span class="standing-pool">${String.fromCharCode(65 + entry.team.pool)}</span></div>`; }).join('')}</div></div>`;
         const wildcardContainer = document.getElementById('public-wildcards');
-        wildcardContainer.innerHTML = qualification.wildcards.length ? `<div class="event-summary"><div><strong>${qualification.wildcards.length}</strong><span>Wildcards advancing</span></div><div><strong>${qualification.bracketSize}</strong><span>Bracket capacity</span></div><div><strong>${qualification.qualifiersPerPool}</strong><span>Automatic per pool</span></div></div><div class="swipe-surface" aria-label="Swipe wildcard standings horizontally"><div class="standing-table"><div class="standing-row standing-row-head"><span>Rank</span><span>Team</span><span>Record</span><span>PD</span><span>Pool</span></div>${qualification.wildcards.map((entry, index) => `<div class="standing-row wildcard"><span class="standing-rank">${index + 1}</span><div class="standing-name" title="${teamName(entry.team)}">${entry.team.checkedIn ? '<span class="checkin-dot" title="Checked in"></span>' : ''}${teamName(entry.team)}<span class="standing-meta">${qualifierBadge(entry.poolRank, true)} Pool rank ${entry.poolRank}</span></div><span class="standing-record">${entry.team.wins}-${entry.team.losses}</span><span class="standing-pd">${entry.team.pd}</span><span class="standing-pool">${String.fromCharCode(65 + entry.team.pool)}</span></div>`).join('')}</div></div>` : '<div style="padding:8px 0; color:var(--muted); font-weight:700;">No wildcard spots are needed. Automatic pool qualifiers fill every bracket place.</div>';
+        wildcardContainer.innerHTML = qualification.wildcards.length ? `<div class="event-summary"><div><strong>${qualification.wildcards.length}</strong><span>Wildcards advancing</span></div><div><strong>${qualification.bracketSize}</strong><span>Bracket capacity</span></div><div><strong>${qualification.qualifiersPerPool}</strong><span>Automatic per pool</span></div></div><div class="swipe-surface" aria-label="Swipe wildcard standings horizontally"><div class="standing-table"><div class="standing-row standing-row-head"><span>Rank</span><span>Team</span><span>Record</span><span>PD</span><span>Pool</span></div>${qualification.wildcards.map((entry, index) => `<div class="standing-row wildcard"><span class="standing-rank">${index + 1}</span><div class="standing-name" title="${teamName(entry.team)}">${entry.team.checkedIn ? '<span class="checkin-dot" title="Team checked in"></span>' : ''}${teamName(entry.team)}<span class="standing-meta">${qualifierBadge(entry.poolRank, true)} ${[playerCheckedIn(entry.team, 'p1') ? `${entry.team.p1} ready` : '', playerCheckedIn(entry.team, 'p2') ? `${entry.team.p2} ready` : ''].filter(Boolean).join(' · ') || `Pool rank ${entry.poolRank}`}</span></div><span class="standing-record">${entry.team.wins}-${entry.team.losses}</span><span class="standing-pd">${entry.team.pd}</span><span class="standing-pool">${String.fromCharCode(65 + entry.team.pool)}</span></div>`).join('')}</div></div>` : '<div style="padding:8px 0; color:var(--muted); font-weight:700;">No wildcard spots are needed. Automatic pool qualifiers fill every bracket place.</div>';
         lucide.createIcons();
     }
 
@@ -510,7 +577,6 @@
     function renderPlayerSchedule() {
         const container = document.getElementById('player-matches-container');
         container.innerHTML = '';
-        container.insertAdjacentHTML('beforeend', checkInMarkup(loggedInTeam));
 
         const activeTeams = state.teams.filter(t => t.active);
         const pTeams = activeTeams.filter(t => t.pool === loggedInTeam.pool);

@@ -1898,11 +1898,13 @@
                     <div style="font-weight:900; color:var(--muted); font-size:1.2rem; width:30px;">${idx + 1}</div>
                     <div style="display:flex; gap:5px; align-items:center;">
                         <input type="text" id="p1-${t.id}" value="${t.p1}" placeholder="Player 1" ${t.p1Locked ? 'readonly' : ''} style="width:100%;">
+                        ${t.p1CheckedIn || (t.checkedIn && t.p1CheckedIn !== false) ? '<span class="badge blue" title="Player checked in">Here</span>' : ''}
                         <button class="btn btn-sm ${t.p1Locked ? 'btn-outline' : 'btn-success'}" style="${t.p1Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p1')" title="${t.p1Locked ? 'Edit' : 'Save'}"><i data-lucide="${t.p1Locked ? 'edit-2' : 'save'}"></i></button>
                         <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p1')" title="Mark No-Show"><i data-lucide="user-x"></i></button>
                     </div>
                     <div style="display:flex; gap:5px; align-items:center;">
                         <input type="text" id="p2-${t.id}" value="${t.p2}" placeholder="Player 2" ${t.p2Locked ? 'readonly' : ''} style="width:100%;">
+                        ${t.p2CheckedIn || (t.checkedIn && t.p2CheckedIn !== false) ? '<span class="badge blue" title="Player checked in">Here</span>' : ''}
                         <button class="btn btn-sm ${t.p2Locked ? 'btn-outline' : 'btn-success'}" style="${t.p2Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p2')" title="${t.p2Locked ? 'Edit' : 'Save'}"><i data-lucide="${t.p2Locked ? 'edit-2' : 'save'}"></i></button>
                         <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p2')" title="Mark No-Show"><i data-lucide="user-x"></i></button>
                     </div>
@@ -1944,6 +1946,8 @@
         const team = state.teams.find(team => team.id === id);
         if (!team) return;
         team.checkedIn = !team.checkedIn;
+        team.p1CheckedIn = team.checkedIn;
+        team.p2CheckedIn = team.checkedIn;
         saveState(); renderRoster();
     }
 
