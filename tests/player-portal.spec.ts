@@ -9,6 +9,7 @@ test.describe('Player and spectator portal', () => {
     await page.getByLabel('4-digit player PIN').fill(playerAPin);
     await page.getByRole('button', { name: 'Unlock scores' }).click();
     await expect(page.getByRole('heading', { name: 'Alexandra Verylonglastname & Benjamin Example' })).toBeVisible();
+    await expect(page.locator('#player-checkin-card')).toBeVisible();
     await expect(page.getByLabel('Your score').first()).toBeVisible();
     await expect(page.getByLabel('Opponent').first()).toBeVisible();
     const touchTargets = await page.locator('#player-pin-input, #player-pin-submit, .score-box, .score-submit').evaluateAll(elements => elements.every(element => {
@@ -17,6 +18,31 @@ test.describe('Player and spectator portal', () => {
     }));
     expect(touchTargets).toBe(true);
     expect(await expectNoHorizontalOverflow(page)).toBe(true);
+  });
+
+  test('lets a player self check in and exposes public ready status', async ({ page }) => {
+    await seedTournament(page, { player: true });
+    await page.addInitScript(({ code }) => {
+      const key = `picklepal_tournament_${code}`;
+      const state = JSON.parse(localStorage.getItem(key)!);
+      state.teams = state.teams.map((team: any) => team.id === 1 ? { ...team, checkedIn: false } : team);
+      localStorage.setItem(key, JSON.stringify(state));
+    }, { code: tournamentCode });
+    await page.goto(`/players.html?event=${tournamentCode}`);
+    await expect(page.locator('#event-tabs')).not.toHaveClass(/hidden/);
+    await page.getByLabel('4-digit player PIN').fill(playerAPin);
+    await page.getByRole('button', { name: 'Unlock scores' }).click();
+    await expect(page.getByText('Welcome! Are you at the courts and ready to play?')).toBeVisible();
+    const checkInButton = page.getByRole('button', { name: 'Check In My Team' });
+    await expect(checkInButton).toBeVisible();
+    await checkInButton.click();
+    await expect(page.locator('#player-checkin-card')).toContainText('Checked In & Ready for Court Assignment');
+    const stored = await page.evaluate(code => JSON.parse(localStorage.getItem(`picklepal_tournament_${code}`)!).teams.find((team: any) => team.id === 1).checkedIn, tournamentCode);
+    expect(stored).toBe(true);
+    await page.getByRole('button', { name: 'Pools', exact: true }).click();
+    await expect(page.locator('#public-pools .checkin-pill').first()).toContainText('Ready');
+    await page.getByRole('button', { name: 'Standings', exact: true }).click();
+    await expect(page.locator('#public-standings .checkin-dot').first()).toBeVisible();
   });
 
   test('validates PIN and score entry without blocking dialogs', async ({ page }) => {

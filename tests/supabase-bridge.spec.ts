@@ -51,4 +51,16 @@ test.describe('Supabase bridge resilience', () => {
     expect(results).toEqual([{ state: { teams: [] } }, { state: { teams: [] } }]);
     expect(calls).toBe(1);
   });
+
+  test('maps player check-in callable to player-checkin action', async ({ page }) => {
+    let action = '';
+    await page.route('**/functions/v1/tournament-api', async route => {
+      action = (await route.request().postDataJSON()).action;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'checked-in', teamId: '1' }) });
+    });
+    await page.goto('/players.html');
+    const result = await page.evaluate(() => window.functions.httpsCallable('checkInTeam')({ tournament: 'checkin', teamId: 1 }));
+    expect(action).toBe('player-checkin');
+    expect(result.data).toEqual({ token: undefined, teamId: '1', state: undefined });
+  });
 });

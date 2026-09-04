@@ -84,7 +84,7 @@
     }; } };
     window.auth = { currentUser: sessionToken ? { uid: `${currentRole}:${currentTournament}` } : null, signInWithCustomToken: async function (token) { sessionToken = token; this.currentUser = { uid: `${currentRole}:${currentTournament}` }; } };
     window.functions = { httpsCallable: function (name) { return async function (payload) {
-        const map = { createTournament:'create', adminSession:'admin-login', playerSession:'player-login', saveTournamentState:'admin-save', submitScoreReport:'score-report' };
+        const map = { createTournament:'create', adminSession:'admin-login', playerSession:'player-login', saveTournamentState:'admin-save', submitScoreReport:'score-report', checkInTeam:'player-checkin' };
         const data = await call(map[name] || name, { ...payload, tournament: payload.tournament || payload.nickname || currentTournament, kind: payload.kind || 'tournament' });
         if (name === 'createTournament') remember(data, 'admin', payload.nickname);
         if (name === 'adminSession') remember(data, 'admin', payload.tournament);

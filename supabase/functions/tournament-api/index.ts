@@ -107,6 +107,18 @@ Deno.serve(async request => {
       await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'player', actor_id: String(session.teamId), event_type: 'score_reported', match_id: body.matchId });
       return json({ status: 'pending' });
     }
+    if (action === 'player-checkin') {
+      const session = await verifySession(authToken, 'player', tournamentCode);
+      const nextState = JSON.parse(JSON.stringify(tournament.public_state || {}));
+      const teams = Array.isArray(nextState.teams) ? nextState.teams : [];
+      const team = teams.find((item: Record<string, unknown>) => String(item.id) === String(session.teamId));
+      if (!team) throw new Error('This team is not part of the tournament.');
+      team.checkedIn = true;
+      const { error } = await supabase.from('tournaments').update({ public_state: publicState(nextState), updated_at: new Date().toISOString() }).eq('id', tournament.id);
+      if (error) throw error;
+      await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'player', actor_id: String(session.teamId), event_type: 'player_checked_in' });
+      return json({ status: 'checked-in', teamId: session.teamId });
+    }
     if (action === 'public') return json({ state: tournament.public_state, updatedAt: tournament.updated_at });
     return json({ error: 'Unknown action.' }, 400);
   } catch (error) { return json({ error: errorMessage(error) }, 400); }
