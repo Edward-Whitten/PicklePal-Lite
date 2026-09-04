@@ -48,11 +48,56 @@ function publicState(state: unknown) {
   const copy = JSON.parse(JSON.stringify(state || {}));
   if (copy && typeof copy === 'object') {
     delete copy.adminPinHash;
-    delete copy.updatedAt;
     if (Array.isArray(copy.teams)) copy.teams.forEach((team: Record<string, unknown>) => delete team.pin);
     if (Array.isArray(copy.rr?.entities)) copy.rr.entities.forEach((entity: Record<string, unknown>) => delete entity.pin);
   }
   return copy;
+}
+
+function recomputePoolStats(state: Record<string, unknown>) {
+  const teams = Array.isArray(state.teams) ? state.teams as Record<string, unknown>[] : [];
+  teams.forEach(team => { team.wins = 0; team.losses = 0; team.pf = 0; team.pa = 0; team.pd = 0; });
+  const completed = state.completedMatches && typeof state.completedMatches === 'object' ? state.completedMatches as Record<string, Record<string, unknown>> : {};
+  Object.values(completed).forEach(match => {
+    const t1 = teams.find(team => String(team.id) === String(match.teamAId));
+    const t2 = teams.find(team => String(team.id) === String(match.teamBId));
+    const s1 = Number(match.s1);
+    const s2 = Number(match.s2);
+    if (!t1 || !t2 || !Number.isInteger(s1) || !Number.isInteger(s2) || s1 < 0 || s2 < 0 || s1 === s2) return;
+    if (s1 > s2) { t1.wins = Number(t1.wins) + 1; t2.losses = Number(t2.losses) + 1; }
+    else { t2.wins = Number(t2.wins) + 1; t1.losses = Number(t1.losses) + 1; }
+    t1.pf = Number(t1.pf) + s1; t1.pa = Number(t1.pa) + s2; t1.pd = Number(t1.pd) + s1 - s2;
+    t2.pf = Number(t2.pf) + s2; t2.pa = Number(t2.pa) + s1; t2.pd = Number(t2.pd) + s2 - s1;
+  });
+}
+
+function applyScoreReport(state: Record<string, unknown>, session: Record<string, unknown>, body: Record<string, unknown>) {
+  const matchId = String(body.matchId || '');
+  if (!matchId) throw new Error('Match ID is required.');
+  const teamAId = String(body.teamAId);
+  const teamBId = String(body.teamBId);
+  const teamAScore = Number(body.teamAScore);
+  const teamBScore = Number(body.teamBScore);
+  if (!Number.isInteger(teamAScore) || !Number.isInteger(teamBScore) || teamAScore < 0 || teamBScore < 0 || teamAScore === teamBScore) throw new Error('A valid non-tied score is required.');
+  if (String(session.teamId) !== teamAId && String(session.teamId) !== teamBId) throw new Error('This team is not part of the match.');
+  const teams = Array.isArray(state.teams) ? state.teams as Record<string, unknown>[] : [];
+  if (!teams.some(team => String(team.id) === teamAId) || !teams.some(team => String(team.id) === teamBId)) throw new Error('This match is not part of the tournament.');
+  const reports = state.scoreReports && typeof state.scoreReports === 'object' ? state.scoreReports as Record<string, Record<string, unknown>> : {};
+  const completed = state.completedMatches && typeof state.completedMatches === 'object' ? state.completedMatches as Record<string, Record<string, unknown>> : {};
+  const report = reports[matchId] || {};
+  const reportKey = String(session.teamId) === teamAId ? 'teamA' : 'teamB';
+  report[reportKey] = { s1: teamAScore, s2: teamBScore, submittedAt: new Date().toISOString(), teamId: String(session.teamId) };
+  reports[matchId] = report;
+  const other = report[reportKey === 'teamA' ? 'teamB' : 'teamA'] as Record<string, unknown> | undefined;
+  if (other && Number(other.s1) === teamAScore && Number(other.s2) === teamBScore && !completed[matchId]) {
+    completed[matchId] = { s1: teamAScore, s2: teamBScore, teamAId, teamBId, status: 'confirmed', resolvedBy: 'teams', resolvedAt: new Date().toISOString() };
+    delete reports[matchId];
+  }
+  state.scoreReports = reports;
+  state.completedMatches = completed;
+  state.updatedAt = Date.now();
+  recomputePoolStats(state);
+  return Boolean(completed[matchId]);
 }
 
 Deno.serve(async request => {
@@ -101,17 +146,23 @@ Deno.serve(async request => {
     }
     if (action === 'delete-event') {
       await verifySession(authToken, 'admin', tournamentCode);
+      await supabase.from('score_reports').delete().eq('tournament_id', tournament.id);
+      await supabase.from('team_access').delete().eq('tournament_id', tournament.id);
+      await supabase.from('audit_events').delete().eq('tournament_id', tournament.id);
       const { error } = await supabase.from('tournaments').delete().eq('id', tournament.id);
       if (error) throw error;
       return json({ status: 'deleted' });
     }
     if (action === 'score-report') {
       const session = await verifySession(authToken, 'player', tournamentCode);
-      if (String(session.teamId) !== String(body.teamAId) && String(session.teamId) !== String(body.teamBId)) throw new Error('This team is not part of the match.');
+      const nextState = JSON.parse(JSON.stringify(tournament.public_state || {}));
+      const confirmed = applyScoreReport(nextState, session, body);
       const { error } = await supabase.from('score_reports').upsert({ tournament_id: tournament.id, match_id: body.matchId, team_id: String(session.teamId), team_a_score: body.teamAScore, team_b_score: body.teamBScore }, { onConflict: 'tournament_id,match_id,team_id' });
       if (error) throw error;
+      const { error: stateError } = await supabase.from('tournaments').update({ public_state: publicState(nextState), updated_at: new Date().toISOString() }).eq('id', tournament.id);
+      if (stateError) throw stateError;
       await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'player', actor_id: String(session.teamId), event_type: 'score_reported', match_id: body.matchId });
-      return json({ status: 'pending' });
+      return json({ status: confirmed ? 'confirmed' : 'pending', state: publicState(nextState) });
     }
     if (action === 'player-checkin') {
       let session: Record<string, unknown> | null = null;

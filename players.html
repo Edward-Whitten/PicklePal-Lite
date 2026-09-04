@@ -98,12 +98,18 @@
             <div style="display:flex; align-items:center; gap:12px;"><a href="/" class="live-badge" style="text-decoration:none;">Home</a><button class="live-badge" onclick="logoutPortal()" style="border:0; background:transparent; cursor:pointer; padding:0;">Log out</button><div id="sync-status" class="sync-status offline"><span class="sync-status-dot"></span><span id="sync-status-text">Not Live</span></div><button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme"><i data-lucide="sun"></i></button></div>
         </header>
 
-        <section class="hero"><h2>Watch the tournament unfold.</h2><p>Follow pool play, standings, and the elimination bracket in real time. A player PIN is only needed when submitting a score for your own match.</p></section>
+        <section class="hero"><h2>Watch the tournament unfold.</h2><p>Follow pool play, standings, and the elimination bracket in real time. Both teams submit the final score; matching reports confirm the result. Managers can correct mistakes.</p></section>
 
         <section class="card tournament-picker">
             <div><h3 style="margin:0 0 8px;">Choose a tournament</h3><p style="margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif;">Enter the one-word tournament code supplied by the organizer.</p></div>
             <div><input type="text" id="tournament-nickname" placeholder="One-word tournament code" aria-label="One-word tournament code"><button id="tournament-load-button" class="btn" onclick="loadTournament()">View tournament</button></div>
             <p id="tournament-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
+        </section>
+
+        <section class="card score-panel">
+            <div><h3>Submit a match score</h3><p>Enter your PIN to report your team score. The opponent confirms by submitting the same final score; organizer corrections are available for mistakes.</p></div>
+            <div><input type="text" id="player-pin-input" placeholder="4-digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="4" aria-label="4-digit player PIN"><button id="player-pin-submit" class="btn" onclick="loginPlayer()">Unlock scores</button></div>
+            <p id="player-pin-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
         </section>
 
         <section id="player-finder" class="card score-panel hidden">
@@ -138,12 +144,6 @@
                 <li><strong>Line Calls:</strong> Players call the lines on their side of the court. When uncertain, the call is made in favor of the opponent.</li>
             </ul>
             <a href="https://usapickleball.org/docs/2026-USA-Pickleball-Official-Rulebook.pdf" target="_blank" rel="noopener">Read the complete 2026 USA Pickleball Official Rulebook</a>
-        </section>
-
-        <section class="card score-panel">
-            <div><h3>Submit a match score</h3><p>Enter your PIN to unlock score entry for matches associated with your team. The public board above never requires a code.</p></div>
-            <div><input type="text" id="player-pin-input" placeholder="4-digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="4" aria-label="4-digit player PIN"><button id="player-pin-submit" class="btn" onclick="loginPlayer()">Unlock scores</button></div>
-            <p id="player-pin-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
         </section>
 
         <section id="player-dashboard" class="hidden card">
@@ -215,6 +215,22 @@
         return '';
     }
 
+    function recomputePoolStats() {
+        if (!Array.isArray(state.teams)) return;
+        state.teams.forEach(team => { team.wins = 0; team.losses = 0; team.pf = 0; team.pa = 0; team.pd = 0; });
+        Object.values(state.completedMatches || {}).forEach(match => {
+            const t1 = state.teams.find(team => String(team.id) === String(match.teamAId));
+            const t2 = state.teams.find(team => String(team.id) === String(match.teamBId));
+            if (!t1 || !t2) return;
+            const s1 = Number(match.s1);
+            const s2 = Number(match.s2);
+            if (!Number.isInteger(s1) || !Number.isInteger(s2) || s1 < 0 || s2 < 0 || s1 === s2) return;
+            if (s1 > s2) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
+            t1.pf += s1; t1.pa += s2; t1.pd += s1 - s2;
+            t2.pf += s2; t2.pa += s1; t2.pd += s2 - s1;
+        });
+    }
+
     function updateSyncStatus() {
         const status = document.getElementById('sync-status');
         const text = document.getElementById('sync-status-text');
@@ -240,19 +256,27 @@
 
         let loaded = null;
         let loadedFromLocal = false;
-        try {
-            loaded = JSON.parse(localStorage.getItem(tournamentStateKey(tournamentSlug)));
-            loadedFromLocal = Boolean(loaded && Array.isArray(loaded.teams));
-        } catch (error) { loaded = null; }
         tournamentRef = db.ref(`tournaments/${tournamentSlug}/state`);
-        if(!loadedFromLocal) {
-            try { loaded = (await tournamentRef.once('value')).val(); } catch (error) { loaded = null; }
+        try {
+            loaded = (await tournamentRef.once('value')).val();
+            if (loaded && Array.isArray(loaded.teams)) localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(loaded));
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                localStorage.removeItem(tournamentStateKey(tournamentSlug));
+                loaded = null;
+            } else {
+            console.warn('Fresh tournament lookup unavailable; trying local recovery copy:', error.message);
+            try {
+                loaded = JSON.parse(localStorage.getItem(tournamentStateKey(tournamentSlug)));
+                loadedFromLocal = Boolean(loaded && Array.isArray(loaded.teams));
+            } catch (fallbackError) { loaded = null; }
+            }
         }
-        if(!loaded || !Array.isArray(loaded.teams)) { setTournamentLoading(false); if (message) message.innerText = 'Tournament not found. Check the nickname and try again.'; return; }
+        if(!loaded || !Array.isArray(loaded.teams)) { localStorage.removeItem(tournamentStateKey(tournamentSlug)); setTournamentLoading(false); if (message) message.innerText = 'Tournament not found. Check the nickname and try again.'; return; }
         state = loaded;
         syncPending = localStorage.getItem(`picklepal_pending_sync_${tournamentSlug}`) === 'true';
         if (message) message.innerText = '';
-        if (!loadedFromLocal) db.ref('.info/connected').on('value', snapshot => { cloudConnected = snapshot.val() === true; updateSyncStatus(); if(cloudConnected) syncPlayerState(); });
+        db.ref('.info/connected').on('value', snapshot => { cloudConnected = snapshot.val() === true; updateSyncStatus(); if(cloudConnected) syncPlayerState(); });
         document.getElementById('public-pool-section')?.classList.add('active');
         document.getElementById('public-bracket-section')?.classList.add('active');
         document.getElementById('event-tabs')?.classList.remove('hidden');
@@ -271,6 +295,10 @@
             if(remote && Array.isArray(remote.teams) && (!syncPending || Number(remote.updatedAt || 0) >= Number(state.updatedAt || 0))) { state = remote; localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); renderExpressCheckIn(document.getElementById('express-player-search')?.value || ''); if(loggedInTeam) renderPlayerSchedule(); }
         });
     }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && tournamentSlug && !syncPending) loadTournament();
+    });
 
     try {
         const sharedTournament = new URLSearchParams(window.location.search).get('event');
@@ -683,23 +711,26 @@
         const otherKey = reportKey === 'teamA' ? 'teamB' : 'teamA';
         const otherReport = report[otherKey];
         if(otherReport && otherReport.s1 === team1Score && otherReport.s2 === team2Score && !state.completedMatches[mId]) {
-            if (team1Score > team2Score) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
-            t1.pd += team1Score - team2Score; t2.pd += team2Score - team1Score;
-            state.completedMatches[mId] = { s1: team1Score, s2: team2Score, status:'confirmed', resolvedBy:'teams', resolvedAt:new Date().toISOString() };
+            state.completedMatches[mId] = { s1: team1Score, s2: team2Score, teamAId: id1, teamBId: id2, status:'confirmed', resolvedBy:'teams', resolvedAt:new Date().toISOString() };
             delete state.scoreReports[mId];
+            recomputePoolStats();
         }
 
         localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
         if (auth && auth.currentUser && functions) {
             try {
-                await functions.httpsCallable('submitScoreReport')({ matchId:mId, teamAId:id1, teamBId:id2, teamAScore:team1Score, teamBScore:team2Score });
+                const result = await functions.httpsCallable('submitScoreReport')({ matchId:mId, teamAId:id1, teamBId:id2, teamAScore:team1Score, teamBScore:team2Score });
+                if (result.data.state && Array.isArray(result.data.state.teams)) {
+                    state = result.data.state;
+                    localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+                }
                 syncPending = false;
                 localStorage.removeItem(`picklepal_pending_sync_${tournamentSlug}`);
             } catch (error) { syncPlayerState(); }
         } else syncPlayerState();
         submittingScores.delete(mId);
         if (button) { button.disabled = false; button.classList.remove('submitting'); button.innerText = report[otherKey] ? 'Confirm or dispute score' : 'Submit final score'; }
-        showScoreNotice(otherReport && otherReport.s1 !== team1Score ? 'Score disputed. Organizer review is required.' : (state.completedMatches[mId] ? 'Score confirmed by both teams.' : 'Score submitted. Waiting for the other team.'), Boolean(otherReport && otherReport.s1 !== team1Score));
+        showScoreNotice(otherReport && (otherReport.s1 !== team1Score || otherReport.s2 !== team2Score) ? 'Score disputed. Organizer review is required.' : (state.completedMatches[mId] ? 'Score confirmed by both teams.' : 'Score submitted. Waiting for the other team.'), Boolean(otherReport && (otherReport.s1 !== team1Score || otherReport.s2 !== team2Score)));
         renderPublicPools(); renderPublicBracket(); renderPlayerSchedule();
     }
 

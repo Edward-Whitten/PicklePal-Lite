@@ -33,6 +33,44 @@ export function tournamentState() {
 
 export async function seedTournament(page: Page, options: { manager?: boolean; player?: boolean } = {}) {
   const state = tournamentState();
+  await page.route('**/functions/v1/tournament-api', async route => {
+    const rawBody = route.request().postData();
+    if (!rawBody) {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+      return;
+    }
+    const body = JSON.parse(rawBody) as { action?: string; tournament?: string; adminPin?: string; playerPin?: string; state?: unknown };
+    if (body.action === 'public') {
+      await route.abort();
+      return;
+    }
+    if (body.tournament !== tournamentCode) {
+      await route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'Tournament not found.' }) });
+      return;
+    }
+    if (body.action === 'admin-login' && body.adminPin !== managerPin) {
+      await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Incorrect tournament code or admin PIN.' }) });
+      return;
+    }
+    if (body.action === 'player-login') {
+      const team = state.teams.find(item => item.pin === body.playerPin);
+      if (!team) {
+        await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Incorrect tournament code or player PIN.' }) });
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sessionToken: 'player-token', teamId: String(team.id), state }) });
+      return;
+    }
+    if (body.action === 'delete-event') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'deleted' }) });
+      return;
+    }
+    if (body.action === 'score-report') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'pending' }) });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sessionToken: 'admin-token', state: body.state || state, savedAt: new Date().toISOString() }) });
+  });
   await page.addInitScript(({ code, serializedState, manager, player }) => {
     localStorage.setItem(`picklepal_tournament_${code}`, serializedState);
     if (manager) {

@@ -15,6 +15,27 @@
     function safeSessionGet(key) { try { return sessionStorage.getItem(key) || ''; } catch (error) { return ''; } }
     function safeSessionSet(key, value) { try { if (value) sessionStorage.setItem(key, value); } catch (error) {} }
     function requestKey(action, payload) { return `${action}:${JSON.stringify(payload || {})}`; }
+    function forgetTournament(tournament) {
+        const target = slug(tournament);
+        for (const key of requestCache.keys()) {
+            if (key.includes(`"tournament":"${target}"`)) requestCache.delete(key);
+        }
+        const channel = channels.get(`tournament-${target}`);
+        if (channel && client) {
+            try { client.removeChannel(channel); } catch (error) {}
+            channels.delete(`tournament-${target}`);
+        }
+        if (currentTournament === target) {
+            currentTournament = '';
+            sessionToken = '';
+            currentRole = '';
+            try {
+                sessionStorage.removeItem('picklepal_supabase_session');
+                sessionStorage.removeItem('picklepal_supabase_role');
+                sessionStorage.removeItem('picklepal_supabase_tournament');
+            } catch (error) {}
+        }
+    }
     function isTransient(error, response) { return !response || response.status === 408 || response.status === 429 || response.status >= 500 || /abort|timeout|network|failed|fetch/i.test(String(error && error.message || '')); }
     async function parseResponse(response) { try { return await response.json(); } catch (error) { return {}; } }
     async function fetchWithTimeout(resource, options, timeout = 8000) {
@@ -80,7 +101,7 @@
         once: async function () { const data = await call('public', { tournament }); return snapshot(data.state); },
         on: function (event, callback) { this.once().then(callback).catch(error => console.warn('Supabase public read unavailable:', error.message)); const channel = subscribeTournament(tournament, callback); return function unsubscribe() { if (channel && client) { try { client.removeChannel(channel); channels.delete(`tournament-${tournament}`); } catch (error) {} } }; },
         set: async function (state) { const kind = state && state.appMode === 'rr' ? 'round_robin' : 'tournament'; if (currentRole === 'admin') return call('admin-save', { tournament, state, kind }); if (currentRole === 'player') return call('score-report', { tournament, state, kind }); throw new Error('Authenticated Supabase session required.'); },
-        remove: async function () { return call('delete-event', { tournament, kind:'tournament' }); }
+        remove: async function () { const result = await call('delete-event', { tournament, kind:'tournament' }); forgetTournament(tournament); return result; }
     }; } };
     window.auth = { currentUser: sessionToken ? { uid: `${currentRole}:${currentTournament}` } : null, signInWithCustomToken: async function (token) { sessionToken = token; this.currentUser = { uid: `${currentRole}:${currentTournament}` }; } };
     window.functions = { httpsCallable: function (name) { return async function (payload) {
@@ -98,7 +119,7 @@
         playerLogin: async payload => { const data = await call('player-login', { ...payload, kind: 'round_robin' }); remember(data, 'player', payload.tournament); return data; },
         reportScore: payload => call('score-report', { ...payload, kind: 'round_robin' }),
         save: payload => call('admin-save', { ...payload, kind: 'round_robin' }),
-        remove: payload => call('delete-event', { ...payload, kind: 'round_robin' })
+        remove: async payload => { const result = await call('delete-event', { ...payload, kind: 'round_robin' }); forgetTournament(payload.tournament); return result; }
     };
-    window.supabaseBridge = { configured, remember, call };
+    window.supabaseBridge = { configured, remember, call, forgetTournament };
 })();

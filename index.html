@@ -280,7 +280,7 @@
         .lobby-card::before { content:""; position:absolute; inset:0 auto 0 0; width:45%; background:linear-gradient(145deg,rgba(6,182,212,.12),transparent 65%); pointer-events:none; }
         .lobby-intro { position:relative; z-index:1; }
         .lobby-theme-toggle { position:absolute; top:18px; right:18px; z-index:3; width:40px; height:40px; border:1px solid var(--border); border-radius:10px; background:var(--row-bg); color:var(--text); cursor:pointer; display:flex; align-items:center; justify-content:center; }
-        .sync-status { position:fixed; right:18px; bottom:18px; z-index:1200; display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--border); border-radius:999px; background:var(--card-glass); color:var(--muted); box-shadow:0 8px 24px rgba(0,0,0,.16); font-size:.75rem; font-weight:800; }
+        .sync-status { position:fixed; right:18px; top:18px; z-index:1200; display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--border); border-radius:999px; background:var(--card-glass); color:var(--muted); box-shadow:0 8px 24px rgba(0,0,0,.16); font-size:.75rem; font-weight:800; }
         .sync-status-dot { width:8px; height:8px; border-radius:50%; background:var(--success); }
         .sync-status.pending .sync-status-dot { background:var(--gold); box-shadow:0 0 10px var(--gold); }
         .sync-status.offline .sync-status-dot { background:var(--danger); box-shadow:0 0 10px var(--danger); }
@@ -540,7 +540,7 @@
         <div class="wizard-head"><div><div class="wizard-step" id="wizard-step-label">Step 1 of 3</div><h2 id="wizard-title">Build your event</h2></div><button class="wizard-close" onclick="closeSetupWizard()" aria-label="Close setup wizard"><i data-lucide="x"></i></button></div>
         <div class="wizard-progress"><span class="active"></span><span></span><span></span></div>
         <div id="wizard-step-1" class="wizard-view active"><p>Start with the event details your players and spectators will recognize.</p><div class="wizard-grid"><div class="wizard-field full"><label for="wizard-title-input">Event title</label><input id="wizard-title-input" type="text" placeholder="e.g. Compass Summer Classic"></div><div class="wizard-field"><label for="wizard-date-input">Date</label><input id="wizard-date-input" type="date"></div><div class="wizard-field"><label for="wizard-location-input">Location</label><input id="wizard-location-input" type="text" placeholder="Venue or city"></div><div class="wizard-field"><label for="wizard-organizer-input">Organizer</label><input id="wizard-organizer-input" type="text" placeholder="Organization name"></div><div class="wizard-field full"><label for="wizard-manager-input">Manager(s)</label><div class="wizard-manager-grid"><input id="wizard-manager-input" type="text" placeholder="Primary manager"><input id="wizard-manager-secondary-input" type="text" placeholder="Second manager (optional)" aria-label="Second manager"></div></div></div></div>
-        <div id="wizard-step-2" class="wizard-view"><p>Choose the starting structure. You can fine-tune pools and brackets inside the manager.</p><div class="wizard-grid"><div class="wizard-field"><label for="wizard-teams-input">Target teams</label><input id="wizard-teams-input" type="number" min="4" max="80" step="2" value="4" inputmode="numeric" placeholder="4-80"></div><div class="wizard-field"><label for="wizard-mode-input">Setup mode</label><select id="wizard-mode-input"><option value="manual">Manual registration</option><option value="smart">Smart auto setup</option></select></div><label class="wizard-field full" style="display:flex; align-items:center; gap:10px; color:var(--text); font-weight:800; text-transform:none; letter-spacing:0;"><input id="wizard-odd-input" type="checkbox" style="width:20px; min-height:20px; accent-color:var(--accent);"><span>Allow an odd number of teams</span></label></div><div class="wizard-notice">PicklePal Lite supports 4 to 80 teams. Use even targets for two-team rounds, or allow odd teams for balanced pools with rotating byes so every team gets equal rest.</div></div>
+        <div id="wizard-step-2" class="wizard-view"><p>Choose the starting structure. You can fine-tune pools and brackets inside the manager.</p><div class="wizard-grid"><div class="wizard-field"><label for="wizard-teams-input">Target teams</label><input id="wizard-teams-input" type="number" min="4" max="80" step="2" value="4" inputmode="numeric" placeholder="4-80"></div><div class="wizard-field"><label for="wizard-mode-input">Setup mode</label><select id="wizard-mode-input"><option value="manual">Manual registration</option><option value="smart">Smart auto setup</option></select></div><div class="wizard-field"><label for="wizard-pool-size-input">Preferred pool size</label><select id="wizard-pool-size-input"><option value="4">4 teams</option><option value="5" selected>5 teams</option><option value="6">6 teams</option><option value="7">7 teams</option><option value="8">8 teams</option></select></div><div class="wizard-field"><label for="wizard-advancing-input">Teams advancing</label><select id="wizard-advancing-input"><option value="4" selected>4 teams</option><option value="8">8 teams</option><option value="16">16 teams</option><option value="32">32 teams</option></select></div><label class="wizard-field full" style="display:flex; align-items:center; gap:10px; color:var(--text); font-weight:800; text-transform:none; letter-spacing:0;"><input id="wizard-odd-input" type="checkbox" style="width:20px; min-height:20px; accent-color:var(--accent);"><span>Allow an odd number of teams</span></label></div><div class="wizard-notice">PicklePal Lite supports 4 to 80 teams. Set preferred pool size and the exact number of teams advancing before pool generation.</div></div>
         <div id="wizard-step-3" class="wizard-view"><p>These two details identify and protect this tournament. Players and spectators will use the code to find the right event and view its live results.</p><div class="wizard-grid"><div class="wizard-field full"><label for="wizard-nickname-input">One-word tournament code</label><input id="wizard-nickname-input" type="text" placeholder="e.g. Compass" autocomplete="off"></div><div class="wizard-field full"><label for="wizard-pin-input">Create admin PIN</label><input id="wizard-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="Four digits" autocomplete="new-password"></div></div><div class="wizard-notice"><strong>Important:</strong> This one-word code is shared with players and spectators. They will enter it on the home page to view this tournament and its live results. Players will use their player PIN separately to submit scores. Keep your four-digit admin PIN private.</div></div>
         <div class="wizard-actions"><button id="wizard-back" class="btn btn-outline" onclick="wizardBack()" style="visibility:hidden;"><i data-lucide="arrow-left"></i> Back</button><button id="wizard-next" class="btn btn-primary" onclick="wizardNext()">Continue <i data-lucide="arrow-right"></i></button></div>
     </div>
@@ -706,6 +706,14 @@
                     <div style="display:flex; align-items:center; gap:8px;">
                         <label style="color:var(--muted); font-weight:700;">Target Teams:</label>
                         <select id="target-teams" onchange="updateExpectedTeams(this.value)" style="width:90px; cursor:pointer; min-height:40px; padding:6px 12px;"></select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label style="color:var(--muted); font-weight:700;">Pool Size:</label>
+                        <select id="pool-size-select" onchange="updatePoolSize(this.value)" style="width:110px; cursor:pointer; min-height:40px; padding:6px 12px;"></select>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label style="color:var(--muted); font-weight:700;">Advancing:</label>
+                        <select id="advancing-teams-select" onchange="updateAdvancementCount(this.value)" style="width:120px; cursor:pointer; min-height:40px; padding:6px 12px;"></select>
                     </div>
                     <label style="color:var(--text); font-weight:700; display:flex; align-items:center; gap:8px; cursor:pointer;">
                         <input type="checkbox" id="odd-teams-check" onchange="updateOddTeams(this.checked)" style="width:20px; height:20px; min-width:auto; min-height:auto;"> Allow Odd
@@ -1037,7 +1045,7 @@
     };
 
     const DEFAULT_STATE = {
-        appMode: 'tourney', theme: "dark", setupMode: 'manual', advancementCount: 8,
+        appMode: 'tourney', theme: "dark", setupMode: 'manual', poolSize: 5, advancementCount: 8,
         header: { title: "", date: "", loc: "", org: "", man: "", logoDarkTheme: "Compass-Logo-White.png", logoLightTheme: "Compass-Logo-White.png" },
         expectedTeams: "-", allowOddTeams: false, finalsFormat: "bo3", tournamentNickname: "", adminPinHash: "", teams: [], completedMatches: {}, scoreReports: {}, poolCount: 0, poolSchedule: [], courts: {}, stranded: [],
         bracket: { 
@@ -1104,6 +1112,8 @@
         normalized.completedMatches = source.completedMatches && typeof source.completedMatches === 'object' ? source.completedMatches : {};
         normalized.scoreReports = source.scoreReports && typeof source.scoreReports === 'object' ? source.scoreReports : {};
         normalized.poolSchedule = Array.isArray(source.poolSchedule) ? source.poolSchedule : [];
+        normalized.poolSize = Math.min(8, Math.max(4, Number(source.poolSize) || DEFAULT_STATE.poolSize));
+        normalized.advancementCount = Math.min(64, Math.max(4, Number(source.advancementCount) || DEFAULT_STATE.advancementCount));
         normalized.rr.fixedSchedule = Array.isArray(normalized.rr.fixedSchedule) ? normalized.rr.fixedSchedule : [];
         normalized.rr.scheduleIndex = Number.isInteger(normalized.rr.scheduleIndex) ? normalized.rr.scheduleIndex : 0;
         normalized.courts = source.courts && typeof source.courts === 'object' ? source.courts : {};
@@ -1111,10 +1121,13 @@
         return normalized;
     }
 
-    let storedState = null;
-    try { storedState = JSON.parse(localStorage.getItem('picklepal_2026')); } catch (error) { storedState = null; }
-    let state = normalizeState(storedState);
     let tournamentSlug = localStorage.getItem('picklepal_active_tournament') || '';
+    let storedState = null;
+    try { storedState = tournamentSlug ? JSON.parse(localStorage.getItem(tournamentStateKey(tournamentSlug))) : null; } catch (error) { storedState = null; }
+    if (!storedState) {
+        try { storedState = JSON.parse(localStorage.getItem('picklepal_2026')); } catch (error) { storedState = null; }
+    }
+    let state = normalizeState(storedState);
     let rrPlayerEntityId = null;
     let liveSyncStarted = false;
     let syncPending = Boolean(tournamentSlug && localStorage.getItem(`picklepal_pending_sync_${tournamentSlug}`) === 'true');
@@ -1139,6 +1152,21 @@
 
     function tournamentStateKey(slug) { return `picklepal_tournament_${slug}`; }
     function tournamentRef() { return tournamentSlug ? db.ref(`tournaments/${tournamentSlug}/state`) : null; }
+
+    function clearTournamentClientState(slug) {
+        const target = normalizeTournamentNickname(slug || '');
+        if (!target) return;
+        [tournamentStateKey(target), `picklepal_pending_sync_${target}`, `picklepal_rr_${target}`].forEach(key => localStorage.removeItem(key));
+        try {
+            const legacy = JSON.parse(localStorage.getItem('picklepal_2026'));
+            const legacySlug = normalizeTournamentNickname(legacy?.tournamentNickname || legacy?.header?.nickname || '');
+            if (legacySlug === target) localStorage.removeItem('picklepal_2026');
+        } catch (error) {}
+        if (localStorage.getItem('picklepal_active_tournament') === target) localStorage.removeItem('picklepal_active_tournament');
+        if (localStorage.getItem('picklepal_admin_session') === target) localStorage.removeItem('picklepal_admin_session');
+        if (localStorage.getItem('picklepal_portal_nickname') === target) localStorage.removeItem('picklepal_portal_nickname');
+        try { if (window.supabaseBridge) window.supabaseBridge.forgetTournament(target); } catch (error) {}
+    }
 
     function getTournamentShareUrl() {
         const nickname = state.tournamentNickname || tournamentSlug;
@@ -1314,7 +1342,9 @@
         if (wizardStep === 2) {
             const targetTeams = Number(document.getElementById('wizard-teams-input').value);
             const allowOdd = document.getElementById('wizard-odd-input').checked;
+            const advancing = Number(document.getElementById('wizard-advancing-input').value);
             if (!Number.isInteger(targetTeams) || targetTeams < 4 || targetTeams > 80 || (!allowOdd && targetTeams % 2 !== 0)) return appAlert(allowOdd ? 'Target teams must be a whole number from 4 through 80.' : 'Target teams must be an even number from 4 through 80, or enable odd teams.', 'Invalid team target', 'warning');
+            if (advancing > targetTeams) return appAlert('Teams advancing cannot exceed target teams.', 'Invalid advancement', 'warning');
             wizardStep = 3; renderWizardStep(); return;
         }
         if (wizardStep === 3) { createTournamentFromWizard(); return; }
@@ -1350,7 +1380,9 @@
         } catch (error) {}
         const wizardTarget = parseInt(document.getElementById('wizard-teams-input').value);
         const managerNames = [document.getElementById('wizard-manager-input').value.trim(), document.getElementById('wizard-manager-secondary-input').value.trim()].filter(Boolean).join(', ');
-        state = normalizeState({ ...state, tournamentNickname: nickname, adminPinHash: await hashPin(pin), expectedTeams: wizardTarget, allowOddTeams: document.getElementById('wizard-odd-input').checked, setupMode: document.getElementById('wizard-mode-input').value, poolCount: getOptimalPoolSizes(wizardTarget).length, advancementCount: recommendedAdvancementCount(wizardTarget), header: { ...state.header, title: document.getElementById('wizard-title-input').value.trim(), date: document.getElementById('wizard-date-input').value, loc: document.getElementById('wizard-location-input').value.trim(), org: document.getElementById('wizard-organizer-input').value.trim(), man: managerNames, nickname } });
+        const wizardPoolSize = Number(document.getElementById('wizard-pool-size-input').value) || DEFAULT_STATE.poolSize;
+        const wizardAdvancing = Number(document.getElementById('wizard-advancing-input').value) || recommendedAdvancementCount(wizardTarget, wizardPoolSize);
+        state = normalizeState({ ...cloneDefaultState(), tournamentNickname: nickname, adminPinHash: await hashPin(pin), expectedTeams: wizardTarget, allowOddTeams: document.getElementById('wizard-odd-input').checked, setupMode: document.getElementById('wizard-mode-input').value, poolSize: wizardPoolSize, poolCount: getOptimalPoolSizes(wizardTarget, wizardPoolSize).length, advancementCount: Math.min(wizardAdvancing, wizardTarget), header: { ...DEFAULT_STATE.header, title: document.getElementById('wizard-title-input').value.trim(), date: document.getElementById('wizard-date-input').value, loc: document.getElementById('wizard-location-input').value.trim(), org: document.getElementById('wizard-organizer-input').value.trim(), man: managerNames, nickname } });
         state.header.nickname = nickname;
         try {
             const result = await functions.httpsCallable('createTournament')({ nickname, adminPin: pin, state });
@@ -1372,15 +1404,17 @@
 
         let candidate = null;
         let secureSession = false;
+        let canonicalNotFound = false;
         try {
             const session = await functions.httpsCallable('adminSession')({ tournament: slug, adminPin: pin });
             await auth.signInWithCustomToken(session.data.token);
             secureSession = true;
-        } catch (error) { console.warn('Secure admin session unavailable; trying local recovery copy:', error.message); }
+        } catch (error) { canonicalNotFound = error.response && error.response.status === 404; console.warn('Secure admin session unavailable; trying local recovery copy:', error.message); }
         try {
             const snapshot = await db.ref(`tournaments/${slug}/state`).once('value');
             candidate = snapshot.val();
-        } catch (error) { candidate = null; }
+        } catch (error) { canonicalNotFound = canonicalNotFound || (error.response && error.response.status === 404); candidate = null; }
+        if (canonicalNotFound) { clearTournamentClientState(slug); return showLobby('Tournament not found. It may have been deleted.'); }
         if (!candidate) {
             try { candidate = JSON.parse(localStorage.getItem(tournamentStateKey(slug))); } catch (error) { candidate = null; }
         }
@@ -1412,6 +1446,14 @@
         liveSyncStarted = true;
         tournamentRef().on('value', (snapshot) => {
             const data = snapshot.val();
+            if (!data) {
+                const deletedSlug = tournamentSlug;
+                console.info('Tournament deleted remotely; clearing local manager state.', { tournament: deletedSlug });
+                clearTournamentClientState(deletedSlug);
+                state = cloneDefaultState();
+                tournamentSlug = '';
+                return showLobby('That tournament was deleted. Create a new event or enter another code.');
+            }
             if (data && (!data.adminPinHash || data.adminPinHash === state.adminPinHash) && (!syncPending || Number(data.updatedAt || 0) >= Number(state.updatedAt || 0))) {
                 state = normalizeState(data);
                 localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
@@ -1640,39 +1682,64 @@
         state.allowOddTeams = checked;
         if (!checked && state.expectedTeams !== '-' && state.expectedTeams % 2 !== 0) { state.expectedTeams = '-'; }
         if (state.expectedTeams !== '-') state.poolCount = calculatePoolCount(state.expectedTeams);
-        saveState(); renderTargetDropdown(); renderRoster();
+        saveState(); renderTargetDropdown(); renderStructureControls(); renderRoster();
     }
 
     function updateExpectedTeams(val) {
         state.expectedTeams = val === '-' ? '-' : parseInt(val);
-        if(state.expectedTeams !== '-') { state.poolCount = getOptimalPoolSizes(state.expectedTeams).length; state.advancementCount = recommendedAdvancementCount(state.expectedTeams); }
-        saveState(); renderRoster(); renderPools();
-    }
-
-    function getOptimalPoolSizes(teamCount) {
-        if (!Number.isInteger(teamCount) || teamCount < 4 || teamCount > 80) return [];
-        if (teamCount <= 7) return [teamCount];
-        let best = null;
-        for (let poolCount = Math.ceil(teamCount / 6); poolCount <= Math.floor(teamCount / 4); poolCount++) {
-            const base = Math.floor(teamCount / poolCount);
-            const remainder = teamCount % poolCount;
-            if (base < 4 || base > 6 || base + (remainder ? 1 : 0) > 6) continue;
-            const sizes = Array.from({ length: poolCount }, (_, index) => base + (index < remainder ? 1 : 0));
-            const score = sizes.filter(size => size !== 5).length * 10 + sizes.filter(size => size === 4).length;
-            if (!best || score < best.score) best = { sizes, score };
+        if(state.expectedTeams !== '-') {
+            state.poolCount = getOptimalPoolSizes(state.expectedTeams, state.poolSize).length;
+            if (state.advancementCount > state.expectedTeams) state.advancementCount = recommendedAdvancementCount(state.expectedTeams, state.poolSize);
         }
-        return best ? best.sizes : [teamCount];
+        saveState(); renderStructureControls(); renderRoster(); renderPools();
     }
 
-    function calculatePoolCount(teamCount) { return getOptimalPoolSizes(teamCount).length; }
+    function updatePoolSize(val) {
+        state.poolSize = Math.min(8, Math.max(4, parseInt(val) || DEFAULT_STATE.poolSize));
+        const activeCount = state.teams.filter(team => team.active).length;
+        const basis = activeCount || (state.expectedTeams === '-' ? 0 : state.expectedTeams);
+        if (basis) state.poolCount = getOptimalPoolSizes(basis, state.poolSize).length;
+        saveState(); renderStructureControls(); renderRoster(); renderPools();
+    }
+
+    function updateAdvancementCount(val) {
+        const total = state.expectedTeams === '-' ? state.teams.filter(team => team.active).length : Number(state.expectedTeams);
+        const next = parseInt(val);
+        if (!Number.isInteger(next) || next < 4 || (total && next > total)) return;
+        state.advancementCount = next;
+        saveState(); renderStructureControls(); renderRoster(); renderStandings(); renderBracketUI();
+    }
+
+    function renderStructureControls() {
+        const poolSelect = document.getElementById('pool-size-select');
+        if (poolSelect) poolSelect.innerHTML = [4,5,6,7,8].map(size => `<option value="${size}" ${Number(state.poolSize) === size ? 'selected' : ''}>${size} teams</option>`).join('');
+        const advancingSelect = document.getElementById('advancing-teams-select');
+        if (advancingSelect) {
+            const total = state.expectedTeams === '-' ? state.teams.filter(team => team.active).length : Number(state.expectedTeams);
+            const options = [4,8,16,32,64].filter(size => !total || size <= total);
+            advancingSelect.innerHTML = options.map(size => `<option value="${size}" ${Number(state.advancementCount) === size ? 'selected' : ''}>${size} teams</option>`).join('');
+        }
+    }
+
+    function getOptimalPoolSizes(teamCount, preferredSize = state.poolSize || DEFAULT_STATE.poolSize) {
+        if (!Number.isInteger(teamCount) || teamCount < 4 || teamCount > 80) return [];
+        const targetSize = Math.min(8, Math.max(4, Number(preferredSize) || DEFAULT_STATE.poolSize));
+        if (teamCount <= targetSize) return [teamCount];
+        const poolCount = Math.ceil(teamCount / targetSize);
+        const base = Math.floor(teamCount / poolCount);
+        const remainder = teamCount % poolCount;
+        return Array.from({ length: poolCount }, (_, index) => base + (index < remainder ? 1 : 0));
+    }
+
+    function calculatePoolCount(teamCount) { return getOptimalPoolSizes(teamCount, state.poolSize).length; }
 
     function nextBracketCapacity(teamCount) { return [4, 8, 16, 32, 64].find(size => size >= teamCount) || 64; }
 
-    function recommendedAdvancementCount(teamCount) {
-        const poolCount = getOptimalPoolSizes(teamCount).length;
-        if (teamCount <= 12) return nextBracketCapacity(teamCount);
-        if (teamCount <= 32) return nextBracketCapacity(Math.ceil(teamCount / 2));
-        return nextBracketCapacity(Math.min(32, poolCount * 2));
+    function recommendedAdvancementCount(teamCount, preferredSize = state.poolSize || DEFAULT_STATE.poolSize) {
+        const poolCount = getOptimalPoolSizes(teamCount, preferredSize).length;
+        if (teamCount <= 8) return Math.min(4, teamCount);
+        if (teamCount <= 32) return Math.min(teamCount, nextBracketCapacity(Math.ceil(teamCount / 2)));
+        return Math.min(teamCount, nextBracketCapacity(Math.min(32, poolCount * 2)));
     }
 
     function teamRanking(a, b) {
@@ -1828,7 +1895,7 @@
         if (state.setupMode === 'smart') {
             if (tCount < 8) return await appAlert("Smart Setup requires at least 8 teams to optimize a tournament structure.", "Not Enough Teams", "warning");
 
-            let pools = 1, adv = recommendedAdvancementCount(tCount);
+            let pools = 1, adv = recommendedAdvancementCount(tCount, state.poolSize);
             if(tCount >= 8 && tCount <= 11) { pools = 2; adv = 8; }
             else if(tCount >= 12 && tCount <= 17) { pools = 3; adv = 8; }
             else if(tCount >= 18 && tCount <= 23) { pools = 4; adv = 8; }
@@ -1836,7 +1903,7 @@
             else if(tCount >= 30 && tCount <= 35) { pools = 6; adv = 12; }
             else if(tCount >= 36 && tCount <= 41) { pools = 7; adv = 14; }
             else if(tCount >= 42 && tCount <= 50) { pools = 8; adv = 16; }
-            else if(tCount >= 51 && tCount <= 80) { pools = getOptimalPoolSizes(tCount).length; adv = 32; }
+            else if(tCount >= 51 && tCount <= 80) { pools = getOptimalPoolSizes(tCount, state.poolSize).length; adv = 32; }
 
             const autoAssign = await customModal({
                 type: 'smart', title: 'AI Optimization', icon: 'magic',
@@ -1863,8 +1930,8 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [activeTeams[i], activeTeams[j]] = [activeTeams[j], activeTeams[i]];
             }
-            state.poolCount = getOptimalPoolSizes(tCount).length;
-            state.advancementCount = recommendedAdvancementCount(tCount);
+            state.poolCount = getOptimalPoolSizes(tCount, state.poolSize).length;
+            if (state.advancementCount > tCount) state.advancementCount = recommendedAdvancementCount(tCount, state.poolSize);
             const pools = assignBalancedPools(activeTeams, state.poolCount);
             state.poolSchedule = buildPoolSchedule(pools);
             saveState(); renderRoster(); renderPools();
@@ -2080,8 +2147,8 @@
                                 <div style="width:65px; text-align:center; font-weight:900; font-size:1.6rem; color:var(--text);">${match.s2}</div>
                             </div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-                                <span style="font-size:0.8rem; color:var(--muted); font-weight:800; display:flex; align-items:center; gap:5px;"><i data-lucide="lock" style="width:14px;"></i> SCORE LOCKED</span>
-                                <button class="btn-lock" onclick="unlockTourneyScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})" title="Override & Edit">Unlock <i data-lucide="unlock" style="width:16px;"></i></button>
+                                <span style="font-size:0.8rem; color:var(--muted); font-weight:800; display:flex; align-items:center; gap:5px;"><i data-lucide="lock" style="width:14px;"></i> FINAL - MANAGER CAN CORRECT</span>
+                                <button class="btn-lock" onclick="unlockTourneyScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})" title="Edit or correct score">Correct <i data-lucide="pencil" style="width:16px;"></i></button>
                             </div>
                         `;
                     } else if(report) {
@@ -2144,21 +2211,35 @@
             return await appAlert("Invalid Score. Games to 11, win by 2. If score is over 11, win must be by exactly 2 (e.g. 12-10, 15-13).", "Invalid Score", "warning");
         }
         
-        if(!await appConfirm(`Lock in final score of ${s1} to ${s2}? This permanently locks the match.`, "Confirm Match", "Lock It")) return;
+        if(!await appConfirm(`Lock in final score of ${s1} to ${s2}? A manager can correct it later from Pool Play if needed.`, "Confirm Match", "Lock Score")) return;
 
         finalizePoolMatch(mId, id1, id2, s1, s2, 'admin');
+    }
+
+    function recomputePoolStats() {
+        state.teams.forEach(team => { team.wins = 0; team.losses = 0; team.pf = 0; team.pa = 0; team.pd = 0; });
+        Object.values(state.completedMatches || {}).forEach(match => {
+            const t1 = state.teams.find(team => String(team.id) === String(match.teamAId));
+            const t2 = state.teams.find(team => String(team.id) === String(match.teamBId));
+            if (!t1 || !t2) return;
+            const s1 = Number(match.s1);
+            const s2 = Number(match.s2);
+            if (!Number.isInteger(s1) || !Number.isInteger(s2) || s1 < 0 || s2 < 0 || s1 === s2) return;
+            if (s1 > s2) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
+            t1.pf += s1; t1.pa += s2; t1.pd += s1 - s2;
+            t2.pf += s2; t2.pa += s1; t2.pd += s2 - s1;
+        });
     }
 
     function finalizePoolMatch(mId, id1, id2, s1, s2, resolvedBy = 'teams') {
         const t1 = state.teams.find(t => t.id === id1);
         const t2 = state.teams.find(t => t.id === id2);
-        if(!t1 || !t2 || state.completedMatches[mId] || !Number.isInteger(s1) || !Number.isInteger(s2) || s1 < 0 || s2 < 0 || s1 === s2) return;
-        if (s1 > s2) { t1.wins++; t2.losses++; } else { t2.wins++; t1.losses++; }
-        t1.pf = (t1.pf || 0) + s1; t1.pa = (t1.pa || 0) + s2;
-        t2.pf = (t2.pf || 0) + s2; t2.pa = (t2.pa || 0) + s1;
-        t1.pd += s1 - s2; t2.pd += s2 - s1;
-        state.completedMatches[mId] = { s1, s2, teamAId: id1, teamBId: id2, status:'confirmed', resolvedBy, resolvedAt: new Date().toISOString() };
+        if(!t1 || !t2 || !Number.isInteger(s1) || !Number.isInteger(s2) || s1 < 0 || s2 < 0 || s1 === s2) return;
+        const previous = state.completedMatches[mId] || null;
+        state.completedMatches[mId] = { s1, s2, teamAId: id1, teamBId: id2, status:'confirmed', resolvedBy, resolvedAt: new Date().toISOString(), correctedFrom: previous ? { s1: previous.s1, s2: previous.s2, resolvedAt: previous.resolvedAt || null } : null };
         delete state.scoreReports[mId];
+        recomputePoolStats();
+        console.info('Tournament score finalized.', { tournament: tournamentSlug, matchId: mId, resolvedBy });
         saveState(); renderPools(); renderStandings();
     }
 
@@ -2176,18 +2257,12 @@
     }
 
     async function unlockTourneyScore(mId, id1, id2) {
-        const override = await appPrompt("Type 'UNLOCK' to fix an accidental score typo. This will reverse standings.", "Admin Override", "UNLOCK", "Override");
-        if(override === 'UNLOCK') {
-            const t1 = state.teams.find(t => t.id === id1);
-            const t2 = state.teams.find(t => t.id === id2);
-            const match = state.completedMatches[mId];
-            if (match.s1 > match.s2) { t1.wins--; t2.losses--; } else { t2.wins--; t1.losses--; }
-            t1.pf = Math.max(0, (t1.pf || 0) - match.s1); t1.pa = Math.max(0, (t1.pa || 0) - match.s2);
-            t2.pf = Math.max(0, (t2.pf || 0) - match.s2); t2.pa = Math.max(0, (t2.pa || 0) - match.s1);
-            t1.pd -= (match.s1 - match.s2); t2.pd -= (match.s2 - match.s1);
-            delete state.completedMatches[mId];
-            saveState(); renderPools();
-        }
+        const match = state.completedMatches[mId];
+        if (!match) return;
+        const value = await appPrompt(`Enter corrected score as Team A-Team B. Current score is ${match.s1}-${match.s2}.`, "Correct Score", `${match.s1}-${match.s2}`, "Save Correction");
+        const parts = value ? value.split('-').map(score => Number(score.trim())) : [];
+        if(parts.length !== 2 || parts.some(score => !Number.isInteger(score) || score < 0) || parts[0] === parts[1]) return await appAlert('Enter a valid non-tied score, for example 11-8.', 'Invalid Score', 'warning');
+        finalizePoolMatch(mId, id1, id2, parts[0], parts[1], 'admin-correction');
     }
 
     function renderStandings() {
@@ -2375,15 +2450,9 @@
         
         if(tCount < 4) return await appAlert("Tournament needs at least 4 active teams to seed the Elimination Bracket.", "Bracket Error", "warning");
 
-        let advTarget = state.advancementCount || 8;
-        if (state.setupMode === 'manual') {
-            const choice = await appPrompt("Enter number of teams to advance to bracket (4, 8, 16, or 32):", "Manual Bracket Setup", "e.g. 8", "Seed Bracket");
-            if(!choice) return;
-            const pVal = parseInt(choice);
-            if(pVal !== 4 && pVal !== 8 && pVal !== 16 && pVal !== 32) return await appAlert("Must be exactly 4, 8, 16, or 32 for standard brackets.", "Invalid Input", "warning");
-            if(pVal > tCount) return await appAlert(`You only have ${tCount} active teams. Cannot advance ${pVal}.`, "Not Enough Teams", "warning");
-            advTarget = pVal;
-        }
+        let advTarget = Number(state.advancementCount) || recommendedAdvancementCount(tCount, state.poolSize);
+        if (![4, 8, 16, 32, 64].includes(advTarget)) return await appAlert("Choose a supported advancement count: 4, 8, 16, 32, or 64 teams.", "Invalid Bracket Size", "warning");
+        if(advTarget > tCount) return await appAlert(`You only have ${tCount} active teams. Cannot advance ${advTarget}.`, "Not Enough Teams", "warning");
 
         state.advancementCount = advTarget;
         const qualification = tournamentQualification();
@@ -3429,21 +3498,19 @@
         // Restore Reset App Button Logic
         window.resetApp = async function() {
             if(await appConfirm("Are you sure you want to permanently delete ALL app data? This cannot be undone.", "Factory Reset", "Yes, Reset Everything", true)) {
-                localStorage.removeItem('picklepal_2026');
+                const deletedSlug = tournamentSlug;
+                console.info('Deleting tournament and clearing scoped local state.', { tournament: deletedSlug });
                 const ref = tournamentRef();
-                if (ref) ref.remove().catch(error => console.warn('Tournament removal unavailable:', error.message));
-                localStorage.removeItem(tournamentStateKey(tournamentSlug));
-                localStorage.removeItem('picklepal_active_tournament');
-                localStorage.removeItem('picklepal_admin_session');
-                location.reload();
+                try { if (ref) await ref.remove(); } catch (error) { console.warn('Tournament removal unavailable:', error.message); }
+                clearTournamentClientState(deletedSlug);
+                state = cloneDefaultState();
+                tournamentSlug = '';
+                location.href = 'index.html';
             }
         };
 
-        const target = document.getElementById('target-teams');
-        if(target) {
-            target.innerHTML = `<option value="-">-</option>`;
-            for(let i=4; i<=80; i+=2) target.innerHTML += `<option value="${i}" ${state.expectedTeams == i ? 'selected' : ''}>${i}</option>`;
-        }
+        renderTargetDropdown();
+        renderStructureControls();
         
         const headersTourney = {'head-title': state.header.title, 'head-date': state.header.date, 'head-loc': state.header.loc, 'head-org': state.header.org, 'head-man': state.header.man};
         for(let id in headersTourney) { if(document.getElementById(id)) document.getElementById(id).value = headersTourney[id] || ""; }
