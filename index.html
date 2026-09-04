@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>PicklePal Lite</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="apple-touch-icon" href="assets/logo.png">
     <script src="https://unpkg.com/lucide@1.40.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0"></script>
@@ -317,6 +319,9 @@
         .rr-match-scroll .pool-grid { min-width:min-content; }
         .rr-table-scroll table { min-width:760px; margin-top:0; }
         .rr-table-scroll th { position:sticky; top:0; z-index:1; background:var(--card); }
+        .final-results-card { margin:18px 0 20px; padding:22px; border:1px solid rgba(251,191,36,.45); border-radius:12px; background:radial-gradient(circle at top left,rgba(251,191,36,.18),transparent 38%), linear-gradient(145deg,rgba(15,23,42,.92),rgba(30,41,59,.94)); box-shadow:0 18px 44px rgba(0,0,0,.2); }
+        .final-results-card p { margin:0 0 14px; color:var(--gold); font-weight:900; }
+        .end-rr-btn { width:100%; min-height:56px; margin-top:12px; border:2px solid var(--danger); background:linear-gradient(135deg,#dc2626,#991b1b); color:#fff; box-shadow:0 10px 28px rgba(239,68,68,.25); }
         .rr-event-access { display:grid; grid-template-columns:minmax(210px,.7fr) minmax(0,1.3fr); gap:22px; align-items:center; padding:20px 22px; border-top:3px solid var(--accent-2); }
         .rr-event-access strong { display:block; margin-bottom:5px; font-size:1rem; }
         .rr-event-access span { color:var(--muted); font-size:.8rem; line-height:1.4; }
@@ -802,7 +807,7 @@
             <span class="rr-page-badge"><i data-lucide="sparkles" style="width:16px;"></i> Casual mode</span>
         </div>
 
-        <div class="card rr-event-access"><div><strong>Round Robin event</strong><span>Creating an event automatically gives it a One-word Round Robin Code players can use from any device.</span></div><div class="rr-access-section"><div class="rr-access-label">Player access</div><div class="rr-access-fields"><input id="rr-event-code" type="text" placeholder="One-word Round Robin Code" aria-label="One-word Round Robin Code" autocomplete="off"><button class="btn btn-outline btn-sm" onclick="loadRREvent()"><i data-lucide="download"></i> Open event</button></div></div><div class="rr-access-section"><div class="rr-access-label">Admin setup</div><div class="rr-access-fields"><input id="rr-admin-pin" type="password" inputmode="numeric" maxlength="4" placeholder="Create four-digit admin PIN" autocomplete="off"><button class="btn btn-primary btn-sm" onclick="createRREvent()"><i data-lucide="cloud"></i> Create event</button></div></div><p id="rr-event-message"></p></div>
+        <div class="card rr-event-access"><div><strong>Round Robin event</strong><span>Choose a custom One-word Round Robin Code players can use from any device.</span></div><div class="rr-access-section"><div class="rr-access-label">Player access</div><div class="rr-access-fields"><input id="rr-event-code" type="text" placeholder="One-word Round Robin Code" aria-label="One-word Round Robin Code" autocomplete="off"><button class="btn btn-outline btn-sm" onclick="loadRREvent()"><i data-lucide="download"></i> Open event</button></div></div><div class="rr-access-section"><div class="rr-access-label">Admin setup</div><div class="rr-access-fields"><input id="rr-admin-pin" type="password" inputmode="numeric" maxlength="4" placeholder="Create four-digit admin PIN" autocomplete="off"><button class="btn btn-primary btn-sm" onclick="createRREvent()"><i data-lucide="cloud"></i> Create event</button></div></div><p id="rr-event-message"></p></div>
 
         <div id="rr-setup-container" class="card">
             <h2 style="margin:0; margin-bottom:24px;">Event Setup</h2>
@@ -1245,24 +1250,34 @@
     }
 
     async function createRREvent() {
+        const codeInput = document.getElementById('rr-event-code');
+        const code = codeInput.value.trim().toLowerCase();
         const adminPin = document.getElementById('rr-admin-pin').value.trim();
         const message = document.getElementById('rr-event-message');
+        if (!isOneWordTournamentCode(code)) { message.innerText = 'Enter the One-word Round Robin Code.'; return; }
         if (!/^\d{4}$/.test(adminPin)) { message.innerText = 'Create a four-digit admin PIN for this Round Robin event.'; return; }
-        for (let attempt = 0; attempt < 5; attempt++) {
-            const code = generateRREventNickname();
-            state.rr.eventCode = code;
-            tournamentSlug = code;
-            try {
-                await window.roundRobinApi.create({ tournament: code, adminPin, displayName: state.rr.title || code, state });
-                document.getElementById('rr-event-code').value = code;
-                persistRRState(code);
-                message.innerText = `Event created. Share nickname: ${code}`;
-                updateRRFormat();
-                return;
-            } catch (error) {
-                if (!String(error.message).includes('already in use') || attempt === 4) { message.innerText = error.message; return; }
-            }
+        state.rr.eventCode = code;
+        tournamentSlug = code;
+        try {
+            await window.roundRobinApi.create({ tournament: code, adminPin, displayName: state.rr.title || code, state });
+            codeInput.value = code;
+            persistRRState(code);
+            message.innerText = `Event created. Share code: ${code}`;
+            updateRRFormat();
+        } catch (error) {
+            message.innerText = String(error.message).includes('already in use') ? 'That event code is currently active. Please choose another word.' : error.message;
         }
+    }
+
+    async function endRoundRobinPlay() {
+        if(!await appConfirm('This will wipe event data from the server and free up your event code. Continue?', 'End Round Robin Play', 'END ROUND ROBIN PLAY', true)) return;
+        const code = state.rr.eventCode || tournamentSlug;
+        try { if (code && window.roundRobinApi) await window.roundRobinApi.remove({ tournament: code }); } catch (error) { console.warn('Round Robin cloud deletion unavailable:', error.message); }
+        if (code) localStorage.removeItem(`picklepal_rr_${code}`);
+        localStorage.removeItem('picklepal_rr_access');
+        localStorage.removeItem('picklepal_active_tournament');
+        localStorage.removeItem('picklepal_admin_session');
+        window.location.href = 'index.html';
     }
 
     let wizardStep = 1;
@@ -1322,7 +1337,7 @@
         tournamentSlug = slug;
         try {
             const existing = await db.ref(`tournaments/${tournamentSlug}/state`).once('value');
-            if (existing.exists()) { tournamentSlug = ''; return appAlert('That tournament nickname is already in use. Choose another.', 'Nickname unavailable', 'warning'); }
+            if (existing.exists()) { tournamentSlug = ''; return appAlert('That event code is currently active. Please choose another word.', 'Code unavailable', 'warning'); }
         } catch (error) {}
         const wizardTarget = parseInt(document.getElementById('wizard-teams-input').value);
         const managerNames = [document.getElementById('wizard-manager-input').value.trim(), document.getElementById('wizard-manager-secondary-input').value.trim()].filter(Boolean).join(', ');
@@ -3261,9 +3276,13 @@
             podiumHTML = `
                 <div class="podium-container">
                     <div class="podium-title">Mini Bracket Results</div>
-                    <div class="podium-row" style="color:var(--gold);">🥇 Champion: <span style="color:var(--text); margin-left:8px;">${formatTeamName(champion)}</span></div>
-                    <div class="podium-row" style="color:var(--silver);">🥈 2nd Place: <span style="color:var(--text); margin-left:8px;">${formatTeamName(secondPlace)}</span></div>
-                    <div class="podium-row" style="color:var(--bronze);">🥉 3rd Place: <span style="color:var(--text); margin-left:8px;">${formatTeamName(thirdPlace)}</span></div>
+                    <div class="final-results-card">
+                        <p>Screenshot this screen to save your official final results before ending play!</p>
+                        <div class="podium-row" style="color:var(--gold);">Champion: <span style="color:var(--text); margin-left:8px;">${formatTeamName(champion)}</span></div>
+                        <div class="podium-row" style="color:var(--silver);">2nd Place: <span style="color:var(--text); margin-left:8px;">${formatTeamName(secondPlace)}</span></div>
+                        <div class="podium-row" style="color:var(--bronze);">3rd Place: <span style="color:var(--text); margin-left:8px;">${formatTeamName(thirdPlace)}</span></div>
+                    </div>
+                    <button class="btn btn-danger end-rr-btn" onclick="endRoundRobinPlay()">END ROUND ROBIN PLAY</button>
                 </div>
             `;
         }

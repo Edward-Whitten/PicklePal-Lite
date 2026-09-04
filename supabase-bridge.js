@@ -76,11 +76,11 @@
     window.addEventListener('pagehide', cleanupChannels);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') cleanupChannels(); });
 
-    window.db = { ref: function (path) { const tournament = extractTournament(path); if (path === '.info/connected') return { on: function (event, callback) { callback(snapshot(false)); if (configured) call('public', { tournament:'healthcheck' }).then(() => callback(snapshot(true))).catch(error => callback(snapshot(error && error.response && error.response.status === 404))); } }; return {
+    window.db = { ref: function (path) { const tournament = extractTournament(path); if (path === '.info/connected') return { on: function (event, callback) { callback(snapshot(false)); if (configured) fetchWithTimeout(apiUrl(), { method:'OPTIONS', headers:{ apikey:anonKey, authorization:`Bearer ${anonKey}` } }, 5000).then(response => callback(snapshot(response.ok))).catch(() => callback(snapshot(false))); } }; return {
         once: async function () { const data = await call('public', { tournament }); return snapshot(data.state); },
         on: function (event, callback) { this.once().then(callback).catch(error => console.warn('Supabase public read unavailable:', error.message)); const channel = subscribeTournament(tournament, callback); return function unsubscribe() { if (channel && client) { try { client.removeChannel(channel); channels.delete(`tournament-${tournament}`); } catch (error) {} } }; },
         set: async function (state) { const kind = state && state.appMode === 'rr' ? 'round_robin' : 'tournament'; if (currentRole === 'admin') return call('admin-save', { tournament, state, kind }); if (currentRole === 'player') return call('score-report', { tournament, state, kind }); throw new Error('Authenticated Supabase session required.'); },
-        remove: async function () { throw new Error('Tournament deletion is admin-only and must be implemented as a protected action.'); }
+        remove: async function () { return call('delete-event', { tournament, kind:'tournament' }); }
     }; } };
     window.auth = { currentUser: sessionToken ? { uid: `${currentRole}:${currentTournament}` } : null, signInWithCustomToken: async function (token) { sessionToken = token; this.currentUser = { uid: `${currentRole}:${currentTournament}` }; } };
     window.functions = { httpsCallable: function (name) { return async function (payload) {
@@ -97,7 +97,8 @@
         adminLogin: async payload => { const data = await call('admin-login', { ...payload, kind: 'round_robin' }); remember(data, 'admin', payload.tournament); return data; },
         playerLogin: async payload => { const data = await call('player-login', { ...payload, kind: 'round_robin' }); remember(data, 'player', payload.tournament); return data; },
         reportScore: payload => call('score-report', { ...payload, kind: 'round_robin' }),
-        save: payload => call('admin-save', { ...payload, kind: 'round_robin' })
+        save: payload => call('admin-save', { ...payload, kind: 'round_robin' }),
+        remove: payload => call('delete-event', { ...payload, kind: 'round_robin' })
     };
     window.supabaseBridge = { configured, remember, call };
 })();

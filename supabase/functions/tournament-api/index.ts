@@ -37,7 +37,7 @@ async function verifySession(token: string | null, expectedRole: string, tournam
   if (!valid || session.exp < Date.now() || session.role !== expectedRole || session.tournament !== tournament) throw new Error('Session expired or unauthorized.');
   return session;
 }
-function json(data: unknown, status = 200) { return new Response(status === 204 ? null : JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': 'apikey,authorization,content-type' } }); }
+function json(data: unknown, status = 200) { return new Response(status === 204 ? null : JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': 'apikey,authorization,content-type', 'access-control-allow-methods': 'OPTIONS,POST' } }); }
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') return error.message;
@@ -98,6 +98,12 @@ Deno.serve(async request => {
       if (error) throw error;
       await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'admin', event_type: 'state_saved' });
       return json({ savedAt: new Date().toISOString() });
+    }
+    if (action === 'delete-event') {
+      await verifySession(authToken, 'admin', tournamentCode);
+      const { error } = await supabase.from('tournaments').delete().eq('id', tournament.id);
+      if (error) throw error;
+      return json({ status: 'deleted' });
     }
     if (action === 'score-report') {
       const session = await verifySession(authToken, 'player', tournamentCode);

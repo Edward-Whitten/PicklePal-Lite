@@ -63,4 +63,17 @@ test.describe('Supabase bridge resilience', () => {
     expect(action).toBe('player-checkin');
     expect(result.data).toEqual({ token: undefined, teamId: '1', state: undefined, scorePin: '1111', status: 'checked-in' });
   });
+
+  test('maps Round Robin remove to delete-event action', async ({ page }) => {
+    let body: { action?: string; kind?: string; tournament?: string } = {};
+    await page.route('**/functions/v1/tournament-api', async route => {
+      body = await route.request().postDataJSON();
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'deleted' }) });
+    });
+    await page.goto('/index.html?mode=round-robin');
+    await page.waitForFunction(() => Boolean(window.roundRobinApi?.remove));
+    const result = await page.evaluate(() => window.roundRobinApi.remove({ tournament: 'smash' }));
+    expect(body).toMatchObject({ action: 'delete-event', kind: 'round_robin', tournament: 'smash' });
+    expect(result).toEqual({ status: 'deleted' });
+  });
 });

@@ -62,6 +62,9 @@ test.describe('Player and spectator portal', () => {
     await page.getByRole('button', { name: 'Go to Score Desk' }).click();
     await expect(page.getByLabel('4-digit player PIN')).toHaveValue(playerAPin);
     await expect(page.getByRole('heading', { name: 'Alexandra Verylonglastname & Benjamin Example' })).toBeVisible();
+    await page.getByRole('button', { name: 'Exit Score Desk' }).click();
+    await expect(page.locator('#player-dashboard')).toHaveClass(/hidden/);
+    await expect(page.getByLabel('4-digit player PIN')).toHaveValue('');
   });
 
   test('validates PIN and score entry without blocking dialogs', async ({ page }) => {
