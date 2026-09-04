@@ -268,7 +268,7 @@
         .data-table-wrap table { min-width:620px; margin:0; }.data-table-wrap th { position:sticky; top:0; z-index:1; background:var(--card); }
 
         .lobby-screen { position:fixed; inset:0; z-index:20000; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:24px; overflow-y:auto; background:var(--bg); background-image:var(--glow); }
-        .lobby-card { width:min(1120px,100%); min-height:min(680px,calc(100dvh - 48px)); padding:clamp(1.5rem,4vw,4rem); background:linear-gradient(135deg,rgba(30,41,59,.78),rgba(15,23,42,.88)); border:1px solid rgba(148,163,184,.22); border-radius:24px; box-shadow:0 24px 60px rgba(0,0,0,.28), 0 0 80px rgba(59,130,246,.08); text-align:left; position:relative; display:grid; grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr); align-items:center; gap:clamp(2rem,7vw,7rem); overflow:hidden; }
+        .lobby-card { width:min(1120px,100%); min-height:min(680px,calc(100dvh - 48px)); padding:clamp(1.5rem,4vw,4rem); background:linear-gradient(135deg,rgba(30,41,59,.78),rgba(15,23,42,.88)); border:1px solid rgba(148,163,184,.22); border-radius:24px; box-shadow:0 24px 60px rgba(0,0,0,.28), 0 0 80px rgba(59,130,246,.08); text-align:left; position:relative; display:grid; grid-template-columns:minmax(0,1fr) minmax(390px,.9fr); align-items:center; gap:clamp(2rem,5vw,5rem); overflow:hidden; }
         body.light-theme .lobby-card { background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(241,245,249,.96)); border-color:var(--border); box-shadow:0 24px 60px rgba(15,23,42,.14), 0 0 80px rgba(79,70,229,.08); }
         .lobby-card::before { content:""; position:absolute; inset:0 auto 0 0; width:45%; background:linear-gradient(145deg,rgba(6,182,212,.12),transparent 65%); pointer-events:none; }
         .lobby-intro { position:relative; z-index:1; }
@@ -294,11 +294,14 @@
         .lobby-panel input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(168,85,247,.2); outline:none; }
         .lobby-field { display:flex; gap:10px; margin-bottom:12px; }
         .lobby-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; min-width:0; }
-        .lobby-actions .btn { width:100%; min-width:0; overflow:hidden; }
+        .lobby-actions .btn { width:100%; min-width:0; min-height:74px; padding:12px 4px; flex-direction:column; gap:7px; overflow:hidden; text-align:center; line-height:1.1; }
+        .lobby-actions .btn i { flex:0 0 auto; width:20px; height:20px; }
+        .lobby-role-label { display:block; width:100%; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.84rem; }
         .lobby-secondary-action { margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
         .lobby-secondary-action .btn { background:var(--gradient); color:#fff; box-shadow:0 8px 24px rgba(59,130,246,.28), 0 0 28px rgba(168,85,247,.16); border:1px solid rgba(255,255,255,.25); }
         .lobby-secondary-action .btn:hover { box-shadow:0 12px 30px rgba(59,130,246,.38), 0 0 38px rgba(168,85,247,.24); }
         .lobby-create-action { margin-top:18px; padding:18px; border:1px solid rgba(34,197,94,.4); border-radius:10px; background:linear-gradient(145deg,rgba(34,197,94,.13),rgba(6,182,212,.08)); }
+        .lobby-panel > .lobby-create-action:first-child { margin-top:0; margin-bottom:18px; }
         .lobby-create-action h3 { margin:0 0 5px; color:var(--text); font-size:1rem; }
         .lobby-create-action p { margin:0 0 14px; font-size:.84rem; }
         .lobby-create-action .btn { width:100%; }
@@ -352,6 +355,7 @@
         .wizard-view { display:none; }
         .wizard-view.active { display:block; }
         .wizard-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .wizard-manager-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
         .wizard-field label { display:block; margin-bottom:6px; color:var(--muted); font-size:.78rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
         .wizard-field.full { grid-column:1/-1; }
         .wizard-actions { display:flex; justify-content:space-between; gap:10px; margin-top:2rem; }
@@ -363,7 +367,7 @@
         .pin-directory-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:800; }
         .pin-directory-code { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--accent); font-weight:900; letter-spacing:2px; }
         .pin-copy { border:1px solid var(--border); background:var(--row-bg); color:var(--muted); border-radius:7px; padding:5px 7px; cursor:pointer; }
-        @media (max-width:760px) { .lobby-screen { position:static; min-height:100dvh; height:auto; overflow:visible; padding:12px; } .lobby-card { display:block; min-height:0; padding:1.25rem; border:0; border-radius:16px; background:transparent; box-shadow:none; } .lobby-card::before { display:none; } .lobby-intro { padding-top:2rem; margin-bottom:2rem; } .lobby-card h1 { font-size:2.5rem; letter-spacing:-1px; } .lobby-intro > p { font-size:1rem; } .lobby-panel { margin-top:1rem; } .wizard-grid, .lobby-field, .lobby-actions, .lobby-features { grid-template-columns:1fr; flex-direction:column; } .wizard-field.full { grid-column:auto; } .modal-actions { flex-direction:column-reverse; } .modal-actions .btn { width:100%; } }
+        @media (max-width:760px) { .lobby-screen { position:static; min-height:100dvh; height:auto; overflow:visible; padding:12px; } .lobby-card { display:block; min-height:0; padding:1.25rem; border:0; border-radius:16px; background:transparent; box-shadow:none; } .lobby-card::before { display:none; } .lobby-intro { padding-top:2rem; margin-bottom:2rem; } .lobby-card h1 { font-size:2.5rem; letter-spacing:-1px; } .lobby-intro > p { font-size:1rem; } .lobby-panel { margin-top:1rem; } .wizard-grid, .wizard-manager-grid, .lobby-field, .lobby-features { grid-template-columns:1fr; flex-direction:column; } .lobby-field { flex-direction:column; } .lobby-actions { grid-template-columns:repeat(3,minmax(0,1fr)); } .wizard-field.full { grid-column:auto; } .modal-actions { flex-direction:column-reverse; } .modal-actions .btn { width:100%; } }
         @media (max-width:760px) { .rr-event-access { grid-template-columns:1fr; gap:14px; padding:16px; } .rr-access-section { grid-column:1; align-items:stretch; flex-direction:column; } .rr-access-section::before { width:100%; height:3px; align-self:auto; } .rr-access-label { flex-basis:auto; } .rr-access-fields, .rr-event-access-controls { grid-template-columns:1fr; width:100%; } .rr-access-fields .btn, .rr-event-access-controls .btn { width:100%; } }
         @media (max-width:360px) { .lobby-card h1 { font-size:2rem; line-height:1; letter-spacing:-.8px; } .lobby-logo { width:92px; } .lobby-intro { padding-top:1.5rem; } }
         @media (max-width:360px) { .lobby-panel .btn { white-space:nowrap; font-size:.8rem; padding:11px 10px; gap:7px; } }
@@ -494,15 +498,16 @@
             </div>
         </div>
         <div class="lobby-panel">
+            <div class="lobby-create-action"><h3>Starting a new tournament?</h3><p>Create an event first. You will choose its shared nickname and private manager PIN during setup.</p><button class="btn btn-success" onclick="openSetupWizard()"><i data-lucide="plus-circle"></i> Setup new tournament</button></div>
+            <div class="lobby-divider">Join existing event</div>
             <h2>One-Word Tournament Code</h2>
             <p>Enter the code, then choose how you want to access the event.</p>
             <div class="lobby-field"><input type="text" id="lobby-nickname" placeholder="Tournament code" aria-label="One-Word Tournament Code" autocomplete="off"></div>
             <div class="lobby-actions">
-                <button class="btn btn-outline" onclick="requestManagerAccess()"><i data-lucide="shield-check"></i> Manager</button>
-                <button class="btn btn-outline" onclick="openPlayerPortal('spectator')"><i data-lucide="eye"></i> Spectator</button>
-                <button class="btn btn-outline" onclick="openPlayerPortal('player')"><i data-lucide="user-check"></i> Player</button>
+                <button class="btn btn-outline" onclick="requestManagerAccess()"><i data-lucide="shield-check"></i><span class="lobby-role-label">Manager</span></button>
+                <button class="btn btn-outline" onclick="openPlayerPortal('spectator')"><i data-lucide="eye"></i><span class="lobby-role-label">Spectator</span></button>
+                <button class="btn btn-outline" onclick="openPlayerPortal('player')"><i data-lucide="user-check"></i><span class="lobby-role-label">Player</span></button>
             </div>
-            <div class="lobby-create-action"><h3>Starting a new tournament?</h3><p>Create an event first. You will choose its shared nickname and private manager PIN during setup.</p><button class="btn btn-success" onclick="openSetupWizard()"><i data-lucide="plus-circle"></i> Setup new tournament</button></div>
             <div class="lobby-secondary-action"><button class="btn" onclick="openRoundRobin()"><i data-lucide="sparkles"></i> Enter Round Robin Play</button><p style="font-size:.78rem; margin:.65rem 0 0;">A separate casual-play workspace for your group. No tournament code required.</p></div>
             <p id="lobby-message" style="min-height:1.5rem; margin:1rem 0 0; color:var(--danger); font-weight:700;"></p>
         </div>
@@ -516,7 +521,7 @@
     <div class="wizard-card">
         <div class="wizard-head"><div><div class="wizard-step" id="wizard-step-label">Step 1 of 3</div><h2 id="wizard-title">Build your event</h2></div><button class="wizard-close" onclick="closeSetupWizard()" aria-label="Close setup wizard"><i data-lucide="x"></i></button></div>
         <div class="wizard-progress"><span class="active"></span><span></span><span></span></div>
-        <div id="wizard-step-1" class="wizard-view active"><p>Start with the event details your players and spectators will recognize.</p><div class="wizard-grid"><div class="wizard-field full"><label for="wizard-title-input">Event title</label><input id="wizard-title-input" type="text" placeholder="e.g. Compass Summer Classic"></div><div class="wizard-field"><label for="wizard-date-input">Date</label><input id="wizard-date-input" type="date"></div><div class="wizard-field"><label for="wizard-location-input">Location</label><input id="wizard-location-input" type="text" placeholder="Venue or city"></div><div class="wizard-field"><label for="wizard-organizer-input">Organizer</label><input id="wizard-organizer-input" type="text" placeholder="Organization name"></div><div class="wizard-field"><label for="wizard-manager-input">Manager</label><input id="wizard-manager-input" type="text" placeholder="Tournament manager"></div></div></div>
+        <div id="wizard-step-1" class="wizard-view active"><p>Start with the event details your players and spectators will recognize.</p><div class="wizard-grid"><div class="wizard-field full"><label for="wizard-title-input">Event title</label><input id="wizard-title-input" type="text" placeholder="e.g. Compass Summer Classic"></div><div class="wizard-field"><label for="wizard-date-input">Date</label><input id="wizard-date-input" type="date"></div><div class="wizard-field"><label for="wizard-location-input">Location</label><input id="wizard-location-input" type="text" placeholder="Venue or city"></div><div class="wizard-field"><label for="wizard-organizer-input">Organizer</label><input id="wizard-organizer-input" type="text" placeholder="Organization name"></div><div class="wizard-field full"><label for="wizard-manager-input">Manager(s)</label><div class="wizard-manager-grid"><input id="wizard-manager-input" type="text" placeholder="Primary manager"><input id="wizard-manager-secondary-input" type="text" placeholder="Second manager (optional)" aria-label="Second manager"></div></div></div></div>
         <div id="wizard-step-2" class="wizard-view"><p>Choose the starting structure. You can fine-tune pools and brackets inside the manager.</p><div class="wizard-grid"><div class="wizard-field"><label for="wizard-teams-input">Target teams</label><input id="wizard-teams-input" type="number" min="4" max="80" step="2" value="4" inputmode="numeric" placeholder="4-80"></div><div class="wizard-field"><label for="wizard-mode-input">Setup mode</label><select id="wizard-mode-input"><option value="manual">Manual registration</option><option value="smart">Smart auto setup</option></select></div><label class="wizard-field full" style="display:flex; align-items:center; gap:10px; color:var(--text); font-weight:800; text-transform:none; letter-spacing:0;"><input id="wizard-odd-input" type="checkbox" style="width:20px; min-height:20px; accent-color:var(--accent);"><span>Allow an odd number of teams</span></label></div><div class="wizard-notice">PicklePal Lite supports 4 to 80 teams. Use even targets for two-team rounds, or allow odd teams for balanced pools with rotating byes so every team gets equal rest.</div></div>
         <div id="wizard-step-3" class="wizard-view"><p>These two details identify and protect this tournament. Players and spectators will use the code to find the right event and view its live results.</p><div class="wizard-grid"><div class="wizard-field full"><label for="wizard-nickname-input">One-word tournament code</label><input id="wizard-nickname-input" type="text" placeholder="e.g. Compass" autocomplete="off"></div><div class="wizard-field full"><label for="wizard-pin-input">Create admin PIN</label><input id="wizard-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="Four digits" autocomplete="new-password"></div></div><div class="wizard-notice"><strong>Important:</strong> This one-word code is shared with players and spectators. They will enter it on the home page to view this tournament and its live results. Players will use their player PIN separately to submit scores. Keep your four-digit admin PIN private.</div></div>
         <div class="wizard-actions"><button id="wizard-back" class="btn btn-outline" onclick="wizardBack()" style="visibility:hidden;"><i data-lucide="arrow-left"></i> Back</button><button id="wizard-next" class="btn btn-primary" onclick="wizardNext()">Continue <i data-lucide="arrow-right"></i></button></div>
@@ -618,8 +623,8 @@
                     <input type="text" id="head-org" class="editable-input" readonly style="flex:1; max-width:400px;" placeholder="Organizer Name">
                 </div>
                 <div class="editable-group">
-                    <div class="header-label"><i data-lucide="user"></i> Manager</div>
-                    <input type="text" id="head-man" class="editable-input" readonly style="flex:1; max-width:400px;" placeholder="Manager Name">
+                    <div class="header-label"><i data-lucide="user"></i> Manager(s)</div>
+                    <input type="text" id="head-man" class="editable-input" readonly style="flex:1; max-width:400px;" placeholder="Manager Name(s)">
                 </div>
             </div>
         </div>
@@ -1307,7 +1312,8 @@
             if (existing.exists()) { tournamentSlug = ''; return appAlert('That tournament nickname is already in use. Choose another.', 'Nickname unavailable', 'warning'); }
         } catch (error) {}
         const wizardTarget = parseInt(document.getElementById('wizard-teams-input').value);
-        state = normalizeState({ ...state, tournamentNickname: nickname, adminPinHash: await hashPin(pin), expectedTeams: wizardTarget, allowOddTeams: document.getElementById('wizard-odd-input').checked, setupMode: document.getElementById('wizard-mode-input').value, poolCount: getOptimalPoolSizes(wizardTarget).length, advancementCount: recommendedAdvancementCount(wizardTarget), header: { ...state.header, title: document.getElementById('wizard-title-input').value.trim(), date: document.getElementById('wizard-date-input').value, loc: document.getElementById('wizard-location-input').value.trim(), org: document.getElementById('wizard-organizer-input').value.trim(), man: document.getElementById('wizard-manager-input').value.trim(), nickname } });
+        const managerNames = [document.getElementById('wizard-manager-input').value.trim(), document.getElementById('wizard-manager-secondary-input').value.trim()].filter(Boolean).join(', ');
+        state = normalizeState({ ...state, tournamentNickname: nickname, adminPinHash: await hashPin(pin), expectedTeams: wizardTarget, allowOddTeams: document.getElementById('wizard-odd-input').checked, setupMode: document.getElementById('wizard-mode-input').value, poolCount: getOptimalPoolSizes(wizardTarget).length, advancementCount: recommendedAdvancementCount(wizardTarget), header: { ...state.header, title: document.getElementById('wizard-title-input').value.trim(), date: document.getElementById('wizard-date-input').value, loc: document.getElementById('wizard-location-input').value.trim(), org: document.getElementById('wizard-organizer-input').value.trim(), man: managerNames, nickname } });
         state.header.nickname = nickname;
         try {
             const result = await functions.httpsCallable('createTournament')({ nickname, adminPin: pin, state });

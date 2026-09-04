@@ -11,6 +11,24 @@ test.describe('Home and manager workspace', () => {
     await page.goto('/index.html');
     await expect(page.getByRole('heading', { name: 'One-Word Tournament Code' })).toBeVisible();
     await expect(page.getByLabel('Four-digit manager PIN')).toBeHidden();
+    const roleLabelsFit = await page.locator('.lobby-actions .btn').evaluateAll(buttons => buttons.every(button => {
+      const label = button.querySelector('.lobby-role-label');
+      return Boolean(label && label.scrollWidth <= label.clientWidth && label.getBoundingClientRect().width <= button.getBoundingClientRect().width);
+    }));
+    expect(roleLabelsFit).toBe(true);
+    const homeOrder = await page.evaluate(() => {
+      const setup = document.querySelector('.lobby-create-action')?.getBoundingClientRect();
+      const login = document.querySelector('.lobby-panel h2')?.getBoundingClientRect();
+      const roles = document.querySelector('.lobby-actions')?.getBoundingClientRect();
+      return Boolean(setup && login && roles && setup.top < login.top && login.top < roles.top);
+    });
+    expect(homeOrder).toBe(true);
+    await page.getByRole('button', { name: 'Setup new tournament' }).click();
+    await expect(page.locator('#wizard-step-1')).toBeVisible();
+    await expect(page.locator('label[for="wizard-manager-input"]')).toHaveText('Manager(s)');
+    await expect(page.locator('#wizard-manager-input')).toBeVisible();
+    await expect(page.getByLabel('Second manager')).toBeVisible();
+    await page.getByRole('button', { name: 'Close setup wizard' }).click();
     await page.locator('#lobby-nickname').fill(tournamentCode);
     await page.getByRole('button', { name: 'Manager' }).click();
     await expect(page.getByLabel('Four-digit manager PIN')).toBeVisible();
