@@ -393,8 +393,8 @@
 
         /* --- NEXT-GEN MOBILE 2.0 OVERRIDE (MAX-WIDTH: 640px) --- */
         @media (max-width: 640px) {
-            html, body { height: auto; min-height: 100%; overflow-y: auto; overscroll-behavior-y: contain; }
-            body { flex-direction: column; min-height: 100dvh; overflow: visible; }
+            html, body { height: auto; min-height: 100%; overflow-y: auto; -webkit-overflow-scrolling:touch; touch-action:pan-y; }
+            body { display:block; min-height: 100dvh; overflow: visible; touch-action:pan-y; }
             
             /* TOP ACTION BAR (Branding + Settings) */
             .mobile-header {
@@ -435,8 +435,8 @@
 
             /* LAYOUT & SCALING */
             main { 
-                padding: 1rem; padding-bottom: calc(90px + env(safe-area-inset-bottom)); 
-                flex: 0 0 auto; min-height: 0; overflow: visible; overflow-x: hidden;
+                display:block; width:100%; padding: 1rem; padding-bottom: calc(90px + env(safe-area-inset-bottom)); 
+                min-height: 0; overflow: visible; overflow-x: hidden; touch-action:pan-y;
             }
             .master-header { padding: 1.25rem; gap: 15px; text-align: left; }
             .header-h1 { font-size: 1.8rem !important; min-height: 50px !important; line-height: 1.1 !important; }
