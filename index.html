@@ -290,7 +290,7 @@
         .lobby-panel input { display:block; width:100%; min-width:0; min-height:48px; padding:12px 15px; background:var(--input-bg); border:1px solid var(--input-border); border-radius:10px; color:var(--text); font:600 1rem 'Inter',sans-serif; }
         .lobby-panel input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(168,85,247,.2); outline:none; }
         .lobby-field { display:flex; gap:10px; margin-bottom:12px; }
-        .lobby-actions { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; min-width:0; }
+        .lobby-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; min-width:0; }
         .lobby-actions .btn { width:100%; min-width:0; overflow:hidden; }
         .lobby-secondary-action { margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
         .lobby-secondary-action .btn { background:var(--gradient); color:#fff; box-shadow:0 8px 24px rgba(59,130,246,.28), 0 0 28px rgba(168,85,247,.16); border:1px solid rgba(255,255,255,.25); }
@@ -299,6 +299,7 @@
         .lobby-create-action h3 { margin:0 0 5px; color:var(--text); font-size:1rem; }
         .lobby-create-action p { margin:0 0 14px; font-size:.84rem; }
         .lobby-create-action .btn { width:100%; }
+        .manager-login-toast { position:fixed; right:20px; bottom:20px; z-index:20002; display:none; width:min(400px,calc(100vw - 40px)); padding:18px; border:1px solid rgba(168,85,247,.48); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.4); }.manager-login-toast.active { display:block; animation:toast-in .2s ease-out; }.manager-login-toast h3 { margin:0 0 6px; font-size:1.1rem; }.manager-login-toast p { margin:0 0 12px; font-size:.84rem; }.manager-login-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px; }@keyframes toast-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
         .rr-page-header { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:2rem; padding:1.5rem 0; border-bottom:1px solid var(--border); }
         .rr-page-header h1 { margin:0 0 .5rem; font-size:clamp(1.8rem,4vw,3rem); font-weight:900; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
         .rr-page-header p { margin:0; color:var(--muted); font-size:1rem; }
@@ -363,7 +364,7 @@
         @media (max-width:760px) { .rr-event-access { grid-template-columns:1fr; gap:14px; padding:16px; } .rr-access-section { grid-column:1; align-items:stretch; flex-direction:column; } .rr-access-section::before { width:100%; height:3px; align-self:auto; } .rr-access-label { flex-basis:auto; } .rr-access-fields, .rr-event-access-controls { grid-template-columns:1fr; width:100%; } .rr-access-fields .btn, .rr-event-access-controls .btn { width:100%; } }
         @media (max-width:360px) { .lobby-card h1 { font-size:2rem; line-height:1; letter-spacing:-.8px; } .lobby-logo { width:92px; } .lobby-intro { padding-top:1.5rem; } }
         @media (max-width:360px) { .lobby-panel .btn { white-space:nowrap; font-size:.8rem; padding:11px 10px; gap:7px; } }
-        @media (max-height:560px) and (orientation:landscape) { .lobby-card { min-height:0; align-items:start; } .lobby-logo { width:72px; margin-bottom:.75rem; } .lobby-card h1 { font-size:2.8rem; } .lobby-intro > p { margin-bottom:.75rem; } .lobby-features { margin-top:1rem; } }
+        @media (max-height:560px) and (orientation:landscape) { body.lobby-active { display:block; min-height:100%; overflow-y:auto; } .lobby-screen { position:static; min-height:100vh; height:auto; overflow:visible; } .lobby-card { min-height:0; align-items:start; } .lobby-logo { width:72px; margin-bottom:.75rem; } .lobby-card h1 { font-size:2.8rem; } .lobby-intro > p { margin-bottom:.75rem; } .lobby-features { margin-top:1rem; } }
 
         @media (max-width: 1100px) {
             body { flex-direction: column; }
@@ -489,16 +490,14 @@
             </div>
         </div>
         <div class="lobby-panel">
-            <h2>Enter your tournament</h2>
-            <p>Choose a view, then enter the organizer's one-word tournament code.</p>
-            <div class="lobby-field"><input type="text" id="lobby-nickname" placeholder="One-word tournament code" autocomplete="off"></div>
+            <h2>One-Word Tournament Code</h2>
+            <p>Enter the code, then choose how you want to access the event.</p>
+            <div class="lobby-field"><input type="text" id="lobby-nickname" placeholder="Tournament code" aria-label="One-Word Tournament Code" autocomplete="off"></div>
             <div class="lobby-actions">
+                <button class="btn btn-outline" onclick="requestManagerAccess()"><i data-lucide="shield-check"></i> Manager</button>
                 <button class="btn btn-outline" onclick="openPlayerPortal('spectator')"><i data-lucide="eye"></i> Spectator</button>
                 <button class="btn btn-outline" onclick="openPlayerPortal('player')"><i data-lucide="user-check"></i> Player</button>
             </div>
-            <div class="lobby-divider">Admin access</div>
-            <input type="password" id="lobby-admin-pin" inputmode="numeric" maxlength="4" placeholder="Four-digit admin PIN" autocomplete="off">
-            <button class="btn btn-primary" onclick="enterTournament()" style="margin-top:10px;"><i data-lucide="shield-check"></i> Open manager</button>
             <div class="lobby-create-action"><h3>Starting a new tournament?</h3><p>Create an event first. You will choose its shared nickname and private manager PIN during setup.</p><button class="btn btn-success" onclick="openSetupWizard()"><i data-lucide="plus-circle"></i> Setup new tournament</button></div>
             <div class="lobby-secondary-action"><button class="btn" onclick="openRoundRobin()"><i data-lucide="sparkles"></i> Enter Round Robin Play</button><p style="font-size:.78rem; margin:.65rem 0 0;">A separate casual-play workspace for your group. No tournament code required.</p></div>
             <p id="lobby-message" style="min-height:1.5rem; margin:1rem 0 0; color:var(--danger); font-weight:700;"></p>
@@ -506,6 +505,8 @@
     </div>
     <footer class="app-copyright lobby-copyright">Copyright 2026 Auralogic Solutions</footer>
 </section>
+
+<div id="manager-login-toast" class="manager-login-toast" role="status" aria-live="polite"><h3>Manager access</h3><p>Enter the private four-digit manager PIN for this tournament.</p><input type="password" id="lobby-admin-pin" inputmode="numeric" maxlength="4" placeholder="Four-digit manager PIN" aria-label="Four-digit manager PIN" autocomplete="off"><div class="manager-login-actions"><button class="btn btn-outline" onclick="closeManagerAccess()">Cancel</button><button class="btn btn-primary" onclick="enterTournament()">Open manager</button></div></div>
 
 <section id="setup-wizard" class="setup-wizard hidden" aria-label="Tournament setup wizard">
     <div class="wizard-card">
@@ -1185,6 +1186,18 @@
         window.location.href = 'rr.html';
     }
 
+    function requestManagerAccess() {
+        const nickname = document.getElementById('lobby-nickname').value.trim();
+        if (!isOneWordTournamentCode(nickname)) return showLobby('Enter the one-word tournament code first.');
+        document.getElementById('manager-login-toast').classList.add('active');
+        document.getElementById('lobby-admin-pin').focus();
+    }
+
+    function closeManagerAccess() {
+        document.getElementById('manager-login-toast').classList.remove('active');
+        document.getElementById('lobby-admin-pin').value = '';
+    }
+
     async function loadRREvent() {
         const codeInput = document.getElementById('rr-event-code');
         const message = document.getElementById('rr-event-message');
@@ -1302,7 +1315,7 @@
         const nickname = document.getElementById('lobby-nickname').value.trim();
         const pin = document.getElementById('lobby-admin-pin').value.trim();
         const slug = normalizeTournamentNickname(nickname);
-        if (!isOneWordTournamentCode(nickname) || !/^\d{4}$/.test(pin)) return showLobby('Enter the one-word tournament code and four-digit admin PIN.');
+        if (!isOneWordTournamentCode(nickname) || !/^\d{4}$/.test(pin)) return showLobby('Enter the one-word tournament code and four-digit manager PIN.');
 
         let candidate = null;
         let secureSession = false;
@@ -1325,6 +1338,7 @@
         localStorage.setItem('picklepal_active_tournament', tournamentSlug);
         localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
         localStorage.setItem('picklepal_admin_session', tournamentSlug);
+        closeManagerAccess();
         showManager();
     }
 
