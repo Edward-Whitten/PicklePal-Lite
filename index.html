@@ -159,7 +159,7 @@
         .req-item span { color: var(--text); font-weight: 800; }
 
         .param-toggle { display: flex; background: var(--row-bg); border-radius: 12px; padding: 5px; border: 1px solid var(--border); box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
-        .param-btn { flex: 1; padding: 10px; border: none; background: transparent; color: var(--muted); border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .param-btn { flex: 1; min-height:44px; padding: 10px; border: none; background: transparent; color: var(--muted); border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
         .param-btn.active { background: var(--card); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid var(--border); }
 
         .roster-grid { display: flex; flex-direction: column; gap: 10px; }
@@ -233,7 +233,7 @@
         .btn-sm { padding: 8px 16px; font-size: 0.95rem; min-height: 44px; border-radius: 8px; }
         .btn-success { background: var(--success); color: #ffffff; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
         .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4); }
-        .btn-lock { background: transparent; color: var(--muted); border: 1px solid transparent; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s; }
+        .btn-lock { background: transparent; color: var(--muted); border: 1px solid transparent; cursor: pointer; min-height:44px; padding: 8px 10px; border-radius: 8px; transition: 0.2s; }
         .btn-lock:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); border-color: var(--danger); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(1); transform: none; box-shadow: none; }
 
@@ -313,6 +313,14 @@
         .rr-current-mode { display:flex; align-items:center; gap:8px; margin-top:12px; padding:11px 14px; border:1px solid rgba(168,85,247,.3); border-radius:10px; background:linear-gradient(90deg,rgba(168,85,247,.12),rgba(59,130,246,.08)); color:var(--text); font-size:.85rem; font-weight:800; }
         .rr-current-mode strong { color:var(--accent); }
         .rr-current-mode i { color:var(--accent); width:16px; height:16px; }
+        .rr-network-banner { display:flex; align-items:center; gap:9px; margin:0 0 16px; padding:12px 14px; border:1px solid rgba(239,68,68,.34); border-radius:8px; background:rgba(239,68,68,.1); color:#fecaca; font-size:.82rem; font-weight:900; }
+        .rr-network-banner.live { border-color:rgba(34,197,94,.36); background:rgba(34,197,94,.12); color:#bbf7d0; }
+        .rr-network-banner::before { content:""; width:9px; height:9px; border-radius:50%; background:var(--danger); box-shadow:0 0 12px var(--danger); }
+        .rr-network-banner.live::before { background:var(--success); box-shadow:0 0 12px var(--success); }
+        .rr-match-scroll, .rr-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; scrollbar-color:var(--accent) transparent; }
+        .rr-match-scroll .pool-grid { min-width:min-content; }
+        .rr-table-scroll table { min-width:760px; margin-top:0; }
+        .rr-table-scroll th { position:sticky; top:0; z-index:1; background:var(--card); }
         .rr-event-access { display:grid; grid-template-columns:minmax(210px,.7fr) minmax(0,1.3fr); gap:22px; align-items:center; padding:20px 22px; border-top:3px solid var(--accent-2); }
         .rr-event-access strong { display:block; margin-bottom:5px; font-size:1rem; }
         .rr-event-access span { color:var(--muted); font-size:.8rem; line-height:1.4; }
@@ -417,7 +425,7 @@
             .mobile-brand { font-weight: 900; font-size: 0.85rem; letter-spacing: 0.5px; }
             
             .mobile-actions { display: flex; gap: 8px; }
-            .action-icon-btn { background: var(--row-bg); border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+            .action-icon-btn { background: var(--row-bg); border: 1px solid var(--border); color: var(--text); width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
 
             /* MODE SWITCHER (Top sticky) */
             .mobile-mode-switcher {
@@ -793,6 +801,7 @@
     </section>
 
     <section id="tab-rr-setup" class="tab-content hidden">
+        <div class="rr-network-banner" data-rr-sync-banner>Offline Mode - Local Storage Active</div>
         <div class="rr-page-header">
             <div><h1>Round Robin Play</h1><p>Set up a relaxed, replayable session with smart court rotation.</p><div class="rr-current-mode"><i id="rr-current-mode-icon" data-lucide="shuffle"></i><span>Current mode: <strong id="rr-current-mode-name">Popcorn</strong></span></div></div>
             <span class="rr-page-badge"><i data-lucide="sparkles" style="width:16px;"></i> Casual mode</span>
@@ -869,20 +878,23 @@
     </section>
 
     <section id="tab-rr-play" class="tab-content hidden">
+        <div class="rr-network-banner" data-rr-sync-banner>Offline Mode - Local Storage Active</div>
         <div id="rr-active-mode-banner" class="active-mode-banner rr-shared-banner hidden"></div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; flex-wrap:wrap; gap:15px;">
             <h2 style="margin:0; font-size:2rem;">Active Matches <span style="color:var(--accent); font-weight:900;">(Round <span id="rr-round-num">1</span> of <span id="rr-total-rounds">5</span>)</span></h2>
             <button id="rr-next-round-btn" class="btn btn-primary" onclick="advanceRRRound()">Next Rd <i data-lucide="arrow-right" style="width:20px;"></i></button>
         </div>
-        <div id="rr-match-container" class="pool-grid">
+        <div class="rr-match-scroll" aria-label="Swipe Round Robin matches horizontally"><div id="rr-match-container" class="pool-grid">
             </div>
+        </div>
     </section>
 
     <section id="tab-rr-leaderboard" class="tab-content hidden">
+        <div class="rr-network-banner" data-rr-sync-banner>Offline Mode - Local Storage Active</div>
         <div class="active-mode-banner rr-shared-banner hidden"></div>
         <div class="card">
             <h2 style="margin-top:0; font-size:2rem; margin-bottom: 2rem;">Leaderboard</h2>
-            <table style="width: 100%;">
+            <div class="rr-table-scroll" aria-label="Swipe Round Robin leaderboard horizontally"><table style="width: 100%;">
                 <thead>
                     <tr>
                         <th>Rank</th>
@@ -896,11 +908,12 @@
                     </tr>
                 </thead>
                 <tbody id="rr-leaderboard-list"></tbody>
-            </table>
+            </table></div>
         </div>
     </section>
 
     <section id="tab-rr-bracket" class="tab-content hidden">
+        <div class="rr-network-banner" data-rr-sync-banner>Offline Mode - Local Storage Active</div>
         <div class="active-mode-banner rr-shared-banner hidden"></div>
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap: wrap; gap: 15px;">
@@ -1151,6 +1164,10 @@
         status.classList.remove('hidden', 'pending', 'offline');
         if (!cloudConnected) status.classList.add('offline');
         text.innerText = cloudConnected ? 'Live' : 'Not Live';
+        document.querySelectorAll('[data-rr-sync-banner]').forEach(banner => {
+            banner.classList.toggle('live', cloudConnected);
+            banner.innerText = cloudConnected ? 'Live Sync Active' : 'Offline Mode - Local Storage Active';
+        });
     }
 
     function startConnectionMonitor() {
@@ -1201,6 +1218,16 @@
         window.location.href = 'rr.html';
     }
 
+    function persistRRState(code) {
+        state.updatedAt = Date.now();
+        try {
+            localStorage.setItem('picklepal_rr_access', 'true');
+            localStorage.setItem(`picklepal_rr_${code}`, JSON.stringify(state));
+        } catch (error) {
+            console.warn('Round Robin local storage unavailable:', error.message);
+        }
+    }
+
     function requestManagerAccess() {
         const nickname = document.getElementById('lobby-nickname').value.trim();
         if (!isOneWordTournamentCode(nickname)) return showLobby('Enter the one-word tournament code first.');
@@ -1222,8 +1249,7 @@
             const result = await window.roundRobinApi.load({ tournament: code });
             state = normalizeState(result.state);
             state.appMode = 'rr'; state.rr.eventCode = code; tournamentSlug = code;
-            localStorage.setItem('picklepal_rr_access', 'true');
-            localStorage.setItem(`picklepal_rr_${code}`, JSON.stringify(state));
+            persistRRState(code);
             message.innerText = '';
             updateRRFormat();
             showTab('rr-setup', 'rr');
@@ -1241,8 +1267,7 @@
             try {
                 await window.roundRobinApi.create({ tournament: code, adminPin, displayName: state.rr.title || code, state });
                 document.getElementById('rr-event-code').value = code;
-                localStorage.setItem('picklepal_rr_access', 'true');
-                localStorage.setItem(`picklepal_rr_${code}`, JSON.stringify(state));
+                persistRRState(code);
                 message.innerText = `Event created. Share nickname: ${code}`;
                 updateRRFormat();
                 return;
@@ -3179,7 +3204,7 @@
                     <td style="text-align:center; font-weight:900; font-size:1.1rem;">${e.pd > 0 ? '+'+e.pd : e.pd}</td>
                     <td style="text-align:center; color:var(--accent); font-weight:900; font-size:1.2rem;">${e.points}</td>
                     <td style="text-align:center;">
-                        <button class="btn btn-sm ${isActive ? 'btn-danger' : 'btn-success'}" style="padding:6px 10px; font-size:0.8rem; min-height:30px;" onclick="toggleRREntityActive(${e.id})">
+                        <button class="btn btn-sm ${isActive ? 'btn-danger' : 'btn-success'}" style="padding:8px 10px; font-size:0.8rem; min-height:44px;" onclick="toggleRREntityActive(${e.id})">
                             ${isActive ? '<i data-lucide="log-out" style="width:14px;"></i> Out' : '<i data-lucide="log-in" style="width:14px;"></i> In'}
                         </button>
                     </td>

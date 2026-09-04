@@ -19,4 +19,36 @@ test.describe('Supabase bridge resilience', () => {
     await page.goto('/players.html');
     await expect(page.getByRole('heading', { name: 'PicklePal Lite' })).toBeVisible();
   });
+
+  test('retries transient bridge failures before returning public state', async ({ page }) => {
+    let calls = 0;
+    await page.route('**/functions/v1/tournament-api', async route => {
+      calls += 1;
+      if (calls < 3) {
+        await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Edge unavailable' }) });
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ state: { teams: [] } }) });
+    });
+    await page.goto('/players.html');
+    const result = await page.evaluate(() => window.supabaseBridge.call('public', { tournament: 'retrycheck' }));
+    expect(result).toEqual({ state: { teams: [] } });
+    expect(calls).toBe(3);
+  });
+
+  test('deduplicates simultaneous identical bridge requests', async ({ page }) => {
+    let calls = 0;
+    await page.route('**/functions/v1/tournament-api', async route => {
+      calls += 1;
+      await new Promise(resolve => setTimeout(resolve, 150));
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ state: { teams: [] } }) });
+    });
+    await page.goto('/players.html');
+    const results = await page.evaluate(() => Promise.all([
+      window.supabaseBridge.call('public', { tournament: 'dedupecheck' }),
+      window.supabaseBridge.call('public', { tournament: 'dedupecheck' }),
+    ]));
+    expect(results).toEqual([{ state: { teams: [] } }, { state: { teams: [] } }]);
+    expect(calls).toBe(1);
+  });
 });
