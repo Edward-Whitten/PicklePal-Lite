@@ -9,6 +9,7 @@
         :root { --primary:#0f172a; --bg:#020617; --card:#1e293b; --card-glass:rgba(30,41,59,.6); --text:#f8fafc; --muted:#94a3b8; --accent:#a855f7; --accent-2:#3b82f6; --success:#22c55e; --gold:#fbbf24; --silver:#cbd5e1; --bronze:#cd7f32; --border:rgba(255,255,255,.15); --input-bg:rgba(0,0,0,.3); --input-border:#475569; --row-bg:rgba(255,255,255,.03); --gradient:linear-gradient(135deg,#06b6d4 0%,#3b82f6 50%,#a855f7 100%); }
         body.light-theme { --primary:#fff; --bg:#f1f5f9; --card:#fff; --card-glass:rgba(255,255,255,.85); --text:#0f172a; --muted:#475569; --accent:#6d28d9; --gold:#d97706; --silver:#475569; --bronze:#b45309; --border:#cbd5e1; --input-bg:#fff; --input-border:#94a3b8; --row-bg:#f8fafc; --gradient:linear-gradient(135deg,#0284c7 0%,#4f46e5 50%,#db2777 100%); background-image:radial-gradient(circle at top right,rgba(109,40,217,.08),transparent 50%); }
         * { box-sizing:border-box; font-family:'Inter',-apple-system,sans-serif; }
+        :focus-visible { outline:3px solid var(--accent-2); outline-offset:3px; }
         html, body { max-width:100%; overflow-x:hidden; }
         body { margin:0; min-height:100vh; color:var(--text); background-color:var(--bg); background-image:radial-gradient(circle at top right,rgba(168,85,247,.18),transparent 50%), linear-gradient(90deg,transparent 0 49.8%,rgba(6,182,212,.035) 50%,transparent 50.2%), linear-gradient(0deg,transparent 0 49.8%,rgba(168,85,247,.035) 50%,transparent 50.2%); background-size:auto,180px 180px,180px 180px; }
         .portal-shell { width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:2.5rem 0 6rem; overflow-wrap:anywhere; }
@@ -37,11 +38,12 @@
         body.light-theme input { background:#e2e8f0; border-color:#94a3b8; color:#0f172a; box-shadow:inset 0 1px 2px rgba(15,23,42,.08); }
         body.light-theme input:focus { background:#fff; border-color:var(--accent); box-shadow:0 0 0 3px rgba(109,40,217,.18); }
         .pool-card { padding:0; overflow:hidden; }.pool-card h4 { margin:0; padding:18px 20px; color:var(--accent); font-size:1.15rem; font-weight:900; border-bottom:1px solid var(--border); }
-        .pool-table { width:100%; }.pool-row { display:grid; grid-template-columns:30px 30px minmax(0,1fr) 48px 42px; gap:8px; align-items:center; min-height:88px; padding:10px 20px; border-top:1px solid var(--border); font:700 .88rem/1.25 'Inter',sans-serif; }.pool-row:first-child { border-top:0; }.pool-row-head { min-height:34px; color:var(--muted); font:800 .65rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; background:rgba(148,163,184,.06); }.pool-rank { color:var(--muted); text-align:center; }.pool-medal { display:grid; place-items:center; min-height:28px; }.pool-name { display:grid; gap:5px; min-width:0; }.pool-player { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.pool-record, .pool-pd { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }.pool-pd { color:var(--muted); }.pool-row.qualifier { background:linear-gradient(90deg,rgba(251,191,36,.12),transparent 72%); }.pool-row.wildcard { background:linear-gradient(90deg,rgba(37,99,235,.14),transparent 72%); }
+        .swipe-surface { position:relative; overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; scrollbar-color:var(--accent-2) transparent; }.swipe-surface::after { content:""; position:sticky; right:0; float:right; width:28px; height:1px; margin-top:-1px; pointer-events:none; box-shadow:-18px 0 24px rgba(59,130,246,.22); }
+        .pool-table { min-width:520px; }.pool-row { display:grid; grid-template-columns:30px 30px minmax(0,1fr) 48px 42px; gap:8px; align-items:center; min-height:88px; padding:10px 20px; border-top:1px solid var(--border); font:700 .88rem/1.25 'Inter',sans-serif; }.pool-row:first-child { border-top:0; }.pool-row-head { position:sticky; top:0; z-index:1; min-height:34px; color:var(--muted); font:800 .65rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; background:rgba(148,163,184,.12); backdrop-filter:blur(12px); }.pool-rank { color:var(--muted); text-align:center; }.pool-medal { display:grid; place-items:center; min-height:28px; }.pool-name { display:grid; gap:5px; min-width:0; }.pool-player { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.pool-record, .pool-pd { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }.pool-pd { color:var(--muted); }.pool-row.qualifier { background:linear-gradient(90deg,rgba(251,191,36,.12),transparent 72%); }.pool-row.wildcard { background:linear-gradient(90deg,rgba(37,99,235,.14),transparent 72%); }
         .match-line { padding:12px 0; border-top:1px solid var(--border); font:700 .9rem 'Inter',sans-serif; }
         .match-line:first-child { border-top:0; }
         .match-score { display:block; margin-top:6px; color:var(--accent-2); font-size:.8rem; }
-        .bracket-wrap { overflow-x:auto; padding-bottom:8px; }
+        .bracket-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; padding-bottom:8px; scrollbar-color:var(--accent-2) transparent; }
         .bracket { display:grid; grid-template-columns:repeat(4,minmax(190px,1fr)); gap:14px; min-width:820px; }
         .round h4 { margin:0 0 10px; color:var(--muted); font:700 .75rem Arial,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
         .bracket-match { min-height:72px; padding:12px; margin-bottom:12px; background:var(--row-bg); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:12px; font:700 .82rem/1.45 'Inter',sans-serif; }
@@ -53,25 +55,26 @@
         .score-panel { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:14px; }
         .tournament-picker { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:end; border-top:4px solid var(--accent); }
         .tournament-picker input { min-width:220px; }
-        .player-match-card { padding:1.25rem; }.player-match-card h4 { margin:0; line-height:1.35; }.score-entry-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }.score-field { display:grid; gap:6px; min-width:0; }.score-field label { color:var(--muted); font:800 .68rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; }.score-box { width:100%; min-width:0; min-height:54px; padding:8px; text-align:center; font:900 1.35rem/1 'Inter',sans-serif; font-variant-numeric:tabular-nums; }.score-submit { width:100%; margin-top:12px; }
-        .score-status { display:flex; align-items:center; gap:8px; margin-top:14px; padding:11px 12px; border-radius:7px; font:800 .78rem/1.35 'Inter',sans-serif; }.score-status.win { color:#bbf7d0; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35); }.score-status.loss { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-status.waiting { color:var(--muted); background:var(--row-bg); border:1px solid var(--border); }.score-status.disputed { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-edit { width:100%; margin-top:10px; }
+        .player-match-card { padding:1.25rem; }.player-match-card h4 { margin:0; line-height:1.35; }.score-entry-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }.score-field { display:grid; gap:6px; min-width:0; }.score-field label { color:var(--muted); font:800 .68rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; }.score-box { width:100%; min-width:0; min-height:54px; padding:8px; text-align:center; font:900 1.35rem/1 'Inter',sans-serif; font-variant-numeric:tabular-nums; }.score-submit { width:100%; margin-top:12px; }.score-submit.submitting, .btn.submitting { opacity:.78; cursor:wait; filter:saturate(.75); }
+        .score-status { display:flex; align-items:center; gap:8px; margin-top:14px; padding:11px 12px; border-radius:7px; font:800 .78rem/1.35 'Inter',sans-serif; }.score-status.win { color:#bbf7d0; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35); }.score-status.loss { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-status.waiting { color:#dbeafe; background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.34); }.score-status.disputed { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-error { color:#fecaca; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.34); }.score-edit { width:100%; margin-top:10px; }
         .score-confirm-toast { position:fixed; right:20px; bottom:20px; z-index:100; display:none; width:min(420px,calc(100vw - 40px)); padding:18px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.38); }.score-confirm-toast.active { display:block; animation:toast-in .2s ease-out; }.score-confirm-dialog h3 { margin:0 0 5px; }.score-confirm-dialog p { margin:0; color:var(--muted); line-height:1.45; }.score-confirm-value { margin:14px 0; color:var(--text); font:900 1.8rem/1 'Inter',sans-serif; }.score-confirm-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }@keyframes toast-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
         .score-notice-toast { position:fixed; right:20px; bottom:20px; z-index:101; display:none; width:min(420px,calc(100vw - 40px)); padding:14px 16px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.38); color:#dcfce7; font:800 .88rem/1.35 'Inter',sans-serif; }.score-notice-toast.active { display:flex; align-items:center; gap:9px; animation:toast-in .2s ease-out; }.score-notice-toast.disputed { border-color:rgba(239,68,68,.5); color:#fecaca; }
         .score-panel h3 { margin:0 0 8px; }
         .score-panel p { margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif; }
-        input { background:var(--input-bg); border:1px solid var(--input-border); color:var(--text); border-radius:10px; padding:13px; font:700 1rem 'Inter',sans-serif; }
-        .btn { background:var(--gradient); color:#fff; border:0; border-radius:10px; padding:13px 18px; font:800 .9rem 'Inter',sans-serif; cursor:pointer; white-space:nowrap; box-shadow:0 4px 15px rgba(168,85,247,.3); }
+        input { background:var(--input-bg); border:1px solid var(--input-border); color:var(--text); border-radius:10px; padding:13px; min-height:44px; font:700 1rem 'Inter',sans-serif; }
+        .btn { background:var(--gradient); color:#fff; border:0; border-radius:10px; padding:13px 18px; min-height:44px; font:800 .9rem 'Inter',sans-serif; cursor:pointer; white-space:nowrap; box-shadow:0 4px 15px rgba(168,85,247,.3); }
         .btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
         .hidden { display:none !important; }
         .event-tabs { display:flex; gap:6px; overflow-x:auto; padding:4px; margin:18px 0; border:1px solid var(--border); border-radius:8px; background:var(--row-bg); }
-        .event-tab { flex:1 0 auto; border:0; border-radius:6px; padding:10px 13px; background:transparent; color:var(--muted); font:800 .78rem 'Inter',sans-serif; cursor:pointer; }
+        .event-tab { flex:1 0 auto; border:0; border-radius:6px; padding:10px 13px; min-height:44px; background:transparent; color:#cbd5e1; font:800 .78rem 'Inter',sans-serif; cursor:pointer; }
         .event-tab.active { color:#fff; background:var(--gradient); }
-        .sub-tabs { display:flex; gap:7px; overflow-x:auto; margin:0 0 16px; padding-bottom:4px; }.sub-tab { flex:0 0 auto; min-width:46px; border:1px solid var(--border); border-radius:6px; padding:8px 11px; background:var(--row-bg); color:var(--muted); font:800 .72rem 'Inter',sans-serif; cursor:pointer; }.sub-tab.active { border-color:var(--accent-2); color:#fff; background:#2563eb; box-shadow:0 4px 12px rgba(37,99,235,.26); }.sub-view { display:none; }.sub-view.active { display:block; }
+        .sub-tabs { display:flex; gap:7px; overflow-x:auto; margin:0 0 16px; padding-bottom:4px; }.sub-tab { flex:0 0 auto; min-width:46px; min-height:44px; border:1px solid var(--border); border-radius:6px; padding:8px 11px; background:var(--row-bg); color:#cbd5e1; font:800 .72rem 'Inter',sans-serif; cursor:pointer; }.sub-tab.active { border-color:var(--accent-2); color:#fff; background:#2563eb; box-shadow:0 4px 12px rgba(37,99,235,.26); }.sub-view { display:none; }.sub-view.active { display:block; }
         .event-view { display:none; }.event-view.active { display:block; }
         .event-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:16px 0; }
         .event-summary div { padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--row-bg); }.event-summary strong { display:block; font-size:1.25rem; color:var(--text); }.event-summary span { color:var(--muted); font:700 .7rem 'Inter',sans-serif; text-transform:uppercase; }
         .advance-badge { display:inline-flex; align-items:center; gap:4px; margin-left:7px; padding:3px 6px; border-radius:5px; font:800 .65rem 'Inter',sans-serif; text-transform:uppercase; }.advance-badge svg { width:13px; height:13px; }.pool-medal .advance-badge { width:24px; height:24px; margin:0; padding:0; justify-content:center; font-size:0; }.pool-medal .advance-badge svg { width:15px; height:15px; }.advance-gold { color:#1f2937; background:var(--gold); }.advance-silver { color:#172033; background:var(--silver); }.advance-bronze { color:#fff; background:var(--bronze); }.advance-wildcard { color:#fff; background:#2563eb; }
-        .standing-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; }.standing-card { display:grid; grid-template-columns:42px minmax(0,1fr) 58px; gap:12px; align-items:center; min-height:74px; padding:14px; border:1px solid var(--border); border-radius:8px; background:var(--row-bg); }.standing-card.qualifier { border-left:4px solid var(--gold); background:linear-gradient(90deg,rgba(251,191,36,.14),var(--row-bg)); }.standing-card.wildcard { border-left:4px solid #3b82f6; background:linear-gradient(90deg,rgba(59,130,246,.13),var(--row-bg)); }.standing-rank { display:grid; place-items:center; width:38px; height:38px; border-radius:50%; background:var(--input-bg); color:var(--text); font-weight:900; }.standing-name { min-width:0; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.standing-meta { display:block; margin-top:4px; color:var(--muted); font:700 .72rem 'Inter',sans-serif; }.standing-record { width:58px; text-align:right; color:var(--text); font-weight:900; font-variant-numeric:tabular-nums; }.standing-record small { display:block; margin-top:4px; color:var(--muted); font-weight:700; }
+        .standing-table { min-width:620px; }.standing-row { display:grid; grid-template-columns:56px minmax(220px,1fr) 92px 76px 78px; gap:12px; align-items:center; min-height:66px; padding:12px 14px; border-top:1px solid var(--border); font:800 .82rem/1.25 'Inter',sans-serif; }.standing-row:first-child { border-top:0; }.standing-row-head { position:sticky; top:0; z-index:1; min-height:38px; color:#cbd5e1; text-transform:uppercase; letter-spacing:.08em; font-size:.65rem; background:rgba(148,163,184,.12); backdrop-filter:blur(12px); }.standing-row.qualifier { background:linear-gradient(90deg,rgba(251,191,36,.14),var(--row-bg)); }.standing-row.wildcard { background:linear-gradient(90deg,rgba(59,130,246,.13),var(--row-bg)); }.standing-rank { display:grid; place-items:center; width:38px; height:38px; border-radius:50%; background:var(--input-bg); color:var(--text); font-weight:900; }.standing-name { min-width:0; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.standing-meta { display:block; margin-top:4px; color:var(--muted); font:700 .72rem 'Inter',sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.standing-record, .standing-pd, .standing-pool { text-align:right; color:var(--text); font-weight:900; font-variant-numeric:tabular-nums; white-space:nowrap; }.standing-pool { color:var(--muted); }
+        .loading-skeleton { position:relative; overflow:hidden; min-height:84px; border-radius:8px; background:linear-gradient(90deg,var(--row-bg),rgba(148,163,184,.12),var(--row-bg)); background-size:220% 100%; animation:skeleton-pulse 1.2s ease-in-out infinite; }.loading-skeleton + .loading-skeleton { margin-top:10px; }@keyframes skeleton-pulse { 0% { background-position:100% 0; } 100% { background-position:-120% 0; } }
         .app-copyright { color:var(--muted); font:700 .72rem 'Inter',sans-serif; letter-spacing:.04em; text-align:center; padding:18px 24px; }
         .public-view { display:none; }
         .public-view.active { display:block; }
@@ -94,7 +97,7 @@
 
         <section class="card tournament-picker">
             <div><h3 style="margin:0 0 8px;">Choose a tournament</h3><p style="margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif;">Enter the one-word tournament code supplied by the organizer.</p></div>
-            <div><input type="text" id="tournament-nickname" placeholder="One-word tournament code" aria-label="One-word tournament code"><button class="btn" onclick="loadTournament()">View tournament</button></div>
+            <div><input type="text" id="tournament-nickname" placeholder="One-word tournament code" aria-label="One-word tournament code"><button id="tournament-load-button" class="btn" onclick="loadTournament()">View tournament</button></div>
             <p id="tournament-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
         </section>
 
@@ -104,7 +107,7 @@
             <p id="player-finder-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
         </section>
 
-        <div id="event-tabs" class="event-tabs hidden"><button class="event-tab active" onclick="showEventView('overview')">Overview</button><button class="event-tab" onclick="showEventView('pools')">Pools</button><button class="event-tab" onclick="showEventView('standings')">Standings</button><button class="event-tab" onclick="showEventView('bracket')">Bracket</button></div>
+        <div id="event-tabs" class="event-tabs hidden"><button class="event-tab active" aria-label="Overview" title="Show My Matches overview" onclick="showEventView('overview')">Overview</button><button class="event-tab" aria-label="Pools" title="Show pools" onclick="showEventView('pools')">Pools</button><button class="event-tab" aria-label="Standings" title="Show standings" onclick="showEventView('standings')">Standings</button><button class="event-tab" aria-label="Bracket" title="Show bracket" onclick="showEventView('bracket')">Bracket</button></div>
         <section id="event-view-overview" class="event-view active"><div id="event-summary" class="event-summary hidden"></div></section>
 
         <section id="event-view-pools" class="event-view"><section id="public-pool-section" class="public-view">
@@ -113,7 +116,7 @@
             <div id="public-pools"><div class="card">Loading pool play...</div></div>
         </section></section>
 
-        <section id="event-view-standings" class="event-view"><div class="section-heading"><h3>Standings</h3><span>Qualification race</span></div><div class="sub-tabs" aria-label="Standings selector"><button class="sub-tab active" onclick="showStandingsView('overall')">Overall</button><button class="sub-tab" onclick="showStandingsView('wildcards')">Wildcards</button></div><div id="standings-overall" class="sub-view active"><div id="public-standings" class="card"></div></div><div id="standings-wildcards" class="sub-view"><div id="public-wildcards" class="card"></div></div></section>
+        <section id="event-view-standings" class="event-view"><div class="section-heading"><h3>Standings</h3><span>Qualification race</span></div><div class="sub-tabs" aria-label="Standings selector"><button class="sub-tab active" aria-label="Show overall standings" onclick="showStandingsView('overall')">Overall</button><button class="sub-tab" aria-label="Show wildcard standings" onclick="showStandingsView('wildcards')">Wildcards</button></div><div id="standings-overall" class="sub-view active"><div id="public-standings" class="card"></div></div><div id="standings-wildcards" class="sub-view"><div id="public-wildcards" class="card"></div></div></section>
 
         <section id="event-view-bracket" class="event-view"><section id="public-bracket-section" class="public-view">
             <div class="section-heading"><h3>Elimination Bracket</h3><span>Live results</span></div>
@@ -134,7 +137,8 @@
 
         <section class="card score-panel">
             <div><h3>Submit a match score</h3><p>Enter your PIN to unlock score entry for matches associated with your team. The public board above never requires a code.</p></div>
-            <div><input type="number" id="player-pin-input" placeholder="4-digit PIN" inputmode="numeric" aria-label="4-digit player PIN"><button class="btn" onclick="loginPlayer()">Unlock scores</button></div>
+            <div><input type="text" id="player-pin-input" placeholder="4-digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="4" aria-label="4-digit player PIN"><button id="player-pin-submit" class="btn" onclick="loginPlayer()">Unlock scores</button></div>
+            <p id="player-pin-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
         </section>
 
         <section id="player-dashboard" class="hidden card">
@@ -160,6 +164,7 @@
     let selectedPoolIndex = 0;
     let resolveScoreConfirmation = null;
     let scoreNoticeTimer = null;
+    const submittingScores = new Set();
     const portalRole = localStorage.getItem('picklepal_portal_role') || 'player';
 
     function toggleTheme() {
@@ -176,6 +181,33 @@
     function normalizeTournamentNickname(value) { return value.trim().toLowerCase(); }
     function isOneWordTournamentCode(value) { return /^[A-Za-z0-9]{1,48}$/.test(value.trim()); }
     function tournamentStateKey(slug) { return `picklepal_tournament_${slug}`; }
+
+    function setInlineMessage(id, message = '') {
+        const element = document.getElementById(id);
+        if (element) element.innerText = message;
+    }
+
+    function setTournamentLoading(loading) {
+        const button = document.getElementById('tournament-load-button');
+        if (button) { button.disabled = loading; button.classList.toggle('submitting', loading); button.innerText = loading ? 'Loading...' : 'View tournament'; }
+        if (loading) {
+            const pools = document.getElementById('public-pools');
+            const standings = document.getElementById('public-standings');
+            const bracket = document.getElementById('public-bracket');
+            if (pools) pools.innerHTML = '<div class="card"><div class="loading-skeleton"></div><div class="loading-skeleton"></div></div>';
+            if (standings) standings.innerHTML = '<div class="loading-skeleton"></div><div class="loading-skeleton"></div>';
+            if (bracket) bracket.innerHTML = '<div class="loading-skeleton"></div><div class="loading-skeleton"></div>';
+        }
+    }
+
+    function validatePickleballScore(ownScore, opponentScore) {
+        if (!Number.isInteger(ownScore) || !Number.isInteger(opponentScore) || ownScore < 0 || opponentScore < 0) return 'Enter whole-number scores of 0 or higher.';
+        if (ownScore === opponentScore) return 'A final score cannot be tied.';
+        const maxScore = Math.max(ownScore, opponentScore);
+        const minScore = Math.min(ownScore, opponentScore);
+        if (maxScore < 11 || maxScore - minScore < 2) return 'A final game must reach at least 11 and be won by 2.';
+        return '';
+    }
 
     function updateSyncStatus() {
         const status = document.getElementById('sync-status');
@@ -194,10 +226,11 @@
     }
 
     async function loadTournament() {
-        const nickname = document.getElementById('tournament-nickname').value.trim();
+        const nickname = document.getElementById('tournament-nickname')?.value.trim() || '';
         tournamentSlug = normalizeTournamentNickname(nickname);
         const message = document.getElementById('tournament-message');
-        if(!isOneWordTournamentCode(nickname)) { message.innerText = 'Enter the one-word tournament code supplied by the organizer.'; return; }
+        if(!isOneWordTournamentCode(nickname)) { if (message) message.innerText = 'Enter the one-word tournament code supplied by the organizer.'; return; }
+        setTournamentLoading(true);
 
         let loaded = null;
         tournamentRef = db.ref(`tournaments/${tournamentSlug}/state`);
@@ -205,18 +238,21 @@
         if(!loaded) {
             try { loaded = JSON.parse(localStorage.getItem(tournamentStateKey(tournamentSlug))); } catch (error) { loaded = null; }
         }
-        if(!loaded || !Array.isArray(loaded.teams)) { message.innerText = 'Tournament not found. Check the nickname and try again.'; return; }
+        if(!loaded || !Array.isArray(loaded.teams)) { setTournamentLoading(false); if (message) message.innerText = 'Tournament not found. Check the nickname and try again.'; return; }
         state = loaded;
         syncPending = localStorage.getItem(`picklepal_pending_sync_${tournamentSlug}`) === 'true';
-        message.innerText = '';
+        if (message) message.innerText = '';
         db.ref('.info/connected').on('value', snapshot => { cloudConnected = snapshot.val() === true; updateSyncStatus(); if(cloudConnected) syncPlayerState(); });
-        document.getElementById('public-pool-section').classList.add('active');
-        document.getElementById('public-bracket-section').classList.add('active');
-        document.getElementById('event-tabs').classList.remove('hidden');
+        document.getElementById('public-pool-section')?.classList.add('active');
+        document.getElementById('public-bracket-section')?.classList.add('active');
+        document.getElementById('event-tabs')?.classList.remove('hidden');
         const overview = document.getElementById('event-view-overview');
-        overview.append(document.getElementById('player-finder'), document.getElementById('player-dashboard'));
-        if(portalRole === 'player') document.getElementById('player-finder').classList.remove('hidden');
+        const finder = document.getElementById('player-finder');
+        const dashboard = document.getElementById('player-dashboard');
+        if (overview && finder && dashboard) overview.append(finder, dashboard);
+        if(portalRole === 'player') finder?.classList.remove('hidden');
         renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary();
+        setTournamentLoading(false);
         if (liveSubscriptionStarted) return;
         liveSubscriptionStarted = true;
         tournamentRef.on('value', snapshot => {
@@ -229,15 +265,16 @@
         const sharedTournament = new URLSearchParams(window.location.search).get('event');
         const preferredTournament = sharedTournament || localStorage.getItem('picklepal_portal_nickname') || localStorage.getItem('picklepal_active_tournament');
         if(preferredTournament) {
-            document.getElementById('tournament-nickname').value = preferredTournament;
+            const input = document.getElementById('tournament-nickname');
+            if (input) input.value = preferredTournament;
             if(sharedTournament) loadTournament();
         }
     } catch (error) {}
 
-    if(portalRole === 'spectator') document.querySelector('.score-panel').classList.add('hidden');
+    if(portalRole === 'spectator') document.querySelector('.score-panel')?.classList.add('hidden');
 
     function findPlayerMatches() {
-        const name = document.getElementById('player-name-input').value.trim().toLowerCase();
+        const name = document.getElementById('player-name-input')?.value.trim().toLowerCase() || '';
         const message = document.getElementById('player-finder-message');
         if (!Array.isArray(state.teams)) { message.innerText = 'Open the tournament before looking up your matches.'; return; }
         if (!name) { message.innerText = 'Enter the name used during registration.'; return; }
@@ -246,16 +283,17 @@
         if (matches.length > 1) { message.innerText = 'More than one team matches that name. Ask the organizer for your player PIN to unlock the right team.'; return; }
         loggedInTeam = matches[0];
         message.innerText = '';
-        document.getElementById('player-dashboard').classList.remove('hidden');
-        document.getElementById('player-team-title').innerText = `${loggedInTeam.p1} & ${loggedInTeam.p2}`;
+        document.getElementById('player-dashboard')?.classList.remove('hidden');
+        const title = document.getElementById('player-team-title');
+        if (title) title.innerText = `${loggedInTeam.p1} & ${loggedInTeam.p2}`;
         renderPlayerSchedule();
         showEventView('overview');
-        document.getElementById('player-dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('player-dashboard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function showEventView(view) {
         document.querySelectorAll('.event-view').forEach(element => element.classList.remove('active'));
-        document.querySelector(`#event-view-${view}`).classList.add('active');
+        document.querySelector(`#event-view-${view}`)?.classList.add('active');
         document.querySelectorAll('.event-tab').forEach(button => button.classList.toggle('active', button.textContent.trim().toLowerCase() === view));
     }
 
@@ -266,7 +304,7 @@
 
     function showStandingsView(view) {
         document.querySelectorAll('#event-view-standings .sub-view').forEach(element => element.classList.remove('active'));
-        document.getElementById(`standings-${view}`).classList.add('active');
+        document.getElementById(`standings-${view}`)?.classList.add('active');
         document.querySelectorAll('#event-view-standings .sub-tab').forEach(button => button.classList.toggle('active', button.textContent.trim().toLowerCase() === view));
     }
 
@@ -312,7 +350,7 @@
 
     function playerScoreEntry(mId, id1, id2, isTeamA, ownScore = '', opponentScore = '', notice = '') {
         const action = notice ? 'Confirm or dispute score' : 'Submit final score';
-        return `${notice ? `<div class="score-status waiting"><i data-lucide="clipboard-check"></i>${notice}</div>` : ''}<div class="score-entry-grid"><label class="score-field"><span>Your score</span><input type="number" min="0" inputmode="numeric" id="s1-${mId}" class="score-box" value="${ownScore}" placeholder="0"></label><label class="score-field"><span>Opponent</span><input type="number" min="0" inputmode="numeric" id="s2-${mId}" class="score-box" value="${opponentScore}" placeholder="0"></label></div><button class="btn score-submit" onclick="submitScore('${mId}', ${id1}, ${id2}, ${isTeamA})">${action}</button>`;
+        return `${notice ? `<div class="score-status waiting"><i data-lucide="clipboard-check"></i>${notice}</div>` : ''}<div class="score-entry-grid"><label class="score-field"><span>Your score</span><input type="number" min="0" step="1" inputmode="numeric" id="s1-${mId}" class="score-box" value="${ownScore}" placeholder="0"></label><label class="score-field"><span>Opponent</span><input type="number" min="0" step="1" inputmode="numeric" id="s2-${mId}" class="score-box" value="${opponentScore}" placeholder="0"></label></div><div id="score-error-${mId}" class="score-status score-error hidden" role="alert"></div><button class="btn score-submit" data-match-id="${mId}" onclick="submitScore('${mId}', ${id1}, ${id2}, ${isTeamA}, this)">${action}</button>`;
     }
 
     function scoreOutcome(ownScore, opponentScore, label = 'You reported') {
@@ -321,15 +359,22 @@
     }
 
     function confirmPlayerScore(ownScore, opponentScore) {
-        document.getElementById('score-confirm-value').innerText = `${ownScore} - ${opponentScore}`;
-        document.getElementById('score-confirm-overlay').classList.add('active');
+        const value = document.getElementById('score-confirm-value');
+        if (value) value.innerText = `${ownScore} - ${opponentScore}`;
+        document.getElementById('score-confirm-overlay')?.classList.add('active');
+        document.addEventListener('keydown', closeScoreConfirmationOnEscape);
         return new Promise(resolve => { resolveScoreConfirmation = resolve; });
     }
 
     function closeScoreConfirmation(confirmed) {
-        document.getElementById('score-confirm-overlay').classList.remove('active');
+        document.getElementById('score-confirm-overlay')?.classList.remove('active');
+        document.removeEventListener('keydown', closeScoreConfirmationOnEscape);
         if (resolveScoreConfirmation) resolveScoreConfirmation(confirmed);
         resolveScoreConfirmation = null;
+    }
+
+    function closeScoreConfirmationOnEscape(event) {
+        if (event.key === 'Escape') closeScoreConfirmation(false);
     }
 
     function showScoreNotice(message, isDisputed = false) {
@@ -360,9 +405,9 @@
         const qualification = qualificationStatus();
         const wildcardIds = new Set(qualification.wildcards.map(entry => entry.team.id));
         selectedPoolIndex = Math.min(selectedPoolIndex, Math.max(0, poolCount - 1));
-        document.getElementById('pool-tabs').innerHTML = Array.from({ length: poolCount }, (_, poolIndex) => `<button class="sub-tab ${poolIndex === selectedPoolIndex ? 'active' : ''}" onclick="showPool(${poolIndex})">${String.fromCharCode(65 + poolIndex)}</button>`).join('');
+        document.getElementById('pool-tabs').innerHTML = Array.from({ length: poolCount }, (_, poolIndex) => `<button class="sub-tab ${poolIndex === selectedPoolIndex ? 'active' : ''}" aria-label="${String.fromCharCode(65 + poolIndex)}" title="Show Pool ${String.fromCharCode(65 + poolIndex)}" onclick="showPool(${poolIndex})">${String.fromCharCode(65 + poolIndex)}</button>`).join('');
         const teams = activeTeams.filter(team => Number(team.pool) === selectedPoolIndex).sort((a, b) => b.wins - a.wins || b.pd - a.pd);
-        container.innerHTML = `<article class="card pool-card"><h4>Pool ${String.fromCharCode(65 + selectedPoolIndex)}</h4>${teams.length ? `<div class="pool-table"><div class="pool-row pool-row-head"><span>#</span><span></span><span>Team</span><span>W-L</span><span>PD</span></div>${teams.map(team => { const entry = qualification.ranked.find(item => item.team.id === team.id); const wildcard = wildcardIds.has(team.id); const automatic = qualification.automaticIds.has(team.id); return `<div class="pool-row ${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><span class="pool-rank">${entry.poolRank}</span><span class="pool-medal">${automatic || wildcard ? qualifierBadge(entry.poolRank, wildcard) : ''}</span><span class="pool-name" title="${teamName(team)}">${poolTeamNames(team)}</span><span class="pool-record">${team.wins || 0}-${team.losses || 0}</span><span class="pool-pd">${team.pd || 0}</span></div>`; }).join('')}</div>` : '<p style="padding:20px; color:var(--muted); font-weight:700;">No teams assigned yet.</p>'}</article>`;
+        container.innerHTML = `<article class="card pool-card"><h4>Pool ${String.fromCharCode(65 + selectedPoolIndex)}</h4>${teams.length ? `<div class="swipe-surface" aria-label="Swipe pool standings horizontally"><div class="pool-table"><div class="pool-row pool-row-head"><span>#</span><span></span><span>Team</span><span>W-L</span><span>PD</span></div>${teams.map(team => { const entry = qualification.ranked.find(item => item.team.id === team.id); const wildcard = wildcardIds.has(team.id); const automatic = qualification.automaticIds.has(team.id); return `<div class="pool-row ${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><span class="pool-rank">${entry.poolRank}</span><span class="pool-medal">${automatic || wildcard ? qualifierBadge(entry.poolRank, wildcard) : ''}</span><span class="pool-name" title="${teamName(team)}">${poolTeamNames(team)}</span><span class="pool-record">${team.wins || 0}-${team.losses || 0}</span><span class="pool-pd">${team.pd || 0}</span></div>`; }).join('')}</div></div>` : '<p style="padding:20px; color:var(--muted); font-weight:700;">No teams assigned yet.</p>'}</article>`;
         lucide.createIcons();
     }
 
@@ -372,9 +417,9 @@
         const qualification = qualificationStatus();
         const wildcardIds = new Set(qualification.wildcards.map(entry => entry.team.id));
         const rows = qualification.ranked.sort((a, b) => a.poolRank - b.poolRank || b.team.wins - a.team.wins || b.team.pd - a.team.pd);
-        container.innerHTML = `<div class="event-summary"><div><strong>${qualification.qualifiersPerPool}</strong><span>Automatic per pool</span></div><div><strong>${qualification.wildcards.length}</strong><span>Wildcard spots</span></div><div><strong>${qualification.bracketSize}</strong><span>Total advancing</span></div></div><div class="standing-grid">${rows.map((entry, index) => { const wildcard = wildcardIds.has(entry.team.id); const automatic = qualification.automaticIds.has(entry.team.id); return `<article class="standing-card ${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><span class="standing-rank">${index + 1}</span><div class="standing-name">${teamName(entry.team)}<span class="standing-meta">${automatic || wildcard ? qualifierBadge(entry.poolRank, wildcard) : ''} Pool ${String.fromCharCode(65 + entry.team.pool)} · Pool rank ${entry.poolRank}</span></div><div class="standing-record">${entry.team.wins}-${entry.team.losses}<small>${entry.team.pd} PD</small></div></article>`; }).join('')}</div>`;
+        container.innerHTML = `<div class="event-summary"><div><strong>${qualification.qualifiersPerPool}</strong><span>Automatic per pool</span></div><div><strong>${qualification.wildcards.length}</strong><span>Wildcard spots</span></div><div><strong>${qualification.bracketSize}</strong><span>Total advancing</span></div></div><div class="swipe-surface" aria-label="Swipe overall standings horizontally"><div class="standing-table"><div class="standing-row standing-row-head"><span>Rank</span><span>Team</span><span>Record</span><span>PD</span><span>Pool</span></div>${rows.map((entry, index) => { const wildcard = wildcardIds.has(entry.team.id); const automatic = qualification.automaticIds.has(entry.team.id); return `<div class="standing-row ${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><span class="standing-rank">${index + 1}</span><div class="standing-name" title="${teamName(entry.team)}">${teamName(entry.team)}<span class="standing-meta">${automatic || wildcard ? qualifierBadge(entry.poolRank, wildcard) : ''} Pool rank ${entry.poolRank}</span></div><span class="standing-record">${entry.team.wins}-${entry.team.losses}</span><span class="standing-pd">${entry.team.pd}</span><span class="standing-pool">${String.fromCharCode(65 + entry.team.pool)}</span></div>`; }).join('')}</div></div>`;
         const wildcardContainer = document.getElementById('public-wildcards');
-        wildcardContainer.innerHTML = qualification.wildcards.length ? `<div class="event-summary"><div><strong>${qualification.wildcards.length}</strong><span>Wildcards advancing</span></div><div><strong>${qualification.bracketSize}</strong><span>Bracket capacity</span></div><div><strong>${qualification.qualifiersPerPool}</strong><span>Automatic per pool</span></div></div><div class="standing-grid">${qualification.wildcards.map((entry, index) => `<article class="standing-card wildcard"><span class="standing-rank">${index + 1}</span><div class="standing-name">${teamName(entry.team)}<span class="standing-meta">${qualifierBadge(entry.poolRank, true)} Pool ${String.fromCharCode(65 + entry.team.pool)} · Pool rank ${entry.poolRank}</span></div><div class="standing-record">${entry.team.wins}-${entry.team.losses}<small>${entry.team.pd} PD</small></div></article>`).join('')}</div>` : '<div style="padding:8px 0; color:var(--muted); font-weight:700;">No wildcard spots are needed. Automatic pool qualifiers fill every bracket place.</div>';
+        wildcardContainer.innerHTML = qualification.wildcards.length ? `<div class="event-summary"><div><strong>${qualification.wildcards.length}</strong><span>Wildcards advancing</span></div><div><strong>${qualification.bracketSize}</strong><span>Bracket capacity</span></div><div><strong>${qualification.qualifiersPerPool}</strong><span>Automatic per pool</span></div></div><div class="swipe-surface" aria-label="Swipe wildcard standings horizontally"><div class="standing-table"><div class="standing-row standing-row-head"><span>Rank</span><span>Team</span><span>Record</span><span>PD</span><span>Pool</span></div>${qualification.wildcards.map((entry, index) => `<div class="standing-row wildcard"><span class="standing-rank">${index + 1}</span><div class="standing-name" title="${teamName(entry.team)}">${teamName(entry.team)}<span class="standing-meta">${qualifierBadge(entry.poolRank, true)} Pool rank ${entry.poolRank}</span></div><span class="standing-record">${entry.team.wins}-${entry.team.losses}</span><span class="standing-pd">${entry.team.pd}</span><span class="standing-pool">${String.fromCharCode(65 + entry.team.pool)}</span></div>`).join('')}</div></div>` : '<div style="padding:8px 0; color:var(--muted); font-weight:700;">No wildcard spots are needed. Automatic pool qualifiers fill every bracket place.</div>';
         lucide.createIcons();
     }
 
@@ -389,8 +434,14 @@
     }
 
     async function loginPlayer() {
-        const pin = document.getElementById('player-pin-input').value.trim();
-        if(!Array.isArray(state.teams)) return alert("Choose a tournament first.");
+        const pin = document.getElementById('player-pin-input')?.value.trim() || '';
+        const button = document.getElementById('player-pin-submit');
+        setInlineMessage('player-pin-message');
+        if(!Array.isArray(state.teams)) { setInlineMessage('player-pin-message', 'Choose a tournament before unlocking player scores.'); return; }
+        if(!/^\d{4}$/.test(pin)) { setInlineMessage('player-pin-message', 'Enter the four-digit player PIN from your organizer.'); return; }
+        button.disabled = true;
+        button.classList.add('submitting');
+        button.innerText = 'Checking...';
 
         let team = state.teams.find(t => t.pin === pin) || null;
         if (!team) {
@@ -402,14 +453,18 @@
                 }
             } catch (error) { console.warn('Secure player session unavailable:', error.message); }
         }
-        if(!team) return alert("Invalid 4-Digit PIN. Ask tournament manager for help.");
+        button.disabled = false;
+        button.classList.remove('submitting');
+        button.innerText = 'Unlock scores';
+        if(!team) { setInlineMessage('player-pin-message', 'That PIN does not match this tournament. Check it or ask the organizer.'); return; }
 
         loggedInTeam = team;
-        document.getElementById('player-dashboard').classList.remove('hidden');
-        document.getElementById('player-team-title').innerText = `${team.p1} & ${team.p2}`;
+        document.getElementById('player-dashboard')?.classList.remove('hidden');
+        const title = document.getElementById('player-team-title');
+        if (title) title.innerText = `${team.p1} & ${team.p2}`;
         renderPlayerSchedule();
         showEventView('overview');
-        document.getElementById('player-dashboard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('player-dashboard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function renderPlayerSchedule() {
@@ -443,7 +498,7 @@
                         const ownScore = isTeamA ? report[reportKey].s1 : report[reportKey].s2;
                         const opponentScore = isTeamA ? report[reportKey].s2 : report[reportKey].s1;
                         const disputed = otherReport && (otherReport.s1 !== report[reportKey].s1 || otherReport.s2 !== report[reportKey].s2);
-                        statusHTML = `${scoreOutcome(ownScore, opponentScore)}<div class="score-status ${disputed ? 'disputed' : 'waiting'}"><i data-lucide="${disputed ? 'triangle-alert' : 'clock-3'}"></i>${disputed ? 'Score disputed - organizer review required' : 'Waiting for the other team to confirm'}</div>${!otherReport ? `<button class="btn btn-outline score-edit" onclick="editPlayerScore('${mId}', '${reportKey}')"><i data-lucide="pencil"></i>Edit submitted score</button>` : ''}`;
+                        statusHTML = `${scoreOutcome(ownScore, opponentScore)}<div class="score-status ${disputed ? 'disputed' : 'waiting'}"><i data-lucide="${disputed ? 'triangle-alert' : 'clock-3'}"></i>${disputed ? 'Score disputed - organizer review required' : 'Awaiting Confirmation'}</div>${!otherReport ? `<button class="btn btn-outline score-edit" onclick="editPlayerScore('${mId}', '${reportKey}')"><i data-lucide="pencil"></i>Edit submitted score</button>` : ''}`;
                     } else if(report) {
                         const otherKey = reportKey === 'teamA' ? 'teamB' : 'teamA';
                         const otherScore = report[otherKey];
@@ -468,21 +523,23 @@
         lucide.createIcons();
     }
 
-    async function submitScore(mId, id1, id2, isTeamA) {
-        const ownScore = parseInt(document.getElementById(`s1-${mId}`).value);
-        const opponentScore = parseInt(document.getElementById(`s2-${mId}`).value);
+    async function submitScore(mId, id1, id2, isTeamA, button) {
+        if (submittingScores.has(mId)) return;
+        const ownInput = document.getElementById(`s1-${mId}`);
+        const opponentInput = document.getElementById(`s2-${mId}`);
+        const ownScore = Number(ownInput?.value);
+        const opponentScore = Number(opponentInput?.value);
+        const error = document.getElementById(`score-error-${mId}`);
+        const setError = (message) => { if (error) { error.innerText = message; error.classList.toggle('hidden', !message); } };
+        setError('');
 
-        if(isNaN(ownScore) || isNaN(opponentScore) || ownScore < 0 || opponentScore < 0) return alert("Enter valid scores.");
+        const validationError = validatePickleballScore(ownScore, opponentScore);
+        if(validationError) { setError(validationError); return; }
 
-        const myScore = ownScore;
-        const oppScore = opponentScore;
-
-        const maxScore = Math.max(myScore, oppScore);
-        const minScore = Math.min(myScore, oppScore);
-        if(maxScore < 11 || (maxScore - minScore < 2)) return alert("Invalid score. Must reach at least 11 points and win by 2.");
-
-        if(!tournamentRef) return alert("Choose a tournament first.");
-        if (!await confirmPlayerScore(myScore, oppScore)) return;
+        if(!tournamentRef) { setError('Choose a tournament before submitting a score.'); return; }
+        if (!await confirmPlayerScore(ownScore, opponentScore)) return;
+        submittingScores.add(mId);
+        if (button) { button.disabled = true; button.classList.add('submitting'); button.innerText = 'Submitting...'; }
         if(!state.scoreReports) state.scoreReports = {};
         if(!state.completedMatches) state.completedMatches = {};
         const team1Score = isTeamA ? ownScore : opponentScore;
@@ -516,6 +573,8 @@
                 localStorage.removeItem(`picklepal_pending_sync_${tournamentSlug}`);
             } catch (error) { syncPlayerState(); }
         } else syncPlayerState();
+        submittingScores.delete(mId);
+        if (button) { button.disabled = false; button.classList.remove('submitting'); button.innerText = report[otherKey] ? 'Confirm or dispute score' : 'Submit final score'; }
         showScoreNotice(otherReport && otherReport.s1 !== team1Score ? 'Score disputed. Organizer review is required.' : (state.completedMatches[mId] ? 'Score confirmed by both teams.' : 'Score submitted. Waiting for the other team.'), Boolean(otherReport && otherReport.s1 !== team1Score));
         renderPublicPools(); renderPublicBracket(); renderPlayerSchedule();
     }
