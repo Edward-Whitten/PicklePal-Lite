@@ -257,7 +257,6 @@
         document.querySelectorAll('.event-view').forEach(element => element.classList.remove('active'));
         document.querySelector(`#event-view-${view}`).classList.add('active');
         document.querySelectorAll('.event-tab').forEach(button => button.classList.toggle('active', button.textContent.trim().toLowerCase() === view));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function showPool(poolIndex) {
@@ -269,7 +268,6 @@
         document.querySelectorAll('#event-view-standings .sub-view').forEach(element => element.classList.remove('active'));
         document.getElementById(`standings-${view}`).classList.add('active');
         document.querySelectorAll('#event-view-standings .sub-tab').forEach(button => button.classList.toggle('active', button.textContent.trim().toLowerCase() === view));
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function qualificationStatus() {
