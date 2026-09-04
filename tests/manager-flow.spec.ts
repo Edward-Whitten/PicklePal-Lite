@@ -42,6 +42,16 @@ test.describe('Home and manager workspace', () => {
     await expect(page.locator('#head-title')).toHaveValue('E2E Tournament');
     await openManagerTab(page, 'roster');
     await expect(page.locator('#roster-list .team-row-entry')).toHaveCount(4);
+    const registrationLayout = await page.locator('.registration-panel').evaluate(panel => {
+      const panelRect = panel.getBoundingClientRect();
+      const controls = [...panel.querySelectorAll('#new-p1, #new-p2, .add-team-fields .btn')].map(element => element.getBoundingClientRect());
+      const meterStyle = getComputedStyle(panel.querySelector('.registration-meter')!);
+      return {
+        controlsFit: controls.every(rect => rect.left >= panelRect.left && rect.right <= panelRect.right),
+        noDivider: meterStyle.borderLeftStyle === 'none' || meterStyle.borderLeftWidth === '0px',
+      };
+    });
+    expect(registrationLayout).toEqual({ controlsFit: true, noDivider: true });
     const controls = page.getByRole('button', { name: 'Here' });
     await expect(controls).toHaveCount(4);
     const size = await controls.first().evaluate(element => {
