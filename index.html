@@ -313,10 +313,6 @@
         .rr-current-mode { display:flex; align-items:center; gap:8px; margin-top:12px; padding:11px 14px; border:1px solid rgba(168,85,247,.3); border-radius:10px; background:linear-gradient(90deg,rgba(168,85,247,.12),rgba(59,130,246,.08)); color:var(--text); font-size:.85rem; font-weight:800; }
         .rr-current-mode strong { color:var(--accent); }
         .rr-current-mode i { color:var(--accent); width:16px; height:16px; }
-        .rr-network-banner { display:flex; align-items:center; gap:9px; margin:0 0 16px; padding:12px 14px; border:1px solid rgba(239,68,68,.34); border-radius:8px; background:rgba(239,68,68,.1); color:#fecaca; font-size:.82rem; font-weight:900; }
-        .rr-network-banner.live { border-color:rgba(34,197,94,.36); background:rgba(34,197,94,.12); color:#bbf7d0; }
-        .rr-network-banner::before { content:""; width:9px; height:9px; border-radius:50%; background:var(--danger); box-shadow:0 0 12px var(--danger); }
-        .rr-network-banner.live::before { background:var(--success); box-shadow:0 0 12px var(--success); }
         .rr-match-scroll, .rr-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; scrollbar-color:var(--accent) transparent; }
         .rr-match-scroll .pool-grid { min-width:min-content; }
         .rr-table-scroll table { min-width:760px; margin-top:0; }
@@ -801,13 +797,12 @@
     </section>
 
     <section id="tab-rr-setup" class="tab-content hidden">
-        <div class="rr-network-banner" data-rr-sync-banner>Offline Mode - Local Storage Active</div>
         <div class="rr-page-header">
             <div><h1>Round Robin Play</h1><p>Set up a relaxed, replayable session with smart court rotation.</p><div class="rr-current-mode"><i id="rr-current-mode-icon" data-lucide="shuffle"></i><span>Current mode: <strong id="rr-current-mode-name">Popcorn</strong></span></div></div>
             <span class="rr-page-badge"><i data-lucide="sparkles" style="width:16px;"></i> Casual mode</span>
         </div>
 
-        <div class="card rr-event-access"><div><strong>Round Robin event</strong><span>Creating an event automatically gives it a short nickname players can use from any device.</span></div><div class="rr-access-section"><div class="rr-access-label">Player access</div><div class="rr-access-fields"><input id="rr-event-code" type="text" placeholder="Enter event nickname" autocomplete="off"><button class="btn btn-outline btn-sm" onclick="loadRREvent()"><i data-lucide="download"></i> Open event</button></div></div><div class="rr-access-section"><div class="rr-access-label">Admin setup</div><div class="rr-access-fields"><input id="rr-admin-pin" type="password" inputmode="numeric" maxlength="4" placeholder="Create four-digit admin PIN" autocomplete="off"><button class="btn btn-primary btn-sm" onclick="createRREvent()"><i data-lucide="cloud"></i> Create event</button></div></div><p id="rr-event-message"></p></div>
+        <div class="card rr-event-access"><div><strong>Round Robin event</strong><span>Creating an event automatically gives it a One-word Round Robin Code players can use from any device.</span></div><div class="rr-access-section"><div class="rr-access-label">Player access</div><div class="rr-access-fields"><input id="rr-event-code" type="text" placeholder="One-word Round Robin Code" aria-label="One-word Round Robin Code" autocomplete="off"><button class="btn btn-outline btn-sm" onclick="loadRREvent()"><i data-lucide="download"></i> Open event</button></div></div><div class="rr-access-section"><div class="rr-access-label">Admin setup</div><div class="rr-access-fields"><input id="rr-admin-pin" type="password" inputmode="numeric" maxlength="4" placeholder="Create four-digit admin PIN" autocomplete="off"><button class="btn btn-primary btn-sm" onclick="createRREvent()"><i data-lucide="cloud"></i> Create event</button></div></div><p id="rr-event-message"></p></div>
 
         <div id="rr-setup-container" class="card">
             <h2 style="margin:0; margin-bottom:24px;">Event Setup</h2>
@@ -878,7 +873,6 @@
     </section>
 
     <section id="tab-rr-play" class="tab-content hidden">
-        <div class="rr-network-banner" data-rr-sync-banner>Offline Mode - Local Storage Active</div>
         <div id="rr-active-mode-banner" class="active-mode-banner rr-shared-banner hidden"></div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; flex-wrap:wrap; gap:15px;">
             <h2 style="margin:0; font-size:2rem;">Active Matches <span style="color:var(--accent); font-weight:900;">(Round <span id="rr-round-num">1</span> of <span id="rr-total-rounds">5</span>)</span></h2>
@@ -890,7 +884,6 @@
     </section>
 
     <section id="tab-rr-leaderboard" class="tab-content hidden">
-        <div class="rr-network-banner" data-rr-sync-banner>Offline Mode - Local Storage Active</div>
         <div class="active-mode-banner rr-shared-banner hidden"></div>
         <div class="card">
             <h2 style="margin-top:0; font-size:2rem; margin-bottom: 2rem;">Leaderboard</h2>
@@ -913,7 +906,6 @@
     </section>
 
     <section id="tab-rr-bracket" class="tab-content hidden">
-        <div class="rr-network-banner" data-rr-sync-banner>Offline Mode - Local Storage Active</div>
         <div class="active-mode-banner rr-shared-banner hidden"></div>
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap: wrap; gap: 15px;">
@@ -1164,10 +1156,6 @@
         status.classList.remove('hidden', 'pending', 'offline');
         if (!cloudConnected) status.classList.add('offline');
         text.innerText = cloudConnected ? 'Live' : 'Not Live';
-        document.querySelectorAll('[data-rr-sync-banner]').forEach(banner => {
-            banner.classList.toggle('live', cloudConnected);
-            banner.innerText = cloudConnected ? 'Live Sync Active' : 'Offline Mode - Local Storage Active';
-        });
     }
 
     function startConnectionMonitor() {
@@ -1244,7 +1232,7 @@
         const codeInput = document.getElementById('rr-event-code');
         const message = document.getElementById('rr-event-message');
         const code = codeInput.value.trim().toLowerCase();
-        if (!isOneWordTournamentCode(code)) { message.innerText = 'Enter the one-word Round Robin event code.'; return; }
+        if (!isOneWordTournamentCode(code)) { message.innerText = 'Enter the One-word Round Robin Code.'; return; }
         try {
             const result = await window.roundRobinApi.load({ tournament: code });
             state = normalizeState(result.state);

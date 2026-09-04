@@ -6,7 +6,8 @@ test.describe('Round Robin workspace', () => {
     await page.goto('/rr.html');
     await expect(page).toHaveURL(/index\.html\?mode=round-robin/);
     await expect(page.getByRole('heading', { name: 'Round Robin Play' })).toBeVisible();
-    await expect(page.locator('[data-rr-sync-banner]').first()).toContainText(/Live Sync Active|Offline Mode - Local Storage Active/);
+    await expect(page.locator('[data-rr-sync-banner]')).toHaveCount(0);
+    await expect(page.getByLabel('One-word Round Robin Code')).toBeVisible();
     await expect(page.locator('.rr-match-scroll')).toHaveCount(1);
     await expect(page.locator('.rr-table-scroll')).toHaveCount(1);
 
