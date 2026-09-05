@@ -109,6 +109,26 @@ test.describe('Home and manager workspace', () => {
     await expect(page.getByRole('button', { name: 'Seed Bracket' })).toBeVisible();
   });
 
+  test('manager Pool Play uses pool tabs instead of one endless match list', async ({ page }) => {
+    await seedTournament(page, { manager: true });
+    await page.addInitScript(({ code }) => {
+      const key = `picklepal_tournament_${code}`;
+      const state = JSON.parse(localStorage.getItem(key)!);
+      state.poolCount = 2;
+      state.teams = state.teams.map((team: any, index: number) => ({ ...team, pool: index < 2 ? 0 : 1 }));
+      localStorage.setItem(key, JSON.stringify(state));
+    }, { code: tournamentCode });
+    await page.goto('/index.html');
+    await openManagerTab(page, 'pools');
+    await expect(page.locator('#manager-pool-tabs .manager-pool-tab')).toHaveCount(2);
+    await expect(page.locator('#manager-pool-tabs .manager-pool-tab').first()).toHaveClass(/active/);
+    await expect(page.locator('#pool-container .match-card')).toHaveCount(1);
+    await page.getByRole('button', { name: 'Pool B' }).click();
+    await expect(page.locator('#manager-pool-tabs .manager-pool-tab').nth(1)).toHaveClass(/active/);
+    await expect(page.locator('#pool-container')).toContainText('Emerson T.');
+    await expect(page.locator('#pool-container')).not.toContainText('Alexandra V.');
+  });
+
   test('manager can reform stranded players before start and reform locks after start', async ({ page }) => {
     await seedTournament(page, { manager: true });
     await page.addInitScript(({ code }) => {

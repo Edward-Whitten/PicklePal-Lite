@@ -200,6 +200,9 @@
         body.light-theme .competition-tabs { background:rgba(255,255,255,.86); }
         .competition-tab { min-height:54px; border:0; border-radius:10px; background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; font-size:.86rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
         .competition-tab.active { color:#fff; background:var(--gradient); box-shadow:0 8px 22px rgba(59,130,246,.24); }
+        .manager-pool-tabs { display:flex; gap:8px; overflow-x:auto; padding:4px 0 12px; margin:-4px 0 16px; scrollbar-color:var(--accent) transparent; }
+        .manager-pool-tab { flex:0 0 auto; min-width:86px; min-height:44px; border:1px solid var(--border); border-radius:9px; padding:8px 12px; background:var(--row-bg); color:var(--muted); font-size:.78rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; cursor:pointer; }
+        .manager-pool-tab.active { color:#fff; border-color:transparent; background:var(--gradient); box-shadow:0 8px 22px rgba(59,130,246,.22); }
         .competition-pane { display:none; }
         .competition-pane.active { display:block; }
         .competition-panel { padding:24px; margin-bottom:0; }
@@ -823,6 +826,7 @@
                             </div>
                         </div>
                     </div>
+                    <div id="manager-pool-tabs" class="manager-pool-tabs" aria-label="Pool selector"></div>
                     <div id="pool-container"></div>
                 </div>
             </div>
@@ -1179,6 +1183,7 @@
     let syncRetryTimer = null;
     let pinHydrationPending = false;
     let activeCompetitionView = 'pools';
+    let activeManagerPoolIndex = 0;
 
     function normalizeTournamentNickname(value) {
         return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
@@ -2227,12 +2232,19 @@
         if(!container) return;
         document.getElementById('pool-count-label').innerText = (state.setupMode === 'manual' && state.expectedTeams === '-') ? '- Pools Active' : `${state.poolCount} Pools Active`;
         container.innerHTML = '';
+        const tabs = document.getElementById('manager-pool-tabs');
+        const poolCount = Math.max(0, Number(state.poolCount) || 0);
+        activeManagerPoolIndex = Math.min(Math.max(0, activeManagerPoolIndex), Math.max(0, poolCount - 1));
+        if (tabs) {
+            tabs.innerHTML = poolCount ? Array.from({ length: poolCount }, (_, poolIndex) => `<button class="manager-pool-tab ${poolIndex === activeManagerPoolIndex ? 'active' : ''}" onclick="showManagerPool(${poolIndex})">Pool ${String.fromCharCode(65 + poolIndex)}</button>`).join('') : '';
+        }
         
         const activeTeams = state.teams.filter(t => t.active);
         const searchTerm = document.getElementById('pool-search') ? document.getElementById('pool-search').value.toLowerCase() : "";
         const filterStatus = document.getElementById('pool-filter') ? document.getElementById('pool-filter').value : "all";
 
         for (let i = 0; i < state.poolCount; i++) {
+            if (i !== activeManagerPoolIndex) continue;
             const pTeams = activeTeams.filter(t => t.pool === i);
             const section = document.createElement('div');
             section.className = 'pool-section';
@@ -2309,6 +2321,11 @@
         }
         renderCompetitionSummary();
         lucide.createIcons();
+    }
+
+    function showManagerPool(poolIndex) {
+        activeManagerPoolIndex = Number(poolIndex) || 0;
+        renderPools();
     }
 
     async function confirmScore(mId, id1, id2) {
@@ -2511,11 +2528,11 @@
                 <div style="font-weight:900; color:var(--muted); font-size:0.85rem; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">${titlePrefix} ${i+1}</div>
                 <div class="bracket-team-row ${m.winner === 2 ? 'dimmed' : ''}">
                     <span class="bracket-team-name ${m.winner === 1 ? 'winner-text' : ''}" style="color:var(--text);">${m.t1 ? `<span class="seed-badge">#${m.t1.seed}</span> ${formatTeamName(m.t1)}` : '---'}</span>
-                    ${m.winner === 1 ? (isBye ? '<span class="bye-text">BYE</span>' : `<button class="btn-lock" style="padding:2px 8px;" onclick="${retractFn}(${i})">Undo</button>`) : (m.winner === null && m.t1 && m.t2 ? `<button class="btn btn-sm btn-outline" style="border-color:var(--accent); color:var(--accent);" onclick="${advFn}(${i}, 1)">Adv</button>` : '')}
+                    ${m.winner === 1 ? (isBye ? '<span class="bye-text">BYE</span>' : `<button class="btn-lock" style="padding:2px 8px;" onclick="${retractFn}(${i})">Undo</button>`) : (m.winner === null && m.t1 && m.t2 ? `<button class="btn btn-sm btn-outline" style="border-color:var(--accent); color:var(--accent);" onclick="${advFn}(${i}, 1)">Advance</button>` : '')}
                 </div>
                 <div class="bracket-team-row ${m.winner === 1 ? 'dimmed' : ''}">
                     <span class="bracket-team-name ${m.winner === 2 ? 'winner-text' : ''}" style="color:var(--text);">${m.t2 ? `<span class="seed-badge">#${m.t2.seed}</span> ${formatTeamName(m.t2)}` : (m.t1 ? '<span class="bye-text">[ BYE ]</span>' : '---')}</span>
-                    ${m.winner === 2 ? (isBye ? '<span class="bye-text">BYE</span>' : `<button class="btn-lock" style="padding:2px 8px;" onclick="${retractFn}(${i})">Undo</button>`) : (m.winner === null && m.t1 && m.t2 ? `<button class="btn btn-sm btn-outline" style="border-color:var(--accent); color:var(--accent);" onclick="${advFn}(${i}, 2)">Adv</button>` : '')}
+                    ${m.winner === 2 ? (isBye ? '<span class="bye-text">BYE</span>' : `<button class="btn-lock" style="padding:2px 8px;" onclick="${retractFn}(${i})">Undo</button>`) : (m.winner === null && m.t1 && m.t2 ? `<button class="btn btn-sm btn-outline" style="border-color:var(--accent); color:var(--accent);" onclick="${advFn}(${i}, 2)">Advance</button>` : '')}
                 </div>
             </div>`;
         }).join('');

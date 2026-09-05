@@ -92,6 +92,7 @@ test.describe('production hotfix regressions', () => {
     await page.getByRole('button', { name: 'Seed Bracket' }).click();
     await expect(page.locator('#modal-title')).toHaveText('Bracket Generated');
     await expect(page.locator('#bracket-ui')).toContainText('Semifinal 1');
+    await expect(page.locator('#bracket-ui')).toContainText('Advance');
     await expect(page.locator('#bracket-ui')).not.toContainText('Round of 16');
   });
 
