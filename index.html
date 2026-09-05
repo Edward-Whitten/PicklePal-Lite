@@ -1154,6 +1154,17 @@
     function tournamentStateKey(slug) { return `picklepal_tournament_${slug}`; }
     function tournamentRef() { return tournamentSlug ? db.ref(`tournaments/${tournamentSlug}/state`) : null; }
 
+    function mergeKnownTeamPins(nextState) {
+        const pins = new Map();
+        [...(state.teams || [])].forEach(team => { if (team.pin) pins.set(String(team.id), team.pin); });
+        try {
+            const cached = JSON.parse(localStorage.getItem(tournamentStateKey(tournamentSlug)) || '{}');
+            (cached.teams || []).forEach(team => { if (team.pin) pins.set(String(team.id), team.pin); });
+        } catch (error) {}
+        if (Array.isArray(nextState.teams)) nextState.teams.forEach(team => { if (!team.pin && pins.has(String(team.id))) team.pin = pins.get(String(team.id)); });
+        return nextState;
+    }
+
     function clearTournamentClientState(slug) {
         const target = normalizeTournamentNickname(slug || '');
         if (!target) return;
@@ -1456,7 +1467,7 @@
                 return showLobby('That tournament was deleted. Create a new event or enter another code.');
             }
             if (data && (!data.adminPinHash || data.adminPinHash === state.adminPinHash) && (!syncPending || Number(data.updatedAt || 0) >= Number(state.updatedAt || 0))) {
-                state = normalizeState(data);
+                state = normalizeState(mergeKnownTeamPins(data));
                 localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
                 renderRoster(); renderPools(); renderStandings(); renderBracketUI(); renderPinDirectory();
             }

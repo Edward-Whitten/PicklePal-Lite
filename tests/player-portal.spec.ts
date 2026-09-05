@@ -64,6 +64,8 @@ test.describe('Player and spectator portal', () => {
     await checkInButton.click();
     await expect(page.locator('#express-pin-delivery')).toContainText("Thanks for checking in, Alexandra! You're ready to play.");
     await expect(page.locator('#express-pin-delivery')).toContainText(`YOUR MATCH SCORE PIN: ${playerAPin}`);
+    await expect(page.locator('#player-identity-banner')).toContainText('Logged in as');
+    await expect(page.locator('#player-identity-banner')).toContainText('Alexandra Verylonglastname');
     await expect(page.locator('#express-player-directory')).toContainText('Checked In');
     const storedFirst = await page.evaluate(code => {
       const team = JSON.parse(localStorage.getItem(`picklepal_tournament_${code}`)!).teams.find((item: any) => item.id === 1);
@@ -124,6 +126,22 @@ test.describe('Player and spectator portal', () => {
     await page.getByRole('button', { name: 'Submit score' }).click();
     await expect(firstCard.locator('.score-status.waiting')).toContainText('Awaiting Confirmation');
     expect(dialogs).toHaveLength(0);
+  });
+
+  test('player identity cannot check in a different player by payload tampering', async ({ page }) => {
+    await seedTournament(page, { player: true });
+    await page.goto(`/players.html?event=${tournamentCode}`);
+    await choosePlayerRole(page);
+    const message = await page.evaluate(async () => {
+      await window.functions.httpsCallable('playerIdentify')({ tournament: 'e2echeck', playerName: 'Alexandra Verylonglastname' });
+      try {
+        await window.functions.httpsCallable('checkInPlayer')({ tournament: 'e2echeck', teamId: 2, playerSlot: 'p1' });
+      } catch (error: any) {
+        return error.message;
+      }
+      return '';
+    });
+    expect(message).toContain('Players can only check in themselves');
   });
 
   test('shows public pool standings and keeps tab changes in place', async ({ page }) => {

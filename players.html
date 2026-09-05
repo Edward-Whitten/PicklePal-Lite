@@ -59,6 +59,9 @@
         .role-choice-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
         .role-choice { min-height:70px; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; text-align:left; }
         .role-choice span { opacity:.8; font-size:.72rem; font-weight:700; white-space:normal; line-height:1.25; }
+        .player-identity-banner { display:flex; align-items:center; justify-content:space-between; gap:12px; border-left:4px solid var(--success); padding:14px 16px; }
+        .player-identity-banner strong { display:block; color:var(--text); font-size:1rem; }
+        .player-identity-banner span { color:var(--muted); font:800 .72rem 'Inter',sans-serif; text-transform:uppercase; letter-spacing:.08em; }
         .tournament-picker { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:end; border-top:4px solid var(--accent); }
         .tournament-picker input { min-width:220px; }
         .player-match-card { padding:1.25rem; }.player-match-card h4 { margin:0; line-height:1.35; }.score-entry-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }.score-field { display:grid; gap:6px; min-width:0; }.score-field label { color:var(--muted); font:800 .68rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; }.score-box { width:100%; min-width:0; min-height:54px; padding:8px; text-align:center; font:900 1.35rem/1 'Inter',sans-serif; font-variant-numeric:tabular-nums; }.score-submit { width:100%; margin-top:12px; }.score-submit.submitting, .btn.submitting { opacity:.78; cursor:wait; filter:saturate(.75); }
@@ -118,6 +121,8 @@
                 <button class="btn role-choice" onclick="setPortalRole('manager')"><strong>Manager</strong><span>Open manager login for this event.</span></button>
             </div>
         </section>
+
+        <section id="player-identity-banner" class="card player-identity-banner hidden" aria-live="polite"></section>
 
         <section id="score-entry-panel" class="card score-panel hidden">
             <div><h3>Submit a match score</h3><p>Enter your PIN to report your team score. The opponent confirms by submitting the same final score; organizer corrections are available for mistakes.</p></div>
@@ -184,6 +189,7 @@
     let resolveScoreConfirmation = null;
     let scoreNoticeTimer = null;
     let selectedCheckInEntry = null;
+    let currentPlayerName = '';
     const submittingScores = new Set();
     let portalRole = localStorage.getItem('picklepal_portal_role') || '';
 
@@ -220,6 +226,15 @@
         if (scorePanel) scorePanel.classList.toggle('hidden', !hasTournament || portalRole !== 'player');
         if (finder) finder.classList.toggle('hidden', !hasTournament || portalRole !== 'player');
         if (checkIn) checkIn.classList.toggle('hidden', !hasTournament || portalRole !== 'player');
+        renderPlayerIdentity();
+    }
+
+    function renderPlayerIdentity() {
+        const banner = document.getElementById('player-identity-banner');
+        if (!banner) return;
+        const name = currentPlayerName || (loggedInTeam ? teamName(loggedInTeam) : '');
+        banner.classList.toggle('hidden', !name || portalRole !== 'player');
+        if (name) banner.innerHTML = `<div><span>Logged in as</span><strong>${name}</strong></div><span>${tournamentSlug || ''}</span>`;
     }
 
     function normalizeTournamentNickname(value) { return value.trim().toLowerCase(); }
@@ -482,6 +497,8 @@
     async function checkInSelectedPlayer(button) {
         const entry = selectedCheckInEntry;
         if (!entry || playerCheckedIn(entry.team, entry.slot)) return;
+        currentPlayerName = entry.name;
+        renderPlayerIdentity();
         if (button) { button.disabled = true; button.classList.add('submitting'); button.innerHTML = '<span class="checkin-spinner"></span> Checking in...'; }
         let scorePin = entry.team.pin || '';
         if (functions && tournamentSlug) {
@@ -514,6 +531,7 @@
         renderPublicStandings();
         renderExpressCheckIn(document.getElementById('express-player-search')?.value || '');
         showPinDelivery(entry, scorePin);
+        renderPlayerIdentity();
     }
 
     function poolTeamNames(team) {
@@ -671,6 +689,8 @@
         if(!team) { setInlineMessage('player-pin-message', 'That PIN does not match this tournament. Check it or ask the organizer.'); return; }
 
         loggedInTeam = team;
+        currentPlayerName = currentPlayerName || teamName(team);
+        renderPlayerIdentity();
         document.getElementById('player-dashboard')?.classList.remove('hidden');
         const title = document.getElementById('player-team-title');
         if (title) title.innerText = `${team.p1} & ${team.p2}`;

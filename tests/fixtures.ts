@@ -81,6 +81,10 @@ export async function seedTournament(page: Page, options: { manager?: boolean; p
         await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Authentication required.' }) });
         return;
       }
+      if ((body as any).teamId && String((body as any).teamId) !== identifiedPlayer.teamId) {
+        await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Players can only check in themselves.' }) });
+        return;
+      }
       const team = state.teams.find(item => String(item.id) === identifiedPlayer!.teamId)!;
       team[`${identifiedPlayer.playerSlot}CheckedIn`] = true;
       team.checkedIn = Boolean(team.p1CheckedIn && team.p2CheckedIn);

@@ -63,6 +63,15 @@ test.describe('Home and manager workspace', () => {
     expect(await expectNoHorizontalOverflow(page)).toBe(true);
   });
 
+  test('manager player ID directory keeps score PINs after refresh', async ({ page }) => {
+    await seedTournament(page, { manager: true });
+    await page.goto('/index.html');
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Player IDs' }).click();
+    await expect(page.locator('#player-pin-directory-list')).toContainText('1111');
+    await expect(page.locator('#player-pin-directory-list')).not.toContainText('N/A');
+  });
+
   test('generates a four-team pool and preserves score validation', async ({ page }) => {
     await seedTournament(page, { manager: true });
     await page.goto('/index.html');

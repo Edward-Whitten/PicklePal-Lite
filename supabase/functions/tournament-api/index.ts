@@ -54,6 +54,20 @@ function publicState(state: unknown) {
   return copy;
 }
 
+async function managerState(tournamentId: string, state: unknown) {
+  const copy = JSON.parse(JSON.stringify(state || {}));
+  const teams = Array.isArray(copy.teams) ? copy.teams as Record<string, unknown>[] : [];
+  if (!teams.length) return copy;
+  const { data: accessRows, error } = await supabase.from('team_access').select('team_id,score_pin').eq('tournament_id', tournamentId);
+  if (error) throw error;
+  const pins = new Map((accessRows || []).map((row: Record<string, unknown>) => [String(row.team_id), String(row.score_pin || '')]));
+  teams.forEach(team => {
+    const scorePin = pins.get(String(team.id));
+    if (scorePin) team.pin = scorePin;
+  });
+  return copy;
+}
+
 function playerEntries(state: Record<string, unknown>) {
   const teams = Array.isArray(state.teams) ? state.teams as Record<string, unknown>[] : [];
   return teams.filter(team => team.active !== false).flatMap(team => [
@@ -131,13 +145,17 @@ Deno.serve(async request => {
       const teams = kind === 'round_robin' && initialState.rr && Array.isArray(initialState.rr.entities) ? initialState.rr.entities : (Array.isArray(initialState.teams) ? initialState.teams : []);
       const accessRows = await Promise.all((kind === 'tournament' ? teams : []).filter((team: Record<string, unknown>) => team?.id != null && /^\d{4}$/.test(String(team.pin || ''))).map(async (team: Record<string, unknown>) => ({ tournament_id: created.id, team_id: String(team.id), pin_hash: await hashPin(String(team.pin)), score_pin: String(team.pin) })));
       if (accessRows.length) { const { error: accessError } = await supabase.from('team_access').insert(accessRows); if (accessError) throw accessError; }
-      return json({ sessionToken: await signSession({ tournament: tournamentCode, role: 'admin' }), state: created.public_state });
+      return json({ sessionToken: await signSession({ tournament: tournamentCode, tournamentId: created.id, role: 'admin' }), state: await managerState(created.id, created.public_state) });
     }
     if (!tournament) return json({ error: 'Tournament not found.' }, 404);
 
     if (action === 'admin-login') {
       if ((await hashPin(pin(body.adminPin))) !== tournament.admin_pin_hash) return json({ error: 'Incorrect tournament code or admin PIN.' }, 403);
-      return json({ sessionToken: await signSession({ tournament: tournamentCode, role: 'admin' }), state: tournament.public_state });
+      return json({ sessionToken: await signSession({ tournament: tournamentCode, tournamentId: tournament.id, role: 'admin' }), state: await managerState(tournament.id, tournament.public_state) });
+    }
+    if (action === 'admin-state') {
+      await verifySession(authToken, 'admin', tournamentCode);
+      return json({ state: await managerState(tournament.id, tournament.public_state), updatedAt: tournament.updated_at });
     }
     if (action === 'player-login') {
       const { data: access } = await supabase.from('team_access').select('team_id').eq('tournament_id', tournament.id).eq('pin_hash', await hashPin(pin(body.playerPin))).maybeSingle();
