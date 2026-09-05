@@ -361,9 +361,10 @@
         .rr-page-header h1 { margin:0 0 .5rem; font-size:clamp(1.8rem,4vw,3rem); font-weight:900; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
         .rr-page-header p { margin:0; color:var(--muted); font-size:1rem; }
         .rr-page-badge { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid rgba(6,182,212,.35); border-radius:999px; color:#fff; background:linear-gradient(135deg,#06b6d4,#3b82f6); font-size:.75rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; }
-        .rr-current-mode { display:flex; align-items:center; gap:8px; margin-top:12px; padding:11px 14px; border:1px solid rgba(168,85,247,.3); border-radius:10px; background:linear-gradient(90deg,rgba(168,85,247,.12),rgba(59,130,246,.08)); color:var(--text); font-size:.85rem; font-weight:800; }
+        .rr-current-mode { display:flex; align-items:center; gap:10px; margin-top:12px; padding:11px 14px; border:1px solid rgba(168,85,247,.3); border-radius:10px; background:linear-gradient(90deg,rgba(168,85,247,.12),rgba(59,130,246,.08)); color:var(--text); font-size:.85rem; font-weight:800; flex-wrap:wrap; }
         .rr-current-mode strong { color:var(--accent); }
         .rr-current-mode i { color:var(--accent); width:16px; height:16px; }
+        .rr-current-event { display:inline-flex; align-items:center; gap:6px; padding-left:10px; margin-left:2px; border-left:1px solid var(--border); color:var(--muted); }
         .rr-match-scroll, .rr-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; scrollbar-color:var(--accent) transparent; }
         .rr-match-scroll .pool-grid { min-width:min-content; }
         .rr-table-scroll table { min-width:760px; margin-top:0; }
@@ -888,7 +889,7 @@
 
     <section id="tab-rr-setup" class="tab-content hidden">
         <div class="rr-page-header">
-            <div><h1>Round Robin Play</h1><p>Set up a relaxed, replayable session with smart court rotation.</p><div class="rr-current-mode"><i id="rr-current-mode-icon" data-lucide="shuffle"></i><span>Current mode: <strong id="rr-current-mode-name">Popcorn</strong></span></div></div>
+            <div><h1>Round Robin Play</h1><p>Set up a relaxed, replayable session with smart court rotation.</p><div class="rr-current-mode"><i id="rr-current-mode-icon" data-lucide="shuffle"></i><span>Current mode: <strong id="rr-current-mode-name">Popcorn</strong></span><span id="rr-current-event" class="rr-current-event hidden">Current event: <strong id="rr-current-event-code"></strong></span></div></div>
             <span class="rr-page-badge"><i data-lucide="sparkles" style="width:16px;"></i> Casual mode</span>
         </div>
 
@@ -1364,7 +1365,7 @@
             state = normalizeState(result.state);
             state.appMode = 'rr'; state.rr.eventCode = code; tournamentSlug = code;
             persistRRState(code);
-            message.innerText = '';
+            message.innerText = `You've entered '${code}' event.`;
             updateRRFormat();
             showTab('rr-setup', 'rr');
         } catch (error) { message.innerText = error.message; }
@@ -2881,8 +2882,13 @@
 
         const modeName = document.getElementById('rr-current-mode-name');
         const modeIcon = document.getElementById('rr-current-mode-icon');
+        const eventLabel = document.getElementById('rr-current-event');
+        const eventCode = document.getElementById('rr-current-event-code');
         if (modeName) modeName.innerText = fmt.name;
         if (modeIcon) { modeIcon.setAttribute('data-lucide', fmt.icon); lucide.createIcons(); }
+        const activeEventCode = state.rr.eventCode || tournamentSlug || '';
+        if (eventCode) eventCode.innerText = activeEventCode;
+        if (eventLabel) eventLabel.classList.toggle('hidden', !activeEventCode);
 
         const rmr = document.getElementById('rr-match-rules');
         const rtr = document.getElementById('rr-target-rounds');

@@ -32,4 +32,41 @@ test.describe('Round Robin workspace', () => {
     await page.getByRole('button', { name: 'Create event' }).click();
     await expect(page.locator('#rr-event-message')).toHaveText('That event code is currently active. Please choose another word.');
   });
+
+  test('shows current RR event code after opening an event', async ({ page }) => {
+    await page.route('**/functions/v1/tournament-api', async route => {
+      const rawBody = route.request().postData();
+      if (!rawBody) { await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }); return; }
+      const body = JSON.parse(rawBody);
+      if (body.action === 'public') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ state: { appMode: 'rr', rr: { eventCode: 'smash', format: 'popcorn', entities: [] } } }) });
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+    await page.goto('/rr.html');
+    await page.getByLabel('One-word Round Robin Code').fill('smash');
+    await page.getByRole('button', { name: 'Open event' }).click();
+    await expect(page.locator('#rr-event-message')).toHaveText("You've entered 'smash' event.");
+    await expect(page.locator('#rr-current-event')).toContainText('Current event: smash');
+  });
+
+  test('shows current RR event code after creating an event', async ({ page }) => {
+    await page.route('**/functions/v1/tournament-api', async route => {
+      const rawBody = route.request().postData();
+      if (!rawBody) { await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }); return; }
+      const body = JSON.parse(rawBody);
+      if (body.action === 'create') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sessionToken: 'admin-token', state: body.state }) });
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+    await page.goto('/rr.html');
+    await page.getByLabel('One-word Round Robin Code').fill('smash');
+    await page.locator('#rr-admin-pin').fill('1234');
+    await page.getByRole('button', { name: 'Create event' }).click();
+    await expect(page.locator('#rr-event-message')).toHaveText('Event created. Share code: smash');
+    await expect(page.locator('#rr-current-event')).toContainText('Current event: smash');
+  });
 });
