@@ -3,7 +3,7 @@ import { expectNoHorizontalOverflow, seedTournament, tournamentCode } from './fi
 
 async function openManagerTab(page: import('@playwright/test').Page, tab: 'roster' | 'pools') {
   const mobile = (await page.viewportSize())!.width <= 640;
-  await (mobile ? page.locator(tab === 'roster' ? '#mob-nav-roster' : '#mob-nav-pools') : page.getByRole('button', { name: tab === 'roster' ? 'Check-In' : 'Pool Play' })).click();
+  await (mobile ? page.locator(tab === 'roster' ? '#mob-nav-roster' : '#mob-nav-pools') : page.getByRole('button', { name: tab === 'roster' ? 'Check-In' : 'Competition' })).click();
 }
 
 test.describe('Home and manager workspace', () => {
@@ -82,6 +82,9 @@ test.describe('Home and manager workspace', () => {
     await seedTournament(page, { manager: true });
     await page.goto('/index.html');
     await openManagerTab(page, 'pools');
+    await expect(page.getByRole('tab', { name: 'Pool Play' })).toHaveClass(/active/);
+    await expect(page.getByRole('tab', { name: 'Standings' })).toBeVisible();
+    await expect(page.getByRole('tab', { name: 'Bracket' })).toBeVisible();
     await expect(page.locator('#pool-container .match-card')).toHaveCount(6);
     const first = page.locator('#pool-container .match-card').first();
     await first.locator('input[id^="s1-"]').fill('10');
@@ -90,6 +93,20 @@ test.describe('Home and manager workspace', () => {
     await expect(page.locator('#modal-title')).toHaveText('Invalid Score');
     await page.keyboard.press('Escape');
     await expect(page.locator('#app-modal')).not.toHaveClass(/active/);
+  });
+
+  test('competition workspace switches between pool, standings, and bracket panes', async ({ page }) => {
+    await seedTournament(page, { manager: true });
+    await page.goto('/index.html');
+    await openManagerTab(page, 'pools');
+    await expect(page.locator('#tab-competition')).toBeVisible();
+    await expect(page.locator('#competition-pane-pools')).toHaveClass(/active/);
+    await page.getByRole('tab', { name: 'Standings' }).click();
+    await expect(page.locator('#competition-pane-standings')).toHaveClass(/active/);
+    await expect(page.locator('#overall-standings-list')).toContainText('bracket spots');
+    await page.getByRole('tab', { name: 'Bracket' }).click();
+    await expect(page.locator('#competition-pane-bracket')).toHaveClass(/active/);
+    await expect(page.getByRole('button', { name: 'Seed Bracket' })).toBeVisible();
   });
 
   test('manager can reform stranded players before start and reform locks after start', async ({ page }) => {

@@ -87,7 +87,8 @@ test.describe('production hotfix regressions', () => {
       localStorage.setItem('picklepal_admin_session', code);
     }, { code: tournamentCode, state });
     await page.goto('/index.html');
-    await page.getByRole('button', { name: 'Elimination Bracket' }).click();
+    await page.getByRole('button', { name: 'Competition' }).click();
+    await page.getByRole('tab', { name: 'Bracket' }).click();
     await page.getByRole('button', { name: 'Seed Bracket' }).click();
     await expect(page.locator('#modal-title')).toHaveText('Bracket Generated');
     await expect(page.locator('#bracket-ui')).toContainText('Semifinal 1');

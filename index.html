@@ -186,6 +186,26 @@
         .team-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; min-height: 55px; }
         
         .standings-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
+        .competition-shell { display:grid; gap:18px; }
+        .competition-hero { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr); gap:22px; align-items:stretch; padding:0; overflow:hidden; }
+        .competition-hero-main { padding:28px; background:radial-gradient(circle at top left,rgba(6,182,212,.18),transparent 42%), linear-gradient(145deg,rgba(30,41,59,.72),rgba(15,23,42,.9)); }
+        .competition-kicker { margin:0 0 8px; color:var(--accent); font-size:.72rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
+        .competition-hero h2 { margin:0 0 10px; font-size:clamp(2rem,4vw,3.4rem); line-height:1; font-weight:900; letter-spacing:0; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .competition-hero p { max-width:720px; margin:0; color:var(--muted); font-size:1rem; line-height:1.55; }
+        .competition-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:18px; background:var(--row-bg); border-left:1px solid var(--border); }
+        .competition-metric { min-height:88px; padding:14px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.035); }
+        .competition-metric strong { display:block; color:var(--text); font-size:1.65rem; line-height:1; font-weight:900; }
+        .competition-metric span { display:block; margin-top:7px; color:var(--muted); font-size:.68rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+        .competition-tabs { position:sticky; top:12px; z-index:900; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:8px; border:1px solid var(--border); border-radius:14px; background:rgba(15,23,42,.82); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:0 12px 32px rgba(0,0,0,.12); }
+        body.light-theme .competition-tabs { background:rgba(255,255,255,.86); }
+        .competition-tab { min-height:54px; border:0; border-radius:10px; background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; font-size:.86rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
+        .competition-tab.active { color:#fff; background:var(--gradient); box-shadow:0 8px 22px rgba(59,130,246,.24); }
+        .competition-pane { display:none; }
+        .competition-pane.active { display:block; }
+        .competition-panel { padding:24px; margin-bottom:0; }
+        .competition-panel-head { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
+        .competition-panel-head h3 { margin:0; font-size:1.6rem; font-weight:900; }
+        .competition-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; color: var(--muted); padding: 14px 12px; border-bottom: 2px solid var(--border); font-size: 0.85rem; text-transform: uppercase; font-weight: 900; letter-spacing: 0.5px; }
         td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-weight: 600; }
@@ -482,6 +502,10 @@
             .add-team-fields { grid-template-columns:1fr; }
             .registration-meter { width:100%; min-width:0; text-align:left; }
             
+            .competition-hero { grid-template-columns:1fr; }
+            .competition-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); border-left:0; border-top:1px solid var(--border); }
+            .competition-tabs { top:70px; grid-template-columns:1fr; }
+            .competition-tab { justify-content:flex-start; padding:0 14px; }
             .pool-grid { grid-template-columns: 1fr; gap: 1rem; }
             .match-card { padding: 1.2rem; }
             .score-input { width: 60px; height: 48px; font-size: 1.3rem; margin-left: 10px; }
@@ -584,9 +608,7 @@
         <button class="tab-btn active" onclick="showTab('home', 'tourney')"><i data-lucide="home"></i> Home</button>
         <button class="tab-btn" onclick="showTab('roster', 'tourney')"><i data-lucide="users"></i> Check-In</button>
         <button class="tab-btn" onclick="showTab('player-ids', 'tourney')"><i data-lucide="key"></i> Player IDs</button>
-        <button class="tab-btn" onclick="showTab('pools', 'tourney')"><i data-lucide="layout-grid"></i> Pool Play</button>
-        <button class="tab-btn" onclick="showTab('standings', 'tourney')"><i data-lucide="bar-chart-3"></i> Standings</button>
-        <button class="tab-btn" onclick="showTab('bracket', 'tourney')"><i data-lucide="git-branch"></i> Elimination Bracket</button>
+        <button class="tab-btn" onclick="showTab('competition', 'tourney')"><i data-lucide="panel-top"></i> Competition</button>
     </div>
 
     <div id="nav-rr" class="nav-tabs hidden">
@@ -765,56 +787,77 @@
         </div>
     </section>
 
-    <section id="tab-pools" class="tab-content hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2.5rem; flex-wrap:wrap; gap:15px;">
-            <h2 style="margin:0;">Pool Play</h2>
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <div style="position:relative;">
-                    <i data-lucide="search" style="position:absolute; left:14px; top:14px; width:20px; color:var(--muted);"></i>
-                    <input type="text" id="pool-search" placeholder="Search match..." style="width:230px; padding-left:45px;" onkeyup="renderPools()">
+    <section id="tab-competition" class="tab-content hidden">
+        <div class="competition-shell">
+            <section class="card competition-hero">
+                <div class="competition-hero-main">
+                    <p class="competition-kicker">Live competition desk</p>
+                    <h2>Pool play, standings, and bracket in one command view.</h2>
+                    <p>Move between match entry, qualification, and elimination seeding without leaving the manager workspace.</p>
                 </div>
-                <select id="pool-filter" style="width:180px;" onchange="renderPools()">
-                    <option value="all">All Matches</option>
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                </select>
-                <div style="background:var(--row-bg); padding:12px 20px; border-radius:10px; display:flex; gap:10px; align-items:center; border: 1px solid var(--border);">
-                    <span class="muted" id="pool-count-label" style="font-size:1rem; font-weight:800;">- Pools Active</span>
-                </div>
-            </div>
-        </div>
-        <div id="pool-container"></div>
-    </section>
+                <div id="competition-metrics" class="competition-metrics" aria-live="polite"></div>
+            </section>
 
-    <section id="tab-standings" class="tab-content hidden">
-        <div class="standings-container">
-            <div class="card">
-                <h2>Pool Standings</h2>
-                <div id="pool-standings-list"></div>
+            <div class="competition-tabs" role="tablist" aria-label="Manager competition views">
+                <button id="competition-tab-pools" class="competition-tab active" role="tab" aria-controls="competition-pane-pools" onclick="showCompetitionView('pools')"><i data-lucide="layout-grid"></i> Pool Play</button>
+                <button id="competition-tab-standings" class="competition-tab" role="tab" aria-controls="competition-pane-standings" onclick="showCompetitionView('standings')"><i data-lucide="bar-chart-3"></i> Standings</button>
+                <button id="competition-tab-bracket" class="competition-tab" role="tab" aria-controls="competition-pane-bracket" onclick="showCompetitionView('bracket')"><i data-lucide="git-branch"></i> Bracket</button>
             </div>
-            <div class="card">
-                <h2>Overall Standings (Wildcards)</h2>
-                <div id="overall-standings-list"></div>
-            </div>
-        </div>
-    </section>
 
-    <section id="tab-bracket" class="tab-content hidden">
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap: wrap; gap: 15px;">
-                <h2 style="margin:0;">Elimination Bracket</h2>
-                <div style="display: flex; gap: 15px; align-items: center; flex-wrap:wrap;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="color:var(--muted); font-weight:800; font-size: 0.95rem; text-transform:uppercase;">Finals Format:</span>
-                        <select id="finals-format-toggle" onchange="updateFinalsFormat(this.value)" style="width: 160px;">
-                            <option value="bo3">Best of 3</option>
-                            <option value="single">Single Game</option>
-                        </select>
+            <div id="competition-pane-pools" class="competition-pane active" role="tabpanel" aria-labelledby="competition-tab-pools">
+                <div class="card competition-panel">
+                    <div class="competition-panel-head">
+                        <div><h3>Pool Play</h3><p style="margin:6px 0 0; color:var(--muted); font-weight:700;">Assign courts, enter scores, and resolve score reports.</p></div>
+                        <div class="competition-actions">
+                            <div style="position:relative;">
+                                <i data-lucide="search" style="position:absolute; left:14px; top:14px; width:20px; color:var(--muted);"></i>
+                                <input type="text" id="pool-search" placeholder="Search match..." style="width:230px; padding-left:45px;" onkeyup="renderPools()">
+                            </div>
+                            <select id="pool-filter" style="width:180px;" onchange="renderPools()">
+                                <option value="all">All Matches</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            <div style="background:var(--row-bg); padding:12px 20px; border-radius:10px; display:flex; gap:10px; align-items:center; border: 1px solid var(--border);">
+                                <span class="muted" id="pool-count-label" style="font-size:1rem; font-weight:800;">- Pools Active</span>
+                            </div>
+                        </div>
                     </div>
-                    <button class="btn btn-primary" onclick="generateBracket()"><i data-lucide="git-merge"></i> Seed Bracket</button>
+                    <div id="pool-container"></div>
                 </div>
             </div>
-            <div id="bracket-ui"></div>
+
+            <div id="competition-pane-standings" class="competition-pane" role="tabpanel" aria-labelledby="competition-tab-standings">
+                <div class="standings-container">
+                    <div class="card competition-panel">
+                        <h3 style="margin-top:0; font-size:1.6rem; font-weight:900;">Pool Standings</h3>
+                        <div id="pool-standings-list"></div>
+                    </div>
+                    <div class="card competition-panel">
+                        <h3 style="margin-top:0; font-size:1.6rem; font-weight:900;">Overall Standings (Wildcards)</h3>
+                        <div id="overall-standings-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="competition-pane-bracket" class="competition-pane" role="tabpanel" aria-labelledby="competition-tab-bracket">
+                <div class="card competition-panel">
+                    <div class="competition-panel-head">
+                        <div><h3>Elimination Bracket</h3><p style="margin:6px 0 0; color:var(--muted); font-weight:700;">Seed only the configured advancing teams and run finals from the same desk.</p></div>
+                        <div class="competition-actions">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="color:var(--muted); font-weight:800; font-size: 0.95rem; text-transform:uppercase;">Finals Format:</span>
+                                <select id="finals-format-toggle" onchange="updateFinalsFormat(this.value)" style="width: 160px;">
+                                    <option value="bo3">Best of 3</option>
+                                    <option value="single">Single Game</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="generateBracket()"><i data-lucide="git-merge"></i> Seed Bracket</button>
+                        </div>
+                    </div>
+                    <div id="bracket-ui"></div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -952,7 +995,7 @@
 <nav class="mobile-nav hidden">
     <a href="#" id="mob-nav-home" class="mob-nav-item active" onclick="showTab('home', 'tourney')"><i data-lucide="home"></i> Home</a>
     <a href="#" id="mob-nav-roster" class="mob-nav-item" onclick="showTab('roster', 'tourney')"><i data-lucide="users"></i> Check-In</a>
-    <a href="#" id="mob-nav-pools" class="mob-nav-item" onclick="showTab('pools', 'tourney')"><i data-lucide="layout-grid"></i> Pools</a>
+    <a href="#" id="mob-nav-pools" class="mob-nav-item" onclick="showTab('pools', 'tourney')"><i data-lucide="panel-top"></i> Play</a>
     <a href="#" id="mob-nav-stats" class="mob-nav-item" onclick="showTab('standings', 'tourney')"><i data-lucide="bar-chart-3"></i> Stats</a>
     <a href="#" id="mob-nav-bracket" class="mob-nav-item" onclick="showTab('bracket', 'tourney')"><i data-lucide="git-branch"></i> Bracket</a>
 </nav>
@@ -1135,6 +1178,7 @@
     let cloudConnected = false;
     let syncRetryTimer = null;
     let pinHydrationPending = false;
+    let activeCompetitionView = 'pools';
 
     function normalizeTournamentNickname(value) {
         return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
@@ -1239,6 +1283,7 @@
         document.body.classList.add('lobby-active');
         document.getElementById('lobby-screen').classList.remove('hidden');
         document.getElementById('lobby-message').innerText = message;
+        renderCompetitionSummary();
         lucide.createIcons();
     }
 
@@ -1549,7 +1594,38 @@
         saveState(); lucide.createIcons();
     }
 
+    function renderCompetitionSummary() {
+        const container = document.getElementById('competition-metrics');
+        if (!container) return;
+        const activeTeams = state.teams.filter(team => team.active);
+        const completed = Object.keys(state.completedMatches || {}).length;
+        const pendingReports = Object.keys(state.scoreReports || {}).length;
+        const qualification = tournamentQualification();
+        container.innerHTML = `
+            <div class="competition-metric"><strong>${activeTeams.length}</strong><span>Active teams</span></div>
+            <div class="competition-metric"><strong>${completed}</strong><span>Final scores</span></div>
+            <div class="competition-metric"><strong>${pendingReports}</strong><span>Open reports</span></div>
+            <div class="competition-metric"><strong>${qualification.bracketSize}</strong><span>Bracket spots</span></div>
+        `;
+    }
+
+    function showCompetitionView(view = 'pools') {
+        activeCompetitionView = ['pools', 'standings', 'bracket'].includes(view) ? view : 'pools';
+        document.querySelectorAll('.competition-tab').forEach(button => button.classList.toggle('active', button.id === `competition-tab-${activeCompetitionView}`));
+        document.querySelectorAll('.competition-pane').forEach(pane => pane.classList.toggle('active', pane.id === `competition-pane-${activeCompetitionView}`));
+        renderCompetitionSummary();
+        if (activeCompetitionView === 'pools') renderPools();
+        if (activeCompetitionView === 'standings') renderStandings();
+        if (activeCompetitionView === 'bracket') renderBracketUI();
+        lucide.createIcons();
+    }
+
     function showTab(tabId, group) {
+        const requestedTabId = tabId;
+        if (group === 'tourney' && ['pools', 'standings', 'bracket'].includes(tabId)) {
+            activeCompetitionView = tabId;
+            tabId = 'competition';
+        }
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) targetTab.classList.remove('hidden');
@@ -1563,13 +1639,14 @@
         if(sidebarBtn) sidebarBtn.classList.add('active');
 
         // Map tab IDs to mobile nav labels (Custom mapping for mobile logic)
-        const mobileNavMap = { 'home': 'mob-nav-home', 'roster': 'mob-nav-roster', 'pools': 'mob-nav-pools', 'standings': 'mob-nav-stats', 'bracket': 'mob-nav-bracket', 'rr-setup': 'mob-nav-home', 'rr-play': 'mob-nav-pools', 'rr-leaderboard': 'mob-nav-stats', 'rr-bracket': 'mob-nav-bracket' };
-        const mobId = mobileNavMap[tabId];
+        const mobileNavMap = { 'home': 'mob-nav-home', 'roster': 'mob-nav-roster', 'competition': 'mob-nav-pools', 'pools': 'mob-nav-pools', 'standings': 'mob-nav-stats', 'bracket': 'mob-nav-bracket', 'rr-setup': 'mob-nav-home', 'rr-play': 'mob-nav-pools', 'rr-leaderboard': 'mob-nav-stats', 'rr-bracket': 'mob-nav-bracket' };
+        const mobId = mobileNavMap[requestedTabId] || mobileNavMap[tabId];
         if(mobId && document.getElementById(mobId)) document.getElementById(mobId).classList.add('active');
 
         if (tabId === 'standings') renderStandings();
         if (tabId === 'pools') renderPools();
         if (tabId === 'bracket') renderBracketUI();
+        if (tabId === 'competition') showCompetitionView(activeCompetitionView);
         if (tabId === 'player-ids') renderPinDirectory();
         if (tabId === 'rr-setup' && window.updateRRFormat) { window.updateRRFormat(); window.filterRRCards(); }
         if (tabId === 'rr-play') renderRRMatches();
@@ -2230,6 +2307,7 @@
                 container.appendChild(section);
             }
         }
+        renderCompetitionSummary();
         lucide.createIcons();
     }
 
@@ -2324,6 +2402,7 @@
             ${overall.map((entry, i) => { const t = entry.team; const automatic = qualification.automaticIds.has(t.id); const wildcard = wildcardIds.has(t.id); const ratio = t.pa ? (t.pf / t.pa).toFixed(2) : '-';
                 return `<tr class="${wildcard ? 'wildcard' : automatic ? 'qualifier' : ''}"><td><span class="seed-badge">#${i+1}</span></td><td style="font-weight:900; color:var(--muted);">${String.fromCharCode(65+t.pool)}</td><td style="color:var(--text); font-weight:800;">${automatic || wildcard ? advancementMedal(entry.poolRank, wildcard) : ''}${formatTeamName(t)}</td><td>${t.wins}-${t.losses}</td><td>${t.pd}</td><td>${ratio}</td></tr>`;
             }).join('')}</table></div>`;
+        renderCompetitionSummary();
     }
 
     // --- BRACKET ENGINE ---
@@ -2480,6 +2559,7 @@
             </div>
             ${podiumHTML}
         `;
+        renderCompetitionSummary();
         lucide.createIcons();
     }
 
