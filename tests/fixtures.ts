@@ -106,6 +106,9 @@ export async function seedTournament(page: Page, options: { manager?: boolean; p
     if (manager) {
       localStorage.setItem('picklepal_active_tournament', code);
       localStorage.setItem('picklepal_admin_session', code);
+      sessionStorage.setItem('picklepal_supabase_session', 'admin-token');
+      sessionStorage.setItem('picklepal_supabase_role', 'admin');
+      sessionStorage.setItem('picklepal_supabase_tournament', code);
     }
     if (player) {
       localStorage.setItem('picklepal_portal_nickname', code);

@@ -65,6 +65,12 @@ test.describe('Home and manager workspace', () => {
 
   test('manager player ID directory keeps score PINs after refresh', async ({ page }) => {
     await seedTournament(page, { manager: true });
+    await page.addInitScript(({ code }) => {
+      const key = `picklepal_tournament_${code}`;
+      const state = JSON.parse(localStorage.getItem(key)!);
+      state.teams = state.teams.map((team: any) => ({ ...team, pin: undefined }));
+      localStorage.setItem(key, JSON.stringify(state));
+    }, { code: tournamentCode });
     await page.goto('/index.html');
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: 'Player IDs' }).click();

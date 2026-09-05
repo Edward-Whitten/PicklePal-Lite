@@ -1134,6 +1134,7 @@
     let syncPending = Boolean(tournamentSlug && localStorage.getItem(`picklepal_pending_sync_${tournamentSlug}`) === 'true');
     let cloudConnected = false;
     let syncRetryTimer = null;
+    let pinHydrationPending = false;
 
     function normalizeTournamentNickname(value) {
         return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
@@ -2025,12 +2026,30 @@
         const list = document.getElementById('player-pin-directory-list');
         if(!list) return;
         const activeTeams = state.teams.filter(t => t.active);
+        if (activeTeams.some(team => !team.pin)) hydrateManagerPinsForDirectory();
         if (activeTeams.length === 0) {
             list.innerHTML = '<p style="grid-column:1/-1; color:var(--muted); text-align:center; padding:20px; font-weight:600;">No teams registered yet.</p>';
         } else {
             list.innerHTML = `<div class="pin-directory-head">Team</div><div class="pin-directory-head">Player PIN</div>${activeTeams.map(t => `<div class="pin-directory-cell pin-directory-name" title="${t.p1} & ${t.p2}">${t.p1} & ${t.p2}</div><div class="pin-directory-cell pin-directory-code"><span>${t.pin || 'N/A'}</span><button class="pin-copy" onclick="copyPin('${t.pin || ''}')" title="Copy PIN" aria-label="Copy PIN"><i data-lucide="copy" style="width:14px;"></i></button></div>`).join('')}`;
         }
         lucide.createIcons();
+    }
+
+    async function hydrateManagerPinsForDirectory() {
+        if (pinHydrationPending || !tournamentSlug || !window.supabaseBridge || sessionStorage.getItem('picklepal_supabase_role') !== 'admin') return;
+        pinHydrationPending = true;
+        try {
+            const result = await window.supabaseBridge.call('admin-state', { tournament: tournamentSlug, kind: 'tournament' });
+            if (result.state && Array.isArray(result.state.teams)) {
+                state = normalizeState(mergeKnownTeamPins(result.state));
+                localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+                renderPinDirectory();
+            }
+        } catch (error) {
+            console.warn('Manager PIN hydration unavailable:', error.message);
+        } finally {
+            pinHydrationPending = false;
+        }
     }
 
     async function copyPin(pin) { if (pin) await navigator.clipboard.writeText(pin); }
