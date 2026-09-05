@@ -129,6 +129,20 @@ test.describe('Home and manager workspace', () => {
     await expect(page.locator('#pool-container')).not.toContainText('Alexandra V.');
   });
 
+  test('manager pool score fields stay compact so team names have room', async ({ page }) => {
+    await seedTournament(page, { manager: true });
+    await page.goto('/index.html');
+    await openManagerTab(page, 'pools');
+    const layout = await page.locator('#pool-container .match-card').first().evaluate(card => {
+      const row = card.querySelector('.team-row')!;
+      const name = row.querySelector('span')!.getBoundingClientRect();
+      const input = row.querySelector('.score-input')!.getBoundingClientRect();
+      return { nameWidth: Math.round(name.width), inputWidth: Math.round(input.width) };
+    });
+    expect(layout.inputWidth).toBeLessThanOrEqual(56);
+    expect(layout.nameWidth).toBeGreaterThan(layout.inputWidth * 3);
+  });
+
   test('manager can reform stranded players before start and reform locks after start', async ({ page }) => {
     await seedTournament(page, { manager: true });
     await page.addInitScript(({ code }) => {

@@ -183,7 +183,8 @@
         .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem; }
         .match-card { background: var(--card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.04); transition: 0.3s; }
         .match-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-        .team-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; min-height: 55px; }
+        .team-row { display: grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items: center; padding: 8px 0; min-height: 55px; }
+        .team-row > span { min-width:0; overflow:hidden; text-overflow:ellipsis; }
         
         .standings-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
         .competition-shell { display:grid; gap:18px; }
@@ -247,7 +248,7 @@
         input[type=number]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); outline: none; }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         
-        .score-input { width: 70px; height: 55px; margin-left: 15px; font-size: 1.6rem; }
+        .score-input { width: 54px; max-width:54px; height: 48px; margin-left: 0; font-size: 1.25rem; padding:6px; }
         
         .bo3-grid { display: grid; grid-template-columns: 1fr 60px 60px 60px; gap: 10px; align-items: center; margin-bottom: 10px; }
         .bo3-header { text-align: center; font-size: 0.85rem; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
@@ -511,7 +512,7 @@
             .competition-tab { justify-content:flex-start; padding:0 14px; }
             .pool-grid { grid-template-columns: 1fr; gap: 1rem; }
             .match-card { padding: 1.2rem; }
-            .score-input { width: 60px; height: 48px; font-size: 1.3rem; margin-left: 10px; }
+            .score-input { width: 52px; max-width:52px; height: 46px; font-size: 1.2rem; margin-left: 0; }
 
             /* STANDINGS TABLE */
             .standings-container { grid-template-columns: 1fr; gap: 1rem; }
@@ -2267,12 +2268,12 @@
                     if(match) {
                         inputArea = `
                             <div class="team-row" style="min-height:45px; padding:4px 0;">
-                                <span style="font-weight:800; flex:1; color:var(--text); line-height:1.4;">${match.s1 > match.s2 ? '<i data-lucide="trophy" class="trophy-icon" style="width:16px;"></i> ' : ''}${formatTeamName(pTeams[a])}</span>
-                                <div style="width:65px; text-align:center; font-weight:900; font-size:1.6rem; color:var(--text);">${match.s1}</div>
+                                <span style="font-weight:800; color:var(--text); line-height:1.4;">${match.s1 > match.s2 ? '<i data-lucide="trophy" class="trophy-icon" style="width:16px;"></i> ' : ''}${formatTeamName(pTeams[a])}</span>
+                                <div style="width:54px; text-align:center; font-weight:900; font-size:1.35rem; color:var(--text);">${match.s1}</div>
                             </div>
                             <div class="team-row" style="min-height:45px; padding:4px 0;">
-                                <span style="font-weight:800; flex:1; color:var(--text); line-height:1.4;">${match.s2 > match.s1 ? '<i data-lucide="trophy" class="trophy-icon" style="width:16px;"></i> ' : ''}${formatTeamName(pTeams[b])}</span>
-                                <div style="width:65px; text-align:center; font-weight:900; font-size:1.6rem; color:var(--text);">${match.s2}</div>
+                                <span style="font-weight:800; color:var(--text); line-height:1.4;">${match.s2 > match.s1 ? '<i data-lucide="trophy" class="trophy-icon" style="width:16px;"></i> ' : ''}${formatTeamName(pTeams[b])}</span>
+                                <div style="width:54px; text-align:center; font-weight:900; font-size:1.35rem; color:var(--text);">${match.s2}</div>
                             </div>
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
                                 <span style="font-size:0.8rem; color:var(--muted); font-weight:800; display:flex; align-items:center; gap:5px;"><i data-lucide="lock" style="width:14px;"></i> FINAL - MANAGER CAN CORRECT</span>
@@ -2284,19 +2285,19 @@
                         const reportB = report.teamB;
                         const isDisputed = reportA && reportB && (reportA.s1 !== reportB.s1 || reportA.s2 !== reportB.s2);
                         inputArea = `
-                            <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; flex:1; color:var(--text);">${formatTeamName(pTeams[a])}</span><div style="width:65px; text-align:center; font-weight:900; font-size:1.4rem;">${reportA ? `${reportA.s1}-${reportA.s2}` : 'Waiting'}</div></div>
-                            <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; flex:1; color:var(--text);">${formatTeamName(pTeams[b])}</span><div style="width:65px; text-align:center; font-weight:900; font-size:1.4rem;">${reportB ? `${reportB.s1}-${reportB.s2}` : 'Waiting'}</div></div>
+                            <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; color:var(--text);">${formatTeamName(pTeams[a])}</span><div style="min-width:54px; text-align:center; font-weight:900; font-size:1.2rem;">${reportA ? `${reportA.s1}-${reportA.s2}` : 'Waiting'}</div></div>
+                            <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; color:var(--text);">${formatTeamName(pTeams[b])}</span><div style="min-width:54px; text-align:center; font-weight:900; font-size:1.2rem;">${reportB ? `${reportB.s1}-${reportB.s2}` : 'Waiting'}</div></div>
                             <div style="margin-top:12px; padding:10px; border-radius:8px; background:${isDisputed ? 'rgba(239,68,68,.12)' : 'var(--row-bg)'}; color:${isDisputed ? 'var(--danger)' : 'var(--muted)'}; font-size:.8rem; font-weight:800;">${isDisputed ? 'SCORE DISPUTED' : 'AWAITING BOTH TEAM REPORTS'}</div>
                             ${isDisputed ? `<div style="display:flex; gap:8px; margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'a')">Accept Team A</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'b')">Accept Team B</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'custom')">Correct Score</button></div>` : ''}
                         `;
                     } else {
                         inputArea = `
                             <div class="team-row" style="min-height:45px; padding:4px 0;">
-                                <span style="font-weight:800; flex:1; color:var(--text); line-height:1.4;">${formatTeamName(pTeams[a])}</span>
+                                <span style="font-weight:800; color:var(--text); line-height:1.4;">${formatTeamName(pTeams[a])}</span>
                                 <input type="number" min="0" id="s1-${mId}" class="score-input">
                             </div>
                             <div class="team-row" style="min-height:45px; padding:4px 0;">
-                                <span style="font-weight:800; flex:1; color:var(--text); line-height:1.4;">${formatTeamName(pTeams[b])}</span>
+                                <span style="font-weight:800; color:var(--text); line-height:1.4;">${formatTeamName(pTeams[b])}</span>
                                 <input type="number" min="0" id="s2-${mId}" class="score-input">
                             </div>
                             <div style="display:flex; justify-content:flex-end; margin-top:12px;">
