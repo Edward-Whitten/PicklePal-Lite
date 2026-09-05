@@ -52,16 +52,19 @@ test.describe('Supabase bridge resilience', () => {
     expect(calls).toBe(1);
   });
 
-  test('maps player check-in callable to player-checkin action', async ({ page }) => {
-    let action = '';
+  test('maps player identify and check-in callables to scoped actions', async ({ page }) => {
+    const actions: string[] = [];
     await page.route('**/functions/v1/tournament-api', async route => {
-      action = (await route.request().postDataJSON()).action;
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'checked-in', teamId: '1', scorePin: '1111' }) });
+      const body = await route.request().postDataJSON();
+      actions.push(body.action);
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sessionToken: 'player-token', status: 'checked-in', playerId: '1:p1', playerSlot: 'p1', teamId: '1', scorePin: '1111' }) });
     });
     await page.goto('/players.html');
-    const result = await page.evaluate(() => window.functions.httpsCallable('checkInPlayer')({ tournament: 'checkin', teamId: 1, playerSlot: 'p1' }));
-    expect(action).toBe('player-checkin');
-    expect(result.data).toEqual({ token: undefined, teamId: '1', state: undefined, scorePin: '1111', status: 'checked-in' });
+    const identity = await page.evaluate(() => window.functions.httpsCallable('playerIdentify')({ tournament: 'checkin', playerName: 'Alexandra Example' }));
+    const result = await page.evaluate(() => window.functions.httpsCallable('checkInPlayer')({ tournament: 'checkin' }));
+    expect(actions).toEqual(['player-identify', 'player-checkin']);
+    expect(identity.data).toMatchObject({ token: 'player-token', playerId: '1:p1', playerSlot: 'p1', teamId: '1' });
+    expect(result.data).toMatchObject({ playerId: '1:p1', playerSlot: 'p1', teamId: '1', scorePin: '1111', status: 'checked-in' });
   });
 
   test('maps Round Robin remove to delete-event action', async ({ page }) => {

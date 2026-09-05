@@ -49,9 +49,11 @@ test.describe('Player and spectator portal', () => {
     await expect(page.locator('#event-tabs')).not.toHaveClass(/hidden/);
     await choosePlayerRole(page);
     await expect(page.getByRole('region', { name: 'Express Player Check-In' })).toBeVisible();
-    await page.getByLabel('Search your name').fill('Alexandra');
+    await page.getByLabel('Search your name').fill('a');
+    await expect(page.locator('#express-player-directory').getByRole('button', { name: 'Check In Me' })).toHaveCount(0);
+    await page.getByLabel('Search your name').fill('Alexandra Verylonglastname');
     await expect(page.locator('#express-player-directory .player-checkin-row')).toHaveCount(1);
-    const checkInButton = page.locator('#express-player-directory').getByRole('button', { name: 'Check In' });
+    const checkInButton = page.locator('#express-player-directory').getByRole('button', { name: 'Check In Me' });
     await expect(checkInButton).toBeVisible();
     const checkInButtonSize = await checkInButton.evaluate(element => {
       const rect = element.getBoundingClientRect();
@@ -62,6 +64,7 @@ test.describe('Player and spectator portal', () => {
     await checkInButton.click();
     await expect(page.locator('#express-pin-delivery')).toContainText("Thanks for checking in, Alexandra! You're ready to play.");
     await expect(page.locator('#express-pin-delivery')).toContainText(`YOUR MATCH SCORE PIN: ${playerAPin}`);
+    await expect(page.locator('#express-player-directory')).toContainText('Checked In');
     const storedFirst = await page.evaluate(code => {
       const team = JSON.parse(localStorage.getItem(`picklepal_tournament_${code}`)!).teams.find((item: any) => item.id === 1);
       return { p1CheckedIn: team.p1CheckedIn, p2CheckedIn: team.p2CheckedIn, checkedIn: team.checkedIn };
@@ -70,8 +73,9 @@ test.describe('Player and spectator portal', () => {
     await page.getByRole('button', { name: 'Pools', exact: true }).click();
     await expect(page.locator('#public-pools .checkin-pill').first()).toContainText('Ready');
     await page.getByRole('button', { name: 'Overview', exact: true }).click();
-    await page.getByLabel('Search your name').fill('Benjamin');
-    await page.locator('#express-player-directory').getByRole('button', { name: 'Check In' }).click();
+    await page.getByLabel('Search your name').fill('Benjamin Example');
+    await page.locator('#express-player-directory').getByRole('button', { name: 'Check In Me' }).click();
+    await expect(page.locator('#express-pin-delivery')).toContainText("Thanks for checking in, Benjamin! You're ready to play.");
     const storedBoth = await page.evaluate(code => {
       const team = JSON.parse(localStorage.getItem(`picklepal_tournament_${code}`)!).teams.find((item: any) => item.id === 1);
       return { p1CheckedIn: team.p1CheckedIn, p2CheckedIn: team.p2CheckedIn, checkedIn: team.checkedIn };
@@ -109,6 +113,11 @@ test.describe('Player and spectator portal', () => {
     await firstCard.getByLabel('Opponent').fill('7');
     await firstCard.getByRole('button', { name: 'Submit final score' }).click();
     await expect(page.locator('#score-confirm-overlay')).toHaveClass(/active/);
+    const contrast = await page.locator('#score-confirm-value').evaluate(element => {
+      const style = getComputedStyle(element);
+      return { color: style.color, background: getComputedStyle(document.querySelector('#score-confirm-overlay')!).backgroundColor };
+    });
+    expect(contrast.color).toBe('rgb(248, 250, 252)');
     await page.keyboard.press('Escape');
     await expect(page.locator('#score-confirm-overlay')).not.toHaveClass(/active/);
     await firstCard.getByRole('button', { name: 'Submit final score' }).click();

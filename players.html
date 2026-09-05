@@ -65,7 +65,7 @@
         .score-status { display:flex; align-items:center; gap:8px; margin-top:14px; padding:11px 12px; border-radius:7px; font:800 .78rem/1.35 'Inter',sans-serif; }.score-status.win { color:#bbf7d0; background:rgba(34,197,94,.14); border:1px solid rgba(34,197,94,.35); }.score-status.loss { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-status.waiting { color:#dbeafe; background:rgba(59,130,246,.12); border:1px solid rgba(59,130,246,.34); }.score-status.disputed { color:#fecaca; background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.35); }.score-error { color:#fecaca; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.34); }.score-edit { width:100%; margin-top:10px; }
         .checkin-card { position:relative; overflow:hidden; margin:18px 0 18px; padding:22px; border:1px solid rgba(34,197,94,.34); border-radius:16px; background:radial-gradient(circle at top left,rgba(34,197,94,.2),transparent 38%), radial-gradient(circle at bottom right,rgba(59,130,246,.16),transparent 42%), linear-gradient(145deg,rgba(15,23,42,.94),rgba(30,41,59,.9)); box-shadow:0 18px 44px rgba(0,0,0,.24), 0 0 38px rgba(34,197,94,.1); }.checkin-card::before { content:""; position:absolute; inset:auto -15% -55% 20%; height:120px; background:radial-gradient(circle,rgba(34,197,94,.22),transparent 62%); pointer-events:none; }.checkin-kicker { margin:0 0 8px; color:#86efac; font:900 .72rem/1 'Inter',sans-serif; letter-spacing:.16em; text-transform:uppercase; }.checkin-card h4 { position:relative; margin:0 0 8px; font-size:clamp(1.35rem,4vw,2rem); line-height:1.04; }.checkin-card p { position:relative; max-width:620px; margin:0 0 18px; color:#cbd5e1; font:700 .95rem/1.5 'Inter',sans-serif; }.checkin-btn { position:relative; width:100%; min-height:54px; border-radius:12px; animation:checkin-pulse 1.8s ease-in-out infinite; }.checkin-btn:active { transform:scale(.98); filter:brightness(1.18); }.checkin-btn.submitting { animation:none; }.checkin-spinner { width:17px; height:17px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite; }.checkin-chip { display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:11px 14px; border:1px solid rgba(34,197,94,.42); border-radius:999px; background:rgba(34,197,94,.14); color:#bbf7d0; font:900 .8rem/1.2 'Inter',sans-serif; box-shadow:0 8px 28px rgba(34,197,94,.16); animation:checkin-done .24s ease-out; }.checkin-dot { display:inline-flex; width:9px; height:9px; margin-right:7px; border-radius:50%; background:var(--success); box-shadow:0 0 12px var(--success); vertical-align:middle; }.checkin-pill { display:inline-flex; align-items:center; gap:6px; margin-left:7px; padding:4px 7px; border-radius:999px; background:rgba(34,197,94,.14); color:#bbf7d0; font:900 .62rem 'Inter',sans-serif; text-transform:uppercase; }.checkin-pill::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 10px var(--success); }body.light-theme .checkin-card { background:radial-gradient(circle at top left,rgba(34,197,94,.16),transparent 38%), radial-gradient(circle at bottom right,rgba(59,130,246,.12),transparent 42%), linear-gradient(145deg,rgba(255,255,255,.96),rgba(241,245,249,.96)); box-shadow:0 18px 44px rgba(15,23,42,.12), 0 0 38px rgba(34,197,94,.1); }body.light-theme .checkin-card p { color:var(--muted); }body.light-theme .checkin-kicker { color:#15803d; }body.light-theme .checkin-chip, body.light-theme .checkin-pill { color:#166534; background:rgba(34,197,94,.16); }@keyframes checkin-pulse { 0%,100% { box-shadow:0 4px 15px rgba(168,85,247,.3), 0 0 0 0 rgba(34,197,94,.28); } 50% { box-shadow:0 10px 28px rgba(34,197,94,.28), 0 0 0 8px rgba(34,197,94,0); } }@keyframes spin { to { transform:rotate(360deg); } }@keyframes checkin-done { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
         .express-checkin { margin:18px 0; padding:0; overflow:hidden; }.express-checkin-head { padding:22px; background:radial-gradient(circle at top left,rgba(34,197,94,.18),transparent 36%), radial-gradient(circle at bottom right,rgba(168,85,247,.16),transparent 42%); border-bottom:1px solid var(--border); }.express-checkin-head h3 { margin:0 0 7px; font-size:clamp(1.4rem,4vw,2rem); line-height:1.05; }.express-checkin-head p { margin:0; color:var(--muted); font:700 .95rem/1.5 'Inter',sans-serif; }.express-search { padding:18px 22px 8px; }.express-search input { width:100%; }.player-directory { display:grid; gap:10px; padding:14px 22px 22px; }.player-checkin-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; min-height:64px; padding:12px; border:1px solid var(--border); border-radius:12px; background:var(--row-bg); }.player-checkin-name { min-width:0; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.player-checkin-team { display:block; margin-top:4px; color:var(--muted); font:700 .72rem/1.3 'Inter',sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.player-checkin-row .btn, .player-checkin-row .checkin-chip { min-width:132px; justify-content:center; }.pin-delivery { border-color:rgba(59,130,246,.42); background:radial-gradient(circle at top right,rgba(59,130,246,.2),transparent 42%), linear-gradient(145deg,rgba(15,23,42,.96),rgba(30,41,59,.9)); }.pin-display { margin:14px 0; padding:16px; border:1px solid rgba(59,130,246,.34); border-radius:12px; background:rgba(59,130,246,.13); color:#dbeafe; text-align:center; font:900 clamp(1.1rem,4vw,1.45rem)/1.2 'Inter',sans-serif; letter-spacing:.08em; }.pin-delivery .btn { width:100%; }body.light-theme .pin-delivery { background:radial-gradient(circle at top right,rgba(59,130,246,.13),transparent 42%), linear-gradient(145deg,rgba(255,255,255,.96),rgba(241,245,249,.96)); }body.light-theme .pin-display { color:#1e3a8a; background:#dbeafe; }
-        .score-confirm-toast { position:fixed; right:20px; bottom:20px; z-index:100; display:none; width:min(420px,calc(100vw - 40px)); padding:18px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.38); }.score-confirm-toast.active { display:block; animation:toast-in .2s ease-out; }.score-confirm-dialog h3 { margin:0 0 5px; }.score-confirm-dialog p { margin:0; color:var(--muted); line-height:1.45; }.score-confirm-value { margin:14px 0; color:var(--text); font:900 1.8rem/1 'Inter',sans-serif; }.score-confirm-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }@keyframes toast-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .score-confirm-toast { position:fixed; right:20px; bottom:20px; z-index:100; display:none; width:min(420px,calc(100vw - 40px)); padding:18px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); color:#f8fafc; box-shadow:0 20px 50px rgba(0,0,0,.38); }.score-confirm-toast.active { display:block; animation:toast-in .2s ease-out; }.score-confirm-dialog h3 { margin:0 0 5px; color:#f8fafc; }.score-confirm-dialog p { margin:0; color:#cbd5e1; line-height:1.45; }.score-confirm-value { margin:14px 0; color:#f8fafc; font:900 1.8rem/1 'Inter',sans-serif; }.score-confirm-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }@keyframes toast-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
         .score-notice-toast { position:fixed; right:20px; bottom:20px; z-index:101; display:none; width:min(420px,calc(100vw - 40px)); padding:14px 16px; border:1px solid rgba(34,197,94,.42); border-radius:8px; background:linear-gradient(145deg,rgba(15,23,42,.98),rgba(30,41,59,.98)); box-shadow:0 20px 50px rgba(0,0,0,.38); color:#dcfce7; font:800 .88rem/1.35 'Inter',sans-serif; }.score-notice-toast.active { display:flex; align-items:center; gap:9px; animation:toast-in .2s ease-out; }.score-notice-toast.disputed { border-color:rgba(239,68,68,.5); color:#fecaca; }
         .score-panel h3 { margin:0 0 8px; }
         .score-panel p { margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif; }
@@ -183,6 +183,7 @@
     let selectedPoolIndex = 0;
     let resolveScoreConfirmation = null;
     let scoreNoticeTimer = null;
+    let selectedCheckInEntry = null;
     const submittingScores = new Set();
     let portalRole = localStorage.getItem('picklepal_portal_role') || '';
 
@@ -437,10 +438,20 @@
         const directory = document.getElementById('express-player-directory');
         if (!directory) return;
         const needle = String(filter || '').trim().toLowerCase();
-        const entries = playerEntries().filter(entry => !needle || entry.name.toLowerCase().includes(needle));
+        selectedCheckInEntry = null;
+        if (!needle) {
+            directory.innerHTML = '<p style="margin:0; color:var(--muted); font-weight:800;">Search your own first and last name to check in.</p>';
+            lucide.createIcons();
+            return;
+        }
+        const entries = playerEntries().filter(entry => entry.name.toLowerCase().includes(needle)).slice(0, 8);
+        const exactEntries = playerEntries().filter(entry => entry.name.toLowerCase() === needle);
+        if (exactEntries.length === 1) selectedCheckInEntry = exactEntries[0];
         directory.innerHTML = entries.length ? entries.map(entry => {
             const checked = playerCheckedIn(entry.team, entry.slot);
-            return `<div class="player-checkin-row"><div><div class="player-checkin-name" title="${entry.name}">${entry.name}</div><span class="player-checkin-team">Partner: ${entry.partner}</span></div>${checked ? '<span class="checkin-chip"><i data-lucide="check"></i> Checked In</span>' : `<button class="btn checkin-btn" onclick="checkInPlayer(${entry.team.id}, '${entry.slot}', this)"><i data-lucide="check"></i> Check In</button>`}</div>`;
+            const exact = selectedCheckInEntry && selectedCheckInEntry.team.id === entry.team.id && selectedCheckInEntry.slot === entry.slot;
+            const action = checked ? '<span class="checkin-chip"><i data-lucide="check"></i> Checked In</span>' : exact ? '<button class="btn checkin-btn" onclick="checkInSelectedPlayer(this)"><i data-lucide="check"></i> Check In Me</button>' : '<span class="checkin-chip" style="border-color:var(--border); background:var(--row-bg); color:var(--muted); box-shadow:none;">Name match</span>';
+            return `<div class="player-checkin-row"><div><div class="player-checkin-name" title="${entry.name}">${entry.name}</div><span class="player-checkin-team">Partner: ${entry.partner}</span></div>${action}</div>`;
         }).join('') : '<p style="margin:0; color:var(--muted); font-weight:800;">No registered player matches that search.</p>';
         lucide.createIcons();
     }
@@ -468,27 +479,37 @@
         document.querySelector('.score-panel:not(.hidden)')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
-    async function checkInPlayer(teamId, slot, button) {
-        const entry = playerEntries().find(item => String(item.team.id) === String(teamId) && item.slot === slot);
+    async function checkInSelectedPlayer(button) {
+        const entry = selectedCheckInEntry;
         if (!entry || playerCheckedIn(entry.team, entry.slot)) return;
         if (button) { button.disabled = true; button.classList.add('submitting'); button.innerHTML = '<span class="checkin-spinner"></span> Checking in...'; }
-        entry.team[`${entry.slot}CheckedIn`] = true;
-        refreshTeamCheckIn(entry.team);
-        state.updatedAt = Date.now();
-        syncPending = true;
-        try {
-            localStorage.setItem(`picklepal_pending_sync_${tournamentSlug}`, 'true');
-            localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
-        } catch (error) { console.warn('Check-in local persistence unavailable:', error.message); }
         let scorePin = entry.team.pin || '';
         if (functions && tournamentSlug) {
             try {
-                const result = await functions.httpsCallable('checkInPlayer')({ tournament: tournamentSlug, teamId: entry.team.id, playerSlot: entry.slot });
+                const identity = await functions.httpsCallable('playerIdentify')({ tournament: tournamentSlug, playerName: entry.name });
+                if (auth && identity.data.token) await auth.signInWithCustomToken(identity.data.token);
+                const result = await functions.httpsCallable('checkInPlayer')({ tournament: tournamentSlug });
                 scorePin = result.data.scorePin || scorePin;
+                if (result.data.state && Array.isArray(result.data.state.teams)) state = result.data.state;
+                else {
+                    entry.team[`${entry.slot}CheckedIn`] = true;
+                    refreshTeamCheckIn(entry.team);
+                }
+                state.updatedAt = Date.now();
                 syncPending = false;
                 localStorage.removeItem(`picklepal_pending_sync_${tournamentSlug}`);
-            } catch (error) { syncPending = true; syncPlayerState(); }
-        } else syncPlayerState();
+                localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state));
+            } catch (error) {
+                if (button) { button.disabled = false; button.classList.remove('submitting'); button.innerHTML = '<i data-lucide="check"></i> Check In Me'; lucide.createIcons(); }
+                return showScoreNotice(error.message || 'Check-in failed. Ask the organizer for help.', true);
+            }
+        } else {
+            entry.team[`${entry.slot}CheckedIn`] = true;
+            refreshTeamCheckIn(entry.team);
+            state.updatedAt = Date.now();
+            syncPending = true;
+            syncPlayerState();
+        }
         renderPublicPools();
         renderPublicStandings();
         renderExpressCheckIn(document.getElementById('express-player-search')?.value || '');
@@ -504,7 +525,7 @@
     function checkInMarkup(team) {
         if (!team) return '';
         if (team.checkedIn) return '<div id="player-checkin-card" class="checkin-card"><span class="checkin-chip"><i data-lucide="check"></i> Checked In & Ready for Court Assignment</span></div>';
-        return `<div id="player-checkin-card" class="checkin-card"><p class="checkin-kicker">Player self check-in</p><h4>Welcome! Are you at the courts and ready to play?</h4><p>Check in your team so the organizer can confirm you are on site before court assignments begin.</p><button id="player-checkin-button" class="btn checkin-btn" onclick="checkInTeam(this)"><i data-lucide="check"></i> Check In My Team</button></div>`;
+        return `<div id="player-checkin-card" class="checkin-card"><p class="checkin-kicker">Player self check-in</p><h4>Welcome! Are you at the courts and ready to play?</h4><p>Individual check-in happens by searching your own name above. One player cannot check in a partner or another team.</p></div>`;
     }
 
     async function checkInTeam(button) {

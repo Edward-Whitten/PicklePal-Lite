@@ -33,13 +33,14 @@ export function tournamentState() {
 
 export async function seedTournament(page: Page, options: { manager?: boolean; player?: boolean } = {}) {
   const state = tournamentState();
+  let identifiedPlayer: { teamId: string; playerSlot: 'p1' | 'p2'; playerId: string } | null = null;
   await page.route('**/functions/v1/tournament-api', async route => {
     const rawBody = route.request().postData();
     if (!rawBody) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
       return;
     }
-    const body = JSON.parse(rawBody) as { action?: string; tournament?: string; adminPin?: string; playerPin?: string; state?: unknown };
+    const body = JSON.parse(rawBody) as { action?: string; tournament?: string; adminPin?: string; playerPin?: string; playerName?: string; state?: unknown };
     if (body.action === 'public') {
       await route.abort();
       return;
@@ -58,7 +59,32 @@ export async function seedTournament(page: Page, options: { manager?: boolean; p
         await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Incorrect tournament code or player PIN.' }) });
         return;
       }
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sessionToken: 'player-token', teamId: String(team.id), state }) });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sessionToken: 'player-token', teamId: String(team.id), playerId: `${team.id}:score`, state }) });
+      return;
+    }
+    if (body.action === 'player-identify') {
+      const needle = String(body.playerName || '').trim().toLowerCase();
+      const entries = state.teams.flatMap(team => [
+        { team, teamId: String(team.id), playerSlot: 'p1' as const, playerId: `${team.id}:p1`, name: team.p1 },
+        { team, teamId: String(team.id), playerSlot: 'p2' as const, playerId: `${team.id}:p2`, name: team.p2 },
+      ]).filter(entry => entry.name.toLowerCase() === needle);
+      if (entries.length !== 1) {
+        await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Player not found.' }) });
+        return;
+      }
+      identifiedPlayer = entries[0];
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ sessionToken: 'player-identify-token', teamId: identifiedPlayer.teamId, playerId: identifiedPlayer.playerId, playerSlot: identifiedPlayer.playerSlot, team: identifiedPlayer.team }) });
+      return;
+    }
+    if (body.action === 'player-checkin') {
+      if (!identifiedPlayer) {
+        await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Authentication required.' }) });
+        return;
+      }
+      const team = state.teams.find(item => String(item.id) === identifiedPlayer!.teamId)!;
+      team[`${identifiedPlayer.playerSlot}CheckedIn`] = true;
+      team.checkedIn = Boolean(team.p1CheckedIn && team.p2CheckedIn);
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'checked-in', teamId: identifiedPlayer.teamId, playerId: identifiedPlayer.playerId, playerSlot: identifiedPlayer.playerSlot, scorePin: team.pin, teamCheckedIn: team.checkedIn, stranded: team.p1CheckedIn !== team.p2CheckedIn }) });
       return;
     }
     if (body.action === 'delete-event') {

@@ -76,4 +76,31 @@ test.describe('Home and manager workspace', () => {
     await page.keyboard.press('Escape');
     await expect(page.locator('#app-modal')).not.toHaveClass(/active/);
   });
+
+  test('manager can reform stranded players before start and reform locks after start', async ({ page }) => {
+    await seedTournament(page, { manager: true });
+    await page.addInitScript(({ code }) => {
+      const key = `picklepal_tournament_${code}`;
+      const state = JSON.parse(localStorage.getItem(key)!);
+      state.expectedTeams = 6;
+      state.stranded = ['Loose One', 'Loose Two'];
+      state.tournamentStarted = false;
+      localStorage.setItem(key, JSON.stringify(state));
+    }, { code: tournamentCode });
+    await page.goto('/index.html');
+    await openManagerTab(page, 'roster');
+    await page.locator('.s-check').nth(0).check();
+    await page.locator('.s-check').nth(1).check();
+    await page.getByRole('button', { name: 'Form New Team' }).click();
+    await expect(page.locator('#roster-list .team-row-entry')).toHaveCount(5);
+    await page.evaluate(() => {
+      state.tournamentStarted = true;
+      state.stranded = ['Late One', 'Late Two'];
+      renderRoster();
+    });
+    await page.locator('.s-check').nth(0).check();
+    await page.locator('.s-check').nth(1).check();
+    await page.getByRole('button', { name: 'Form New Team' }).click();
+    await expect(page.locator('#modal-title')).toHaveText('Tournament Started');
+  });
 });

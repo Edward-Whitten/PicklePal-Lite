@@ -105,12 +105,12 @@
     }; } };
     window.auth = { currentUser: sessionToken ? { uid: `${currentRole}:${currentTournament}` } : null, signInWithCustomToken: async function (token) { sessionToken = token; this.currentUser = { uid: `${currentRole}:${currentTournament}` }; } };
     window.functions = { httpsCallable: function (name) { return async function (payload) {
-        const map = { createTournament:'create', adminSession:'admin-login', playerSession:'player-login', saveTournamentState:'admin-save', submitScoreReport:'score-report', checkInTeam:'player-checkin', checkInPlayer:'player-checkin' };
+        const map = { createTournament:'create', adminSession:'admin-login', playerSession:'player-login', playerIdentify:'player-identify', saveTournamentState:'admin-save', submitScoreReport:'score-report', checkInTeam:'player-checkin', checkInPlayer:'player-checkin' };
         const data = await call(map[name] || name, { ...payload, tournament: payload.tournament || payload.nickname || currentTournament, kind: payload.kind || 'tournament' });
         if (name === 'createTournament') remember(data, 'admin', payload.nickname);
         if (name === 'adminSession') remember(data, 'admin', payload.tournament);
-        if (name === 'playerSession') remember(data, 'player', payload.tournament);
-        return { data: { token: data.sessionToken, teamId: data.teamId, state: data.state, scorePin: data.scorePin, status: data.status } };
+        if (name === 'playerSession' || name === 'playerIdentify') remember(data, 'player', payload.tournament);
+        return { data: { token: data.sessionToken, playerId: data.playerId, playerSlot: data.playerSlot, teamId: data.teamId, team: data.team, state: data.state, scorePin: data.scorePin, status: data.status, teamCheckedIn: data.teamCheckedIn, stranded: data.stranded } };
     }; } };
     window.roundRobinApi = {
         load: payload => call('public', { ...payload, kind: 'round_robin' }),

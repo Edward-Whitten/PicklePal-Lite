@@ -54,6 +54,18 @@ function publicState(state: unknown) {
   return copy;
 }
 
+function playerEntries(state: Record<string, unknown>) {
+  const teams = Array.isArray(state.teams) ? state.teams as Record<string, unknown>[] : [];
+  return teams.filter(team => team.active !== false).flatMap(team => [
+    { team, teamId: String(team.id), playerSlot: 'p1', playerId: `${team.id}:p1`, name: String(team.p1 || 'Player 1'), partner: String(team.p2 || 'Player 2') },
+    { team, teamId: String(team.id), playerSlot: 'p2', playerId: `${team.id}:p2`, name: String(team.p2 || 'Player 2'), partner: String(team.p1 || 'Player 1') },
+  ]);
+}
+
+function playerCheckedIn(team: Record<string, unknown>, playerSlot: string) {
+  return Boolean(team[`${playerSlot}CheckedIn`] || (team.checkedIn && team[`${playerSlot}CheckedIn`] !== false));
+}
+
 function recomputePoolStats(state: Record<string, unknown>) {
   const teams = Array.isArray(state.teams) ? state.teams as Record<string, unknown>[] : [];
   teams.forEach(team => { team.wins = 0; team.losses = 0; team.pf = 0; team.pa = 0; team.pd = 0; });
@@ -130,7 +142,15 @@ Deno.serve(async request => {
     if (action === 'player-login') {
       const { data: access } = await supabase.from('team_access').select('team_id').eq('tournament_id', tournament.id).eq('pin_hash', await hashPin(pin(body.playerPin))).maybeSingle();
       if (!access) return json({ error: 'Incorrect tournament code or player PIN.' }, 403);
-      return json({ sessionToken: await signSession({ tournament: tournamentCode, role: 'player', teamId: access.team_id }), teamId: access.team_id, state: tournament.public_state });
+      return json({ sessionToken: await signSession({ tournament: tournamentCode, tournamentId: tournament.id, role: 'player', teamId: access.team_id, playerId: `${access.team_id}:score` }), teamId: access.team_id, playerId: `${access.team_id}:score`, state: tournament.public_state });
+    }
+    if (action === 'player-identify') {
+      const playerName = String(body.playerName || '').trim().toLowerCase();
+      if (!playerName) throw new Error('Player name is required.');
+      const entries = playerEntries(tournament.public_state || {}).filter(entry => entry.name.trim().toLowerCase() === playerName);
+      if (entries.length !== 1) return json({ error: entries.length ? 'More than one player matches that name. Ask the organizer for help.' : 'Player not found.' }, 403);
+      const entry = entries[0];
+      return json({ sessionToken: await signSession({ tournament: tournamentCode, tournamentId: tournament.id, role: 'player', teamId: entry.teamId, playerId: entry.playerId, playerSlot: entry.playerSlot }), teamId: entry.teamId, playerId: entry.playerId, playerSlot: entry.playerSlot, team: { id: entry.teamId, p1: entry.team.p1, p2: entry.team.p2 }, state: tournament.public_state });
     }
     if (action === 'admin-save') {
       await verifySession(authToken, 'admin', tournamentCode);
@@ -165,22 +185,23 @@ Deno.serve(async request => {
       return json({ status: confirmed ? 'confirmed' : 'pending', state: publicState(nextState) });
     }
     if (action === 'player-checkin') {
-      let session: Record<string, unknown> | null = null;
-      try { session = await verifySession(authToken, 'player', tournamentCode); } catch (error) { session = null; }
-      const requestedTeamId = String(session?.teamId ?? body.teamId ?? '');
-      const playerSlot = body.playerSlot === 'p2' ? 'p2' : body.playerSlot === 'p1' ? 'p1' : null;
+      const session = await verifySession(authToken, 'player', tournamentCode);
+      const requestedTeamId = String(session.teamId || '');
+      const playerSlot = session.playerSlot === 'p2' ? 'p2' : session.playerSlot === 'p1' ? 'p1' : null;
+      if (!playerSlot) return json({ error: 'Use individual player check-in before scoring.' }, 403);
+      if ((body.teamId != null && String(body.teamId) !== requestedTeamId) || (body.playerSlot != null && String(body.playerSlot) !== playerSlot)) return json({ error: 'Players can only check in themselves.' }, 403);
       const nextState = JSON.parse(JSON.stringify(tournament.public_state || {}));
       const teams = Array.isArray(nextState.teams) ? nextState.teams : [];
       const team = teams.find((item: Record<string, unknown>) => String(item.id) === requestedTeamId);
       if (!team) throw new Error('This team is not part of the tournament.');
-      if (playerSlot) team[`${playerSlot}CheckedIn`] = true;
-      else { team.p1CheckedIn = true; team.p2CheckedIn = true; }
+      team[`${playerSlot}CheckedIn`] = true;
       team.checkedIn = Boolean(team.p1CheckedIn && team.p2CheckedIn);
+      nextState.updatedAt = Date.now();
       const { error } = await supabase.from('tournaments').update({ public_state: publicState(nextState), updated_at: new Date().toISOString() }).eq('id', tournament.id);
       if (error) throw error;
       const { data: access } = await supabase.from('team_access').select('score_pin').eq('tournament_id', tournament.id).eq('team_id', requestedTeamId).maybeSingle();
-      await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'player', actor_id: `${requestedTeamId}:${playerSlot || 'team'}`, event_type: 'player_checked_in' });
-      return json({ status: 'checked-in', teamId: requestedTeamId, playerSlot, scorePin: access?.score_pin });
+      await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'player', actor_id: String(session.playerId), event_type: 'player_checked_in', details: { teamId: requestedTeamId, playerSlot } });
+      return json({ status: 'checked-in', teamId: requestedTeamId, playerId: session.playerId, playerSlot, scorePin: access?.score_pin, team, teamCheckedIn: team.checkedIn, stranded: playerCheckedIn(team, 'p1') !== playerCheckedIn(team, 'p2'), state: publicState(nextState) });
     }
     if (action === 'public') return json({ state: tournament.public_state, updatedAt: tournament.updated_at });
     return json({ error: 'Unknown action.' }, 400);

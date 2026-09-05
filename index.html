@@ -1045,7 +1045,7 @@
     };
 
     const DEFAULT_STATE = {
-        appMode: 'tourney', theme: "dark", setupMode: 'manual', poolSize: 5, advancementCount: 8,
+        appMode: 'tourney', theme: "dark", setupMode: 'manual', poolSize: 5, advancementCount: 8, tournamentStarted: false,
         header: { title: "", date: "", loc: "", org: "", man: "", logoDarkTheme: "Compass-Logo-White.png", logoLightTheme: "Compass-Logo-White.png" },
         expectedTeams: "-", allowOddTeams: false, finalsFormat: "bo3", tournamentNickname: "", adminPinHash: "", teams: [], completedMatches: {}, scoreReports: {}, poolCount: 0, poolSchedule: [], courts: {}, stranded: [],
         bracket: { 
@@ -1114,6 +1114,7 @@
         normalized.poolSchedule = Array.isArray(source.poolSchedule) ? source.poolSchedule : [];
         normalized.poolSize = Math.min(8, Math.max(4, Number(source.poolSize) || DEFAULT_STATE.poolSize));
         normalized.advancementCount = Math.min(64, Math.max(4, Number(source.advancementCount) || DEFAULT_STATE.advancementCount));
+        normalized.tournamentStarted = Boolean(source.tournamentStarted || (Array.isArray(source.poolSchedule) && source.poolSchedule.length));
         normalized.rr.fixedSchedule = Array.isArray(normalized.rr.fixedSchedule) ? normalized.rr.fixedSchedule : [];
         normalized.rr.scheduleIndex = Number.isInteger(normalized.rr.scheduleIndex) ? normalized.rr.scheduleIndex : 0;
         normalized.courts = source.courts && typeof source.courts === 'object' ? source.courts : {};
@@ -1921,6 +1922,7 @@
                 }
                 const balancedPools = assignBalancedPools(activeTeams, state.poolCount);
                 state.poolSchedule = buildPoolSchedule(balancedPools);
+                state.tournamentStarted = true;
             }
             
             saveState(); renderRoster(); renderPools();
@@ -1934,6 +1936,7 @@
             if (state.advancementCount > tCount) state.advancementCount = recommendedAdvancementCount(tCount, state.poolSize);
             const pools = assignBalancedPools(activeTeams, state.poolCount);
             state.poolSchedule = buildPoolSchedule(pools);
+            state.tournamentStarted = true;
             saveState(); renderRoster(); renderPools();
             await appAlert(`Generated ${state.poolCount} balanced pools!`, "Pools Generated", "success");
         }
@@ -1991,13 +1994,13 @@
                         <input type="text" id="p1-${t.id}" value="${t.p1}" placeholder="Player 1" ${t.p1Locked ? 'readonly' : ''} style="width:100%;">
                         ${t.p1CheckedIn || (t.checkedIn && t.p1CheckedIn !== false) ? '<span class="badge blue" title="Player checked in">Here</span>' : ''}
                         <button class="btn btn-sm ${t.p1Locked ? 'btn-outline' : 'btn-success'}" style="${t.p1Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p1')" title="${t.p1Locked ? 'Edit' : 'Save'}"><i data-lucide="${t.p1Locked ? 'edit-2' : 'save'}"></i></button>
-                        <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p1')" title="Mark No-Show"><i data-lucide="user-x"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p1')" title="${state.tournamentStarted ? 'No-show reform is locked after tournament start' : 'Mark No-Show'}" ${state.tournamentStarted ? 'disabled' : ''}><i data-lucide="user-x"></i></button>
                     </div>
                     <div style="display:flex; gap:5px; align-items:center;">
                         <input type="text" id="p2-${t.id}" value="${t.p2}" placeholder="Player 2" ${t.p2Locked ? 'readonly' : ''} style="width:100%;">
                         ${t.p2CheckedIn || (t.checkedIn && t.p2CheckedIn !== false) ? '<span class="badge blue" title="Player checked in">Here</span>' : ''}
                         <button class="btn btn-sm ${t.p2Locked ? 'btn-outline' : 'btn-success'}" style="${t.p2Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p2')" title="${t.p2Locked ? 'Edit' : 'Save'}"><i data-lucide="${t.p2Locked ? 'edit-2' : 'save'}"></i></button>
-                        <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p2')" title="Mark No-Show"><i data-lucide="user-x"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p2')" title="${state.tournamentStarted ? 'No-show reform is locked after tournament start' : 'Mark No-Show'}" ${state.tournamentStarted ? 'disabled' : ''}><i data-lucide="user-x"></i></button>
                     </div>
                     <div class="check-in-control"><select onchange="updatePool(${t.id}, this.value)">${Array.from({length: state.poolCount}).map((_, v) => `<option value="${v}" ${t.pool === v ? 'selected' : ''}>Pool ${String.fromCharCode(65+v)}</option>`).join('')}</select><button class="btn btn-sm ${t.checkedIn ? 'btn-success' : 'btn-outline'}" onclick="toggleTeamCheckIn(${t.id})" title="${t.checkedIn ? 'Mark not checked in' : 'Mark checked in'}"><i data-lucide="${t.checkedIn ? 'user-check' : 'user-round-check'}"></i> ${t.checkedIn ? 'Here' : 'Check in'}</button></div>
                 </div>
@@ -2031,7 +2034,10 @@
         saveState(); renderRoster();
     }
 
-    function updatePool(id, val) { state.teams.find(t => t.id === id).pool = parseInt(val); saveState(); }
+    function updatePool(id, val) {
+        if (state.tournamentStarted) return appAlert('Pool changes are locked after tournament start.', 'Tournament Started', 'warning');
+        state.teams.find(t => t.id === id).pool = parseInt(val); saveState();
+    }
 
     function toggleTeamCheckIn(id) {
         const team = state.teams.find(team => team.id === id);
@@ -2043,6 +2049,7 @@
     }
 
     async function markNoShow(id, missingKey) {
+        if (state.tournamentStarted) return await appAlert('No-show and team reform actions are locked after tournament start.', 'Tournament Started', 'warning');
         const t = state.teams.find(team => team.id === id);
         const p1Name = document.getElementById(`p1-${id}`).value.trim();
         const p2Name = document.getElementById(`p2-${id}`).value.trim();
@@ -2073,12 +2080,14 @@
     }
 
     async function removeStranded(index) {
+        if (state.tournamentStarted) return await appAlert('Stranded-player reform is locked after tournament start.', 'Tournament Started', 'warning');
         if(await appConfirm("Remove this player from the tournament entirely?", "Remove Player", "Remove", true)) {
             state.stranded.splice(index, 1); saveState(); renderRoster();
         }
     }
 
     async function formTeamFromStranded() {
+        if (state.tournamentStarted) return await appAlert('Team reform is locked after tournament start.', 'Tournament Started', 'warning');
         if(state.setupMode === 'manual' && state.expectedTeams === '-') return await appAlert("Please select Target Teams first.", "Action Required", "warning");
         const activeCount = state.teams.filter(t => t.active).length;
         
