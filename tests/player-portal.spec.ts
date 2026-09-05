@@ -1,11 +1,28 @@
 import { expect, test } from '@playwright/test';
 import { expectNoHorizontalOverflow, playerAPin, seedTournament, tournamentCode } from './fixtures';
 
+async function choosePlayerRole(page: import('@playwright/test').Page) {
+  await expect(page.getByRole('region', { name: 'Choose portal role' })).toBeVisible();
+  await page.getByRole('button', { name: /Player/ }).click();
+}
+
 test.describe('Player and spectator portal', () => {
+  test('direct QR event links require an explicit role choice and do not inherit stale spectator mode', async ({ page }) => {
+    await seedTournament(page, { player: true });
+    await page.addInitScript(() => localStorage.setItem('picklepal_portal_role', 'spectator'));
+    await page.goto(`/players.html?event=${tournamentCode}`);
+    await expect(page.getByRole('region', { name: 'Choose portal role' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Submit a match score' })).toBeHidden();
+    await page.getByRole('button', { name: /Player/ }).click();
+    await expect(page.getByRole('heading', { name: 'Submit a match score' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Express Player Check-In' })).toBeVisible();
+  });
+
   test('unlocks a player desk and exposes mobile-safe score entry', async ({ page }) => {
     await seedTournament(page, { player: true });
     await page.goto(`/players.html?event=${tournamentCode}`);
     await expect(page.locator('#event-tabs')).not.toHaveClass(/hidden/);
+    await choosePlayerRole(page);
     await page.getByLabel('4-digit player PIN').fill(playerAPin);
     await page.getByRole('button', { name: 'Unlock scores' }).click();
     await expect(page.getByRole('heading', { name: 'Alexandra Verylonglastname & Benjamin Example' })).toBeVisible();
@@ -30,6 +47,7 @@ test.describe('Player and spectator portal', () => {
     }, { code: tournamentCode });
     await page.goto(`/players.html?event=${tournamentCode}`);
     await expect(page.locator('#event-tabs')).not.toHaveClass(/hidden/);
+    await choosePlayerRole(page);
     await expect(page.getByRole('region', { name: 'Express Player Check-In' })).toBeVisible();
     await page.getByLabel('Search your name').fill('Alexandra');
     await expect(page.locator('#express-player-directory .player-checkin-row')).toHaveCount(1);
@@ -76,6 +94,7 @@ test.describe('Player and spectator portal', () => {
     await seedTournament(page, { player: true });
     await page.goto(`/players.html?event=${tournamentCode}`);
     await expect(page.locator('#event-tabs')).not.toHaveClass(/hidden/);
+    await choosePlayerRole(page);
     await page.getByLabel('4-digit player PIN').fill('9999');
     await page.getByRole('button', { name: 'Unlock scores' }).click();
     await expect(page.locator('#player-pin-message')).toContainText('does not match this tournament');

@@ -55,6 +55,10 @@
         .rules li + li { margin-top:8px; }
         .rules a { display:inline-block; margin-top:16px; color:var(--accent); font:800 .9rem 'Inter',sans-serif; }
         .score-panel { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:14px; }
+        .role-gate { display:grid; gap:14px; border-top:4px solid var(--accent-2); }
+        .role-choice-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .role-choice { min-height:70px; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; text-align:left; }
+        .role-choice span { opacity:.8; font-size:.72rem; font-weight:700; white-space:normal; line-height:1.25; }
         .tournament-picker { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:end; border-top:4px solid var(--accent); }
         .tournament-picker input { min-width:220px; }
         .player-match-card { padding:1.25rem; }.player-match-card h4 { margin:0; line-height:1.35; }.score-entry-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }.score-field { display:grid; gap:6px; min-width:0; }.score-field label { color:var(--muted); font:800 .68rem 'Inter',sans-serif; letter-spacing:.08em; text-transform:uppercase; }.score-box { width:100%; min-width:0; min-height:54px; padding:8px; text-align:center; font:900 1.35rem/1 'Inter',sans-serif; font-variant-numeric:tabular-nums; }.score-submit { width:100%; margin-top:12px; }.score-submit.submitting, .btn.submitting { opacity:.78; cursor:wait; filter:saturate(.75); }
@@ -85,7 +89,7 @@
         .private-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
         .private-head h3 { margin:0; }
         .score-desk-exit { width:100%; margin:0 0 16px; justify-content:flex-start; }
-        @media (max-width:640px) { .portal-shell { width:min(100% - 24px,1180px); padding-top:12px; } .portal-header { align-items:flex-start; flex-direction:column; gap:14px; } .portal-header > div:last-child { width:100%; justify-content:flex-start; gap:10px; } .live-badge { padding-top:0; font-size:.65rem; white-space:nowrap; } .brand img { width:50px; height:50px; } .brand h1 { font-size:1.55rem; } .hero { padding-top:28px; } .hero h2 { font-size:1.8rem; line-height:1.02; } .hero p { font-size:.92rem; } .section-heading { margin-top:26px; } .section-heading h3 { font-size:1.15rem; } .section-heading span { font-size:.68rem; } .card { padding:1.25rem; } .pool-card, .express-checkin { padding:0; } .pool-row { grid-template-columns:24px 28px minmax(0,1fr) 44px 38px; min-height:92px; gap:5px; padding:9px 12px; font-size:.79rem; }.pool-row-head { min-height:34px; font-size:.58rem; }.score-panel, .tournament-picker { grid-template-columns:1fr; } .score-panel .btn, .tournament-picker .btn { width:100%; } .tournament-picker input { min-width:0; width:100%; } .player-match-card { padding:1.1rem; }.score-entry-grid { gap:8px; }.score-box { min-height:58px; font-size:1.5rem; }.standing-grid { grid-template-columns:1fr; }.event-tabs { margin-inline:-2px; }.event-tab { min-width:78px; }.player-checkin-row { grid-template-columns:1fr; }.player-checkin-row .btn, .player-checkin-row .checkin-chip { width:100%; } }
+        @media (max-width:640px) { .portal-shell { width:min(100% - 24px,1180px); padding-top:12px; } .portal-header { align-items:flex-start; flex-direction:column; gap:14px; } .portal-header > div:last-child { width:100%; justify-content:flex-start; gap:10px; } .live-badge { padding-top:0; font-size:.65rem; white-space:nowrap; } .brand img { width:50px; height:50px; } .brand h1 { font-size:1.55rem; } .hero { padding-top:28px; } .hero h2 { font-size:1.8rem; line-height:1.02; } .hero p { font-size:.92rem; } .section-heading { margin-top:26px; } .section-heading h3 { font-size:1.15rem; } .section-heading span { font-size:.68rem; } .card { padding:1.25rem; } .pool-card, .express-checkin { padding:0; } .pool-row { grid-template-columns:24px 28px minmax(0,1fr) 44px 38px; min-height:92px; gap:5px; padding:9px 12px; font-size:.79rem; }.pool-row-head { min-height:34px; font-size:.58rem; }.score-panel, .tournament-picker { grid-template-columns:1fr; } .role-choice-grid { grid-template-columns:1fr; } .score-panel .btn, .tournament-picker .btn { width:100%; } .tournament-picker input { min-width:0; width:100%; } .player-match-card { padding:1.1rem; }.score-entry-grid { gap:8px; }.score-box { min-height:58px; font-size:1.5rem; }.standing-grid { grid-template-columns:1fr; }.event-tabs { margin-inline:-2px; }.event-tab { min-width:78px; }.player-checkin-row { grid-template-columns:1fr; }.player-checkin-row .btn, .player-checkin-row .checkin-chip { width:100%; } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0"></script>
     <script src="supabase-config.js"></script>
@@ -106,7 +110,16 @@
             <p id="tournament-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
         </section>
 
-        <section class="card score-panel">
+        <section id="portal-role-gate" class="card role-gate hidden" aria-label="Choose portal role">
+            <div><h3 style="margin:0 0 8px;">How are you joining?</h3><p style="margin:0; color:var(--muted); font:.9rem/1.5 'Inter',sans-serif;">Choose your role for this event. Players can check in and submit scores; spectators can follow results; managers open the protected manager console.</p></div>
+            <div class="role-choice-grid">
+                <button class="btn role-choice" onclick="setPortalRole('player')"><strong>Player</strong><span>Check in, get your PIN, and submit scores.</span></button>
+                <button class="btn role-choice" onclick="setPortalRole('spectator')"><strong>Spectator</strong><span>View pools, standings, and bracket only.</span></button>
+                <button class="btn role-choice" onclick="setPortalRole('manager')"><strong>Manager</strong><span>Open manager login for this event.</span></button>
+            </div>
+        </section>
+
+        <section id="score-entry-panel" class="card score-panel hidden">
             <div><h3>Submit a match score</h3><p>Enter your PIN to report your team score. The opponent confirms by submitting the same final score; organizer corrections are available for mistakes.</p></div>
             <div><input type="text" id="player-pin-input" placeholder="4-digit PIN" inputmode="numeric" pattern="[0-9]*" maxlength="4" aria-label="4-digit player PIN"><button id="player-pin-submit" class="btn" onclick="loginPlayer()">Unlock scores</button></div>
             <p id="player-pin-message" style="grid-column:1/-1; min-height:1.3rem; margin:0; color:var(--danger); font:700 .85rem 'Inter',sans-serif;"></p>
@@ -171,7 +184,7 @@
     let resolveScoreConfirmation = null;
     let scoreNoticeTimer = null;
     const submittingScores = new Set();
-    const portalRole = localStorage.getItem('picklepal_portal_role') || 'player';
+    let portalRole = localStorage.getItem('picklepal_portal_role') || '';
 
     function toggleTheme() {
         const isLight = document.body.classList.toggle('light-theme');
@@ -182,6 +195,30 @@
         localStorage.removeItem('picklepal_portal_role');
         localStorage.removeItem('picklepal_portal_nickname');
         window.location.href = '/';
+    }
+
+    function setPortalRole(role) {
+        if (role === 'manager') {
+            if (tournamentSlug) localStorage.setItem('picklepal_portal_nickname', tournamentSlug);
+            window.location.href = '/index.html';
+            return;
+        }
+        portalRole = role === 'spectator' ? 'spectator' : 'player';
+        localStorage.setItem('picklepal_portal_role', portalRole);
+        if (tournamentSlug) localStorage.setItem('picklepal_portal_nickname', tournamentSlug);
+        applyPortalRole();
+    }
+
+    function applyPortalRole() {
+        const hasTournament = Boolean(tournamentSlug && Array.isArray(state.teams));
+        const roleGate = document.getElementById('portal-role-gate');
+        const scorePanel = document.getElementById('score-entry-panel');
+        const finder = document.getElementById('player-finder');
+        const checkIn = document.getElementById('express-checkin');
+        if (roleGate) roleGate.classList.toggle('hidden', !hasTournament || portalRole === 'player' || portalRole === 'spectator');
+        if (scorePanel) scorePanel.classList.toggle('hidden', !hasTournament || portalRole !== 'player');
+        if (finder) finder.classList.toggle('hidden', !hasTournament || portalRole !== 'player');
+        if (checkIn) checkIn.classList.toggle('hidden', !hasTournament || portalRole !== 'player');
     }
 
     function normalizeTournamentNickname(value) { return value.trim().toLowerCase(); }
@@ -284,15 +321,14 @@
         const finder = document.getElementById('player-finder');
         const dashboard = document.getElementById('player-dashboard');
         if (overview && finder && dashboard) overview.append(finder, dashboard);
-        document.getElementById('express-checkin')?.classList.remove('hidden');
-        if(portalRole === 'player') finder?.classList.remove('hidden');
+        applyPortalRole();
         renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); renderExpressCheckIn();
         setTournamentLoading(false);
         if (loadedFromLocal || liveSubscriptionStarted) return;
         liveSubscriptionStarted = true;
         tournamentRef.on('value', snapshot => {
             const remote = snapshot.val();
-            if(remote && Array.isArray(remote.teams) && (!syncPending || Number(remote.updatedAt || 0) >= Number(state.updatedAt || 0))) { state = remote; localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); renderExpressCheckIn(document.getElementById('express-player-search')?.value || ''); if(loggedInTeam) renderPlayerSchedule(); }
+            if(remote && Array.isArray(remote.teams) && (!syncPending || Number(remote.updatedAt || 0) >= Number(state.updatedAt || 0))) { state = remote; localStorage.setItem(tournamentStateKey(tournamentSlug), JSON.stringify(state)); applyPortalRole(); renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); renderExpressCheckIn(document.getElementById('express-player-search')?.value || ''); if(loggedInTeam) renderPlayerSchedule(); }
         });
     }
 
@@ -303,14 +339,17 @@
     try {
         const sharedTournament = new URLSearchParams(window.location.search).get('event');
         const preferredTournament = sharedTournament || localStorage.getItem('picklepal_portal_nickname') || localStorage.getItem('picklepal_active_tournament');
+        if (sharedTournament) {
+            portalRole = '';
+            localStorage.removeItem('picklepal_portal_role');
+        }
         if(preferredTournament) {
             const input = document.getElementById('tournament-nickname');
             if (input) input.value = preferredTournament;
             if(sharedTournament) loadTournament();
         }
     } catch (error) {}
-
-    if(portalRole === 'spectator') document.querySelector('.score-panel')?.classList.add('hidden');
+    applyPortalRole();
 
     function findPlayerMatches() {
         const name = document.getElementById('player-name-input')?.value.trim().toLowerCase() || '';
