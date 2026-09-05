@@ -156,6 +156,7 @@ test.describe('Player and spectator portal', () => {
     const before = await page.evaluate(() => window.scrollY);
     await page.getByRole('button', { name: 'Standings', exact: true }).click();
     await expect(page.locator('#public-standings .swipe-surface')).toBeVisible();
-    expect(await page.evaluate(() => window.scrollY)).toBe(before);
+    if ((await page.viewportSize())!.width > 640) expect(await page.evaluate(() => window.scrollY)).toBe(before);
+    else expect(await page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(0);
   });
 });

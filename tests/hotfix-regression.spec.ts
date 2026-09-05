@@ -18,6 +18,16 @@ function teams(count: number) {
   }));
 }
 
+async function openManagerSection(page: import('@playwright/test').Page, section: 'roster' | 'competition' | 'bracket') {
+  const width = (await page.viewportSize())?.width || 1280;
+  if (section === 'roster') {
+    await (width <= 640 ? page.locator('#mob-nav-roster') : page.getByRole('button', { name: 'Check-In' })).click();
+    return;
+  }
+  await (width <= 640 ? page.locator('#mob-nav-pools') : page.getByRole('button', { name: 'Competition' })).click();
+  if (section === 'bracket') await page.getByRole('tab', { name: 'Bracket' }).click();
+}
+
 test.describe('production hotfix regressions', () => {
   test('loads the active scoped tournament instead of legacy tournament state', async ({ page }) => {
     const tournamentA = { ...tournamentState(), tournamentNickname: 'alpha', header: { ...tournamentState().header, title: 'Alpha Event' }, teams: teams(2) };
@@ -30,7 +40,7 @@ test.describe('production hotfix regressions', () => {
     }, { a: tournamentA, b: tournamentB, code: tournamentCode });
     await page.goto('/index.html');
     await expect(page.locator('#head-title')).toHaveValue('Scoped Event');
-    await page.getByRole('button', { name: 'Check-In' }).click();
+    await openManagerSection(page, 'roster');
     await expect(page.locator('#roster-list .team-row-entry')).toHaveCount(4);
   });
 
@@ -68,7 +78,7 @@ test.describe('production hotfix regressions', () => {
       localStorage.setItem('picklepal_admin_session', code);
     }, { code: tournamentCode, state });
     await page.goto('/index.html');
-    await page.getByRole('button', { name: 'Check-In' }).click();
+    await openManagerSection(page, 'roster');
     await expect(page.locator('#pool-size-select')).toHaveValue('5');
     await page.getByRole('button', { name: 'Randomly Assign Pools' }).click();
     await expect(page.locator('#modal-title')).toHaveText('Pools Generated');
@@ -87,8 +97,7 @@ test.describe('production hotfix regressions', () => {
       localStorage.setItem('picklepal_admin_session', code);
     }, { code: tournamentCode, state });
     await page.goto('/index.html');
-    await page.getByRole('button', { name: 'Competition' }).click();
-    await page.getByRole('tab', { name: 'Bracket' }).click();
+    await openManagerSection(page, 'bracket');
     await page.getByRole('button', { name: 'Seed Bracket' }).click();
     await expect(page.locator('#modal-title')).toHaveText('Bracket Generated');
     await expect(page.locator('#bracket-ui')).toContainText('Semifinal 1');

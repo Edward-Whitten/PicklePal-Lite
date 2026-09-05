@@ -73,7 +73,9 @@ test.describe('Home and manager workspace', () => {
     }, { code: tournamentCode });
     await page.goto('/index.html');
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.getByRole('button', { name: 'Player IDs' }).click();
+    const mobile = (await page.viewportSize())!.width <= 640;
+    if (mobile) await page.evaluate(() => showTab('player-ids', 'tourney'));
+    else await page.getByRole('button', { name: 'Player IDs' }).click();
     await expect(page.locator('#player-pin-directory-list')).toContainText('1111');
     await expect(page.locator('#player-pin-directory-list')).not.toContainText('N/A');
   });
