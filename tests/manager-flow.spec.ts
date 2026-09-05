@@ -143,6 +143,20 @@ test.describe('Home and manager workspace', () => {
     expect(layout.nameWidth).toBeGreaterThan(layout.inputWidth * 3);
   });
 
+  test('manager pool cards fit two per row at constrained desktop width', async ({ page }) => {
+    await page.setViewportSize({ width: 1197, height: 900 });
+    await seedTournament(page, { manager: true });
+    await page.goto('/index.html');
+    await openManagerTab(page, 'pools');
+    const cards = await page.locator('#pool-container .match-card').evaluateAll(elements => elements.slice(0, 2).map(element => {
+      const rect = element.getBoundingClientRect();
+      return { top: Math.round(rect.top), width: Math.round(rect.width) };
+    }));
+    expect(cards).toHaveLength(2);
+    expect(cards[0].top).toBe(cards[1].top);
+    expect(cards[0].width).toBeLessThan(430);
+  });
+
   test('manager can reform stranded players before start and reform locks after start', async ({ page }) => {
     await seedTournament(page, { manager: true });
     await page.addInitScript(({ code }) => {

@@ -180,8 +180,8 @@
         .registration-meter { flex:0 1 240px; min-width:220px; text-align:right; }
 
         .pool-header { font-size: 1.8rem; font-weight: 900; color: var(--accent); margin-bottom: 1.5rem; border-left: 6px solid var(--accent); padding-left: 15px; letter-spacing: -0.5px; }
-        .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem; }
-        .match-card { background: var(--card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border); position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.04); transition: 0.3s; }
+        .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 1rem; align-items:start; }
+        .match-card { background: var(--card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border); position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.04); transition: 0.3s; }
         .match-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
         .team-row { display: grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items: center; padding: 8px 0; min-height: 55px; }
         .team-row > span { min-width:0; overflow:hidden; text-overflow:ellipsis; }
@@ -511,7 +511,7 @@
             .competition-tabs { top:70px; grid-template-columns:1fr; }
             .competition-tab { justify-content:flex-start; padding:0 14px; }
             .pool-grid { grid-template-columns: 1fr; gap: 1rem; }
-            .match-card { padding: 1.2rem; }
+            .match-card { padding: 1rem; }
             .score-input { width: 52px; max-width:52px; height: 46px; font-size: 1.2rem; margin-left: 0; }
 
             /* STANDINGS TABLE */
