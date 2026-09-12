@@ -2806,8 +2806,8 @@
         }
 
         ui.innerHTML = `
-            <div class="bracket-wrapper">
-                <div class="bracket-container">
+            <div class="bracket-wrapper" style="width: 100%; max-width: 100vw; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 30px;">
+                <div class="bracket-container" style="min-width: 1400px; padding-right: 50px;">
                     ${r32HTML !== '' ? `<div class="bracket-column">${r32HTML}</div>` : ''}
                     ${r16HTML !== '' ? `<div class="bracket-column">${r16HTML}</div>` : ''}
                     ${qfHTML !== '' ? `<div class="bracket-column">${qfHTML}</div>` : ''}
