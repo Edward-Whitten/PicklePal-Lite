@@ -223,6 +223,8 @@
         .competition-panel-head { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
         .competition-panel-head h3 { margin:0; font-size:1.6rem; font-weight:900; }
         .competition-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .pool-admin-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:14px; margin-top:14px; border-top:1px dashed var(--border); }
+        .pool-admin-actions .btn-sm { font-size:.8rem; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; color: var(--muted); padding: 14px 12px; border-bottom: 2px solid var(--border); font-size: 0.85rem; text-transform: uppercase; font-weight: 900; letter-spacing: 0.5px; }
         td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-weight: 600; }
@@ -847,6 +849,10 @@
                                 <span class="muted" id="pool-count-label" style="font-size:1rem; font-weight:800;">- Pools Active</span>
                             </div>
                         </div>
+                    </div>
+                    <div class="pool-admin-actions">
+                        <button class="btn btn-outline btn-sm" onclick="resetPoolScores()" title="Clear all entered pool play scores without touching teams or pool assignments"><i data-lucide="eraser"></i> Reset Scores</button>
+                        <button class="btn btn-danger btn-sm" onclick="randomizePools()" title="Reshuffle teams into new pools and clear pool play progress"><i data-lucide="shuffle"></i> Randomize Pools</button>
                     </div>
                     <div id="manager-pool-tabs" class="manager-pool-tabs" aria-label="Pool selector"></div>
                     <div id="pool-container"></div>
@@ -2064,6 +2070,49 @@
             saveState(); renderRoster(); renderPools();
             await appAlert(`Generated ${state.poolCount} balanced pools!`, "Pools Generated", "success");
         }
+    }
+
+    // Soft reset: clears pool play results only. Teams, pool assignments, and the bracket are untouched.
+    async function resetPoolScores() {
+        const matchCount = Object.keys(state.completedMatches || {}).length;
+        const reportCount = Object.keys(state.scoreReports || {}).length;
+        if (!matchCount && !reportCount) return await appAlert("There are no pool play scores to reset.", "Nothing To Reset", "info");
+
+        if (!await appConfirm("Are you sure you want to clear all match scores? This cannot be undone.", "Reset Scores", "Reset Scores", true)) return;
+
+        state.completedMatches = {};
+        state.scoreReports = {};
+        recomputePoolStats();
+        saveState(); renderRoster(); renderPools(); renderStandings();
+        await appAlert("All pool play scores have been cleared. Matches are back to pending.", "Scores Reset", "success");
+    }
+
+    // Soft reset: reshuffles active teams into new pools and clears stale pool play results.
+    // Teams and the tournament record are never deleted; the bracket (if seeded) is untouched here
+    // and should be re-seeded separately via Generate Bracket once new pool play concludes.
+    async function randomizePools() {
+        const activeTeams = state.teams.filter(t => t.active);
+        if (activeTeams.length < 4) return await appAlert("At least 4 active teams are required to randomize pools.", "Not Enough Teams", "warning");
+
+        const typed = await appPrompt("This will erase any current pool play progress and reassign all teams. Type RANDOMIZE to confirm.", "Randomize Pools", "RANDOMIZE", "Randomize Pools");
+        if (typed !== 'RANDOMIZE') return;
+
+        for (let i = activeTeams.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [activeTeams[i], activeTeams[j]] = [activeTeams[j], activeTeams[i]];
+        }
+        const poolCount = Math.max(1, Number(state.poolCount) || getOptimalPoolSizes(activeTeams.length, state.poolSize).length || 1);
+        const pools = assignBalancedPools(activeTeams, poolCount);
+        state.poolCount = poolCount;
+        state.poolSchedule = buildPoolSchedule(pools);
+        state.completedMatches = {};
+        state.scoreReports = {};
+        state.courts = {};
+        state.tournamentStarted = true;
+        recomputePoolStats();
+        activeManagerPoolIndex = 0;
+        saveState(); renderRoster(); renderPools(); renderStandings();
+        await appAlert(`Teams reshuffled into ${poolCount} new pools. Pool play scores were cleared.`, "Pools Randomized", "success");
     }
 
     function renderRoster() {
