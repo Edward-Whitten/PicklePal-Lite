@@ -84,7 +84,6 @@ test.describe('Tournament status controls and edit-lock enforcement', () => {
       (window as any).appAlert = async () => true;
       await startTournament();
       const lockedDuringActive = !deepEditsAllowed();
-      const bracketDisabledDuringActive = (document.getElementById('seed-bracket-btn') as HTMLButtonElement).disabled;
       const csvDisabledDuringActive = (document.getElementById('csv-upload') as HTMLButtonElement).disabled;
 
       await pauseTournament();
@@ -93,19 +92,15 @@ test.describe('Tournament status controls and edit-lock enforcement', () => {
       return {
         status: state.status,
         lockedDuringActive,
-        bracketDisabledDuringActive,
         csvDisabledDuringActive,
         unlockedAfterPause,
-        bracketEnabledAfterPause: !(document.getElementById('seed-bracket-btn') as HTMLButtonElement).disabled,
       };
     });
 
     expect(result.lockedDuringActive).toBe(true);
-    expect(result.bracketDisabledDuringActive).toBe(true);
     expect(result.csvDisabledDuringActive).toBe(true);
     expect(result.unlockedAfterPause).toBe(true);
     expect(result.status).toBe('paused');
-    expect(result.bracketEnabledAfterPause).toBe(true);
   });
 
   test('pausing to edit teams and re-seed the bracket does not regress pool play scores', async ({ page }) => {

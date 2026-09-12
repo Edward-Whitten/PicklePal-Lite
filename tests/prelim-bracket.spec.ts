@@ -45,6 +45,8 @@ function sixPoolState() {
     advancementCount: 20,
     poolCount: POOL_COUNT,
     teams,
+    // Satisfies generateBracket's pool-play-readiness gate (0 open reports, at least one final score).
+    completedMatches: { 'm-1-2': { s1: 11, s2: 7, teamAId: 1, teamBId: 2, status: 'confirmed', resolvedBy: 'teams', resolvedAt: new Date().toISOString() } },
   } as ReturnType<typeof tournamentState>;
 }
 
@@ -106,7 +108,7 @@ test.describe('20-team preliminary round bracket', () => {
     expect(result.r16Filled).toBe(12);
     // Pool play data must survive bracket seeding untouched.
     expect(result.teamCount).toBe(POOL_COUNT * TEAMS_PER_POOL);
-    expect(result.completedMatchCount).toBe(0);
+    expect(result.completedMatchCount).toBe(1);
   });
 
   test('qualifiers are the top 3 per pool plus the two best fourth-place teams', async ({ page }) => {

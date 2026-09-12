@@ -108,7 +108,7 @@ test.describe('Home and manager workspace', () => {
     await expect(page.locator('#overall-standings-list')).toContainText('bracket spots');
     await page.getByRole('tab', { name: 'Bracket' }).click();
     await expect(page.locator('#competition-pane-bracket')).toHaveClass(/active/);
-    await expect(page.getByRole('button', { name: 'Seed Bracket' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Generate Bracket' })).toBeVisible();
   });
 
   test('manager Pool Play uses pool tabs instead of one endless match list', async ({ page }) => {

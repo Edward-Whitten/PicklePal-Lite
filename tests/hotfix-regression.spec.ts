@@ -90,7 +90,7 @@ test.describe('production hotfix regressions', () => {
   });
 
   test('9-team tournament with advancing 4 seeds semifinals, not a round of 16', async ({ page }) => {
-    const state = { ...tournamentState(), expectedTeams: 9, allowOddTeams: true, poolSize: 5, poolCount: 2, advancementCount: 4, teams: teams(9) };
+    const state = { ...tournamentState(), expectedTeams: 9, allowOddTeams: true, poolSize: 5, poolCount: 2, advancementCount: 4, teams: teams(9), completedMatches: { 'm-1-2': { s1: 11, s2: 7, teamAId: 1, teamBId: 2, status: 'confirmed', resolvedBy: 'teams', resolvedAt: new Date().toISOString() } } };
     await page.addInitScript(({ code, state }) => {
       localStorage.setItem(`picklepal_tournament_${code}`, JSON.stringify(state));
       localStorage.setItem('picklepal_active_tournament', code);
@@ -98,7 +98,7 @@ test.describe('production hotfix regressions', () => {
     }, { code: tournamentCode, state });
     await page.goto('/index.html');
     await openManagerSection(page, 'bracket');
-    await page.getByRole('button', { name: 'Seed Bracket' }).click();
+    await page.locator('#seed-bracket-btn').click();
     await expect(page.locator('#modal-title')).toHaveText('Bracket Generated');
     await expect(page.locator('#bracket-ui')).toContainText('Semifinal 1');
     await expect(page.locator('#bracket-ui')).toContainText('Advance');

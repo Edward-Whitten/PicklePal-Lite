@@ -845,6 +845,10 @@
                         <button id="tournament-start-btn" class="btn btn-success btn-sm" onclick="startTournament()"><i data-lucide="play"></i> Start Tournament</button>
                         <button id="tournament-pause-btn" class="btn btn-outline btn-sm hidden" onclick="pauseTournament()"><i data-lucide="pause"></i> Pause Tournament</button>
                     </div>
+                    <div id="bracket-ready-banner" class="tournament-status-row hidden">
+                        <span class="tournament-status-badge status-active">Pool Play Complete</span>
+                        <button class="btn btn-success btn-sm" onclick="generateBracket()"><i data-lucide="git-merge"></i> Generate Bracket</button>
+                    </div>
                 </div>
                 <div id="competition-metrics" class="competition-metrics" aria-live="polite"></div>
             </section>
@@ -908,9 +912,10 @@
                                     <option value="single">Single Game</option>
                                 </select>
                             </div>
-                            <button class="btn btn-primary" id="seed-bracket-btn" onclick="generateBracket()"><i data-lucide="git-merge"></i> Seed Bracket</button>
+                            <button class="btn btn-primary" id="seed-bracket-btn" onclick="generateBracket()"><i data-lucide="git-merge"></i> Generate Bracket</button>
                         </div>
                     </div>
+                    <p id="bracket-readiness-hint" class="hidden" style="margin:0 0 16px; color:var(--muted); font-weight:700; font-size:.85rem;"></p>
                     <div id="bracket-ui"></div>
                 </div>
             </div>
@@ -1714,6 +1719,7 @@
             <div class="competition-metric"><strong>${pendingReports}</strong><span>Open reports</span></div>
             <div class="competition-metric"><strong>${qualification.bracketSize}</strong><span>Bracket spots</span></div>
         `;
+        renderBracketButtonState();
     }
 
     function showCompetitionView(view = 'pools') {
@@ -2194,10 +2200,11 @@
         await appAlert(`Teams reshuffled into ${poolCount} new pools. Pool play scores were cleared.`, "Pools Randomized", "success");
     }
 
-    // Disables roster/pool/bracket structure controls while the tournament is active; scoring stays open.
+    // Disables roster/pool structure controls while the tournament is active; scoring stays open.
+    // The bracket button has its own readiness rules (see renderBracketButtonState), so it is excluded here.
     function applyTournamentLockUI() {
         const locked = !deepEditsAllowed();
-        ['csv-upload', 'new-p1', 'new-p2', 'submit-team-btn', 'pool-size-select', 'advancing-teams-select', 'odd-teams-check', 'seed-bracket-btn', 'randomize-pools-btn'].forEach(id => {
+        ['csv-upload', 'new-p1', 'new-p2', 'submit-team-btn', 'pool-size-select', 'advancing-teams-select', 'odd-teams-check', 'randomize-pools-btn'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.disabled = locked;
         });
@@ -2217,6 +2224,7 @@
         if (startBtn) startBtn.classList.toggle('hidden', !(state.status === 'setup' || state.status === 'paused'));
         if (pauseBtn) pauseBtn.classList.toggle('hidden', state.status !== 'active');
         applyTournamentLockUI();
+        renderBracketButtonState();
     }
 
     async function startTournament() {
@@ -2810,6 +2818,41 @@
         return ['final', 'third'].some(round => bracket[round] && (bracket[round].winner !== null || (bracket[round].gameLocks || []).some(Boolean)));
     }
 
+    // True once teams have been placed into the bracket at all, regardless of whether any games have been played.
+    function bracketIsSeeded(bracket) {
+        if (!bracket || typeof bracket !== 'object') return false;
+        if (['r32', 'r16', 'qf', 'sf'].some(round => Array.isArray(bracket[round]) && bracket[round].some(match => match && (match.t1 || match.t2)))) return true;
+        return Boolean((bracket.final && (bracket.final.t1 || bracket.final.t2)) || (bracket.third && (bracket.third.t1 || bracket.third.t2)));
+    }
+
+    // Pool play is ready for the bracket once every submitted report has been resolved into a final score.
+    function poolPlayReady() {
+        const completed = Object.keys(state.completedMatches || {}).length;
+        const pending = Object.keys(state.scoreReports || {}).length;
+        return pending === 0 && completed > 0;
+    }
+
+    function renderBracketButtonState() {
+        const button = document.getElementById('seed-bracket-btn');
+        const hint = document.getElementById('bracket-readiness-hint');
+        const banner = document.getElementById('bracket-ready-banner');
+        const ready = poolPlayReady();
+        const seeded = bracketIsSeeded(state.bracket);
+        const reseedLocked = seeded && !deepEditsAllowed();
+        if (button) {
+            button.disabled = !ready || reseedLocked;
+            button.title = !ready
+                ? 'All pool play matches must be final (0 open reports) before generating the bracket.'
+                : (reseedLocked ? 'Pause the tournament to re-seed the bracket.' : '');
+        }
+        if (hint) {
+            const pending = Object.keys(state.scoreReports || {}).length;
+            hint.classList.toggle('hidden', ready);
+            if (!ready) hint.textContent = pending > 0 ? `${pending} pool match report${pending === 1 ? '' : 's'} still open. Resolve every match before generating the bracket.` : 'Complete pool play before generating the bracket.';
+        }
+        if (banner) banner.classList.toggle('hidden', !(ready && !seeded));
+    }
+
     // Seeds paired against an empty slot advance straight into the Round of 16.
     function resolveBracketByes() {
         (state.bracket.r32 || []).forEach((match, index) => {
@@ -2824,7 +2867,7 @@
     }
 
     async function generateBracket() {
-        if (!deepEditsAllowed()) return await appAlert('Pause the tournament to re-seed the bracket.', 'Tournament Active', 'warning');
+        if (!poolPlayReady()) return await appAlert('Every pool match must be a final score (0 open reports) before generating the bracket.', 'Pool Play Incomplete', 'warning');
         const active = state.teams.filter(t => t.active);
         const tCount = active.length;
         
@@ -2835,7 +2878,10 @@
         if(advTarget > tCount) return await appAlert(`You only have ${tCount} active teams. Cannot advance ${advTarget}.`, "Not Enough Teams", "warning");
 
         // Re-seeding replaces the bracket object, so protect any elimination results already recorded.
+        // First-time generation is always allowed (even while active) since pool play just finished; only
+        // re-seeding over a bracket that already has recorded results requires pausing first.
         const hadResults = bracketHasResults(state.bracket);
+        if (hadResults && !deepEditsAllowed()) return await appAlert('Pause the tournament to re-seed the bracket.', 'Tournament Active', 'warning');
         if (hadResults && !await appConfirm("Re-seeding rebuilds the elimination bracket and clears bracket results already entered. Pool play scores, standings, and check-ins are not affected, and the current bracket is archived first.", "Re-seed Bracket", "Re-seed Bracket", true)) return;
         if (hadResults) state.bracketArchive = { archivedAt: new Date().toISOString(), advancementCount: Number(state.advancementCount) || null, bracket: JSON.parse(JSON.stringify(state.bracket)) };
 
@@ -2873,6 +2919,7 @@
         
         resolveBracketByes();
         saveState(); renderBracketUI();
+        renderBracketButtonState();
         if (isPreliminaryFormat(advTarget)) {
             const byes = 32 - advTarget;
             await appAlert(`${advTarget}-team bracket seeded. Seeds 1-${byes} receive a bye into the Round of 16; seeds ${byes + 1}-${advTarget} play the ${advTarget - byes} preliminary matches.`, "Bracket Generated", "success");
