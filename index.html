@@ -4025,5 +4025,36 @@
 
     window.onload = init;
 </script>
+<style>
+  /* 1. NUCLEAR BRACKET SCROLL OVERRIDE */
+  html, body, main { 
+      overflow-x: auto !important; 
+  }
+  
+  [id*="bracket"], [class*="bracket"] {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+  }
+
+  .bracket-tree, .bracket-columns, .bracket-grid {
+      min-width: 2400px !important; 
+      padding-right: 400px !important; 
+      display: flex !important;
+  }
+
+  /* 2. LIGHT MODE OVERRIDE */
+  [data-theme="light"] header, .light-mode header, .light-theme header,
+  [data-theme="light"] .master-header, .light-mode .master-header,
+  [data-theme="light"] nav, .light-mode nav {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+  }
+  
+  [data-theme="light"] header *, .light-mode header *,
+  [data-theme="light"] .master-header *, .light-mode .master-header *,
+  [data-theme="light"] nav *, .light-mode nav * {
+      color: #000000 !important;
+  }
+</style>
 </body>
 </html>
