@@ -414,7 +414,11 @@
         const automaticCandidates = ranked.filter(entry => entry.poolRank <= qualifiersPerPool).sort((a, b) => a.poolRank - b.poolRank || rankTeams(a, b));
         const automatic = automaticCandidates.slice(0, bracketSize);
         const automaticIds = new Set(automatic.map(entry => entry.team.id));
-        const wildcards = ranked.filter(entry => !automaticIds.has(entry.team.id)).sort(rankTeams).slice(0, bracketSize - automatic.length);
+        const contenders = ranked.filter(entry => !automaticIds.has(entry.team.id));
+        // Mirror the manager rule: wildcards come from the next rank tier before any deeper placing.
+        const nextTier = contenders.filter(entry => entry.poolRank === qualifiersPerPool + 1).sort(rankTeams);
+        const deeperTiers = contenders.filter(entry => entry.poolRank > qualifiersPerPool + 1).sort(rankTeams);
+        const wildcards = [...nextTier, ...deeperTiers].slice(0, Math.max(0, bracketSize - automatic.length));
         return { bracketSize, ranked, qualifiersPerPool, automaticIds, wildcards };
     }
 

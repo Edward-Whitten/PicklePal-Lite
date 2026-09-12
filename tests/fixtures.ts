@@ -31,8 +31,8 @@ export function tournamentState() {
   };
 }
 
-export async function seedTournament(page: Page, options: { manager?: boolean; player?: boolean } = {}) {
-  const state = tournamentState();
+export async function seedTournament(page: Page, options: { manager?: boolean; player?: boolean; state?: ReturnType<typeof tournamentState> } = {}) {
+  const state = options.state ?? tournamentState();
   let identifiedPlayer: { teamId: string; playerSlot: 'p1' | 'p2'; playerId: string } | null = null;
   await page.route('**/functions/v1/tournament-api', async route => {
     const rawBody = route.request().postData();

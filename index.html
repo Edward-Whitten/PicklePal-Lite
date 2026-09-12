@@ -1116,7 +1116,7 @@
     const DEFAULT_STATE = {
         appMode: 'tourney', theme: "dark", setupMode: 'manual', poolSize: 5, advancementCount: 8, tournamentStarted: false,
         header: { title: "", date: "", loc: "", org: "", man: "", logoDarkTheme: "Compass-Logo-White.png", logoLightTheme: "Compass-Logo-White.png" },
-        expectedTeams: "-", allowOddTeams: false, finalsFormat: "bo3", tournamentNickname: "", adminPinHash: "", teams: [], completedMatches: {}, scoreReports: {}, poolCount: 0, poolSchedule: [], courts: {}, stranded: [],
+        expectedTeams: "-", allowOddTeams: false, finalsFormat: "bo3", tournamentNickname: "", adminPinHash: "", teams: [], completedMatches: {}, scoreReports: {}, poolCount: 0, poolSchedule: [], courts: {}, stranded: [], bracketArchive: null,
         bracket: { 
             r32: Array(16).fill().map(() => ({t1:null, t2:null, winner:null})),
             r16: Array(8).fill().map(() => ({t1:null, t2:null, winner:null})), 
@@ -1134,6 +1134,9 @@
             }
         }
     };
+
+    // 20 seeds a 32-slot bracket: 12 byes plus a 4-match preliminary round.
+    const SUPPORTED_ADVANCEMENT = [4, 8, 16, 20, 32, 64];
 
     function cloneDefaultState() {
         return JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -1833,7 +1836,7 @@
         const advancingSelect = document.getElementById('advancing-teams-select');
         if (advancingSelect) {
             const total = state.expectedTeams === '-' ? state.teams.filter(team => team.active).length : Number(state.expectedTeams);
-            const options = [4,8,16,32,64].filter(size => !total || size <= total);
+            const options = SUPPORTED_ADVANCEMENT.filter(size => !total || size <= total);
             advancingSelect.innerHTML = options.map(size => `<option value="${size}" ${Number(state.advancementCount) === size ? 'selected' : ''}>${size} teams</option>`).join('');
         }
     }
@@ -1889,8 +1892,13 @@
         const automaticPerPool = Math.max(1, Math.floor(bracketSize / poolCount));
         const automatic = ranked.filter(entry => entry.poolRank <= automaticPerPool).sort((a, b) => a.poolRank - b.poolRank || teamRanking(a.team, b.team)).slice(0, bracketSize);
         const automaticIds = new Set(automatic.map(entry => entry.team.id));
-        const wildcards = ranked.filter(entry => !automaticIds.has(entry.team.id)).sort((a, b) => teamRanking(a.team, b.team)).slice(0, bracketSize - automatic.length);
-        return { bracketSize, ranked, automaticPerPool, automaticIds, wildcards };
+        const contenders = ranked.filter(entry => !automaticIds.has(entry.team.id));
+        const byStrength = (a, b) => teamRanking(a.team, b.team);
+        // Wildcards come from the best finishers in the next rank tier before any deeper placing.
+        const nextTier = contenders.filter(entry => entry.poolRank === automaticPerPool + 1).sort(byStrength);
+        const deeperTiers = contenders.filter(entry => entry.poolRank > automaticPerPool + 1).sort(byStrength);
+        const wildcards = [...nextTier, ...deeperTiers].slice(0, Math.max(0, bracketSize - automatic.length));
+        return { bracketSize, ranked, automaticPerPool, automatic, automaticIds, wildcards };
     }
 
     function advancementMedal(poolRank, isWildcard) {
@@ -2535,19 +2543,22 @@
         return `<div class="match-card" style="border: 2px solid ${trophyCol}; margin-bottom:1.5rem; padding: 1.5rem;"><div style="text-align:center; font-weight:900; margin-bottom:20px; color:${trophyCol}; font-size:1.2rem; text-transform:uppercase; letter-spacing:1px;">${matchTitle} ${isSingle ? '<span style="font-size:0.8rem; font-weight:600; opacity:0.8;"><br>(Single Game)</span>' : '<span style="font-size:0.8rem; font-weight:600; opacity:0.8;"><br>(Best of 3)</span>'}</div>${inputHTML}</div>`;
     }
 
-    function renderColumn(arr, titlePrefix, retractFn, advFn) {
+    function renderColumn(arr, titlePrefix, retractFn, advFn, options = {}) {
         if(!arr || arr.length === 0) return '';
         let hasActive = false; arr.forEach(m => { if(m.t1 || m.t2) hasActive = true; });
         if(!hasActive) return '';
 
+        let displayIndex = 0;
         return arr.map((m, i) => {
             const isBye = (m.t1 && !m.t2) || (!m.t1 && m.t2);
             if (isBye && m.winner === null) {
                 setTimeout(() => window[advFn](i, m.t1 ? 1 : 2), 50);
             }
+            if (options.hideResolvedByes && isBye && m.winner !== null) return '';
+            displayIndex++;
             return `
             <div class="match-card" style="margin-bottom:1.5rem; padding: 1.5rem; ${isBye ? 'opacity:0.6' : ''}">
-                <div style="font-weight:900; color:var(--muted); font-size:0.85rem; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">${titlePrefix} ${i+1}</div>
+                <div style="font-weight:900; color:var(--muted); font-size:0.85rem; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;">${titlePrefix} ${displayIndex}</div>
                 <div class="bracket-team-row ${m.winner === 2 ? 'dimmed' : ''}">
                     <span class="bracket-team-name ${m.winner === 1 ? 'winner-text' : ''}" style="color:var(--text);">${m.t1 ? `<span class="seed-badge">#${m.t1.seed}</span> ${formatTeamName(m.t1)}` : '---'}</span>
                     ${m.winner === 1 ? (isBye ? '<span class="bye-text">BYE</span>' : `<button class="btn-lock" style="padding:2px 8px;" onclick="${retractFn}(${i})">Undo</button>`) : (m.winner === null && m.t1 && m.t2 ? `<button class="btn btn-sm btn-outline" style="border-color:var(--accent); color:var(--accent);" onclick="${advFn}(${i}, 1)">Advance</button>` : '')}
@@ -2565,7 +2576,8 @@
         if(!ui) return;
         const {r32, r16, qf, sf, final, third} = state.bracket;
 
-        let r32HTML = renderColumn(r32, "Round of 32 - Match", "retractR32", "advR32");
+        const prelimRound = isPreliminaryFormat(Number(state.advancementCount));
+        let r32HTML = renderColumn(r32, prelimRound ? "Preliminary Round - Match" : "Round of 32 - Match", "retractR32", "advR32", { hideResolvedByes: prelimRound });
         let r16HTML = renderColumn(r16, "Round of 16 - Match", "retractR16", "advR16");
         let qfHTML = renderColumn(qf, "Quarterfinal", "retractQF", "advQF");
         let sfHTML = renderColumn(sf, "Semifinal", "retractSF", "advSF");
@@ -2602,6 +2614,30 @@
         lucide.createIcons();
     }
 
+    // 17-31 advancing teams fill the 32-slot bracket, so the opening round is a partial "preliminary" round.
+    function isPreliminaryFormat(advTarget) {
+        return Number(advTarget) > 16 && Number(advTarget) < 32;
+    }
+
+    function bracketHasResults(bracket) {
+        if (!bracket || typeof bracket !== 'object') return false;
+        if (['r32', 'r16', 'qf', 'sf'].some(round => Array.isArray(bracket[round]) && bracket[round].some(match => match && match.winner !== null))) return true;
+        return ['final', 'third'].some(round => bracket[round] && (bracket[round].winner !== null || (bracket[round].gameLocks || []).some(Boolean)));
+    }
+
+    // Seeds paired against an empty slot advance straight into the Round of 16.
+    function resolveBracketByes() {
+        (state.bracket.r32 || []).forEach((match, index) => {
+            if (!match || match.winner !== null) return;
+            const onlyT1 = match.t1 && !match.t2;
+            const onlyT2 = !match.t1 && match.t2;
+            if (!onlyT1 && !onlyT2) return;
+            match.winner = onlyT1 ? 1 : 2;
+            const target = state.bracket.r16[Math.floor(index / 2)];
+            if (target) target[index % 2 === 0 ? 't1' : 't2'] = onlyT1 ? match.t1 : match.t2;
+        });
+    }
+
     async function generateBracket() {
         const active = state.teams.filter(t => t.active);
         const tCount = active.length;
@@ -2609,12 +2645,17 @@
         if(tCount < 4) return await appAlert("Tournament needs at least 4 active teams to seed the Elimination Bracket.", "Bracket Error", "warning");
 
         let advTarget = Number(state.advancementCount) || recommendedAdvancementCount(tCount, state.poolSize);
-        if (![4, 8, 16, 32, 64].includes(advTarget)) return await appAlert("Choose a supported advancement count: 4, 8, 16, 32, or 64 teams.", "Invalid Bracket Size", "warning");
+        if (!SUPPORTED_ADVANCEMENT.includes(advTarget)) return await appAlert(`Choose a supported advancement count: ${SUPPORTED_ADVANCEMENT.join(', ')} teams.`, "Invalid Bracket Size", "warning");
         if(advTarget > tCount) return await appAlert(`You only have ${tCount} active teams. Cannot advance ${advTarget}.`, "Not Enough Teams", "warning");
+
+        // Re-seeding replaces the bracket object, so protect any elimination results already recorded.
+        const hadResults = bracketHasResults(state.bracket);
+        if (hadResults && !await appConfirm("Re-seeding rebuilds the elimination bracket and clears bracket results already entered. Pool play scores, standings, and check-ins are not affected, and the current bracket is archived first.", "Re-seed Bracket", "Re-seed Bracket", true)) return;
+        if (hadResults) state.bracketArchive = { archivedAt: new Date().toISOString(), advancementCount: Number(state.advancementCount) || null, bracket: JSON.parse(JSON.stringify(state.bracket)) };
 
         state.advancementCount = advTarget;
         const qualification = tournamentQualification();
-        const seeded = [...qualification.ranked.filter(entry => qualification.automaticIds.has(entry.team.id)), ...qualification.wildcards].slice(0, advTarget).map((entry, idx) => ({...entry.team, seed: idx + 1}));
+        const seeded = [...qualification.automatic, ...qualification.wildcards].slice(0, advTarget).map((entry, idx) => ({...entry.team, seed: idx + 1}));
 
         state.bracket = {
             r32: Array(16).fill().map(() => ({t1:null, t2:null, winner:null})),
@@ -2644,7 +2685,13 @@
             state.bracket.sf = s4.map(match => ({ t1: getSeed(match[0]), t2: getSeed(match[1]), winner: null }));
         }
         
+        resolveBracketByes();
         saveState(); renderBracketUI();
+        if (isPreliminaryFormat(advTarget)) {
+            const byes = 32 - advTarget;
+            await appAlert(`${advTarget}-team bracket seeded. Seeds 1-${byes} receive a bye into the Round of 16; seeds ${byes + 1}-${advTarget} play the ${advTarget - byes} preliminary matches.`, "Bracket Generated", "success");
+            return;
+        }
         await appAlert(`${advTarget}-Team Elimination Bracket Seeded Successfully!`, "Bracket Generated", "success");
     }
 
