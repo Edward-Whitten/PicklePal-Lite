@@ -193,12 +193,12 @@
         .add-team-fields input { min-width:0 !important; }
         .registration-meter { flex:0 1 240px; min-width:220px; text-align:right; }
 
-        .pool-header { font-size: 1.8rem; font-weight: 900; color: var(--accent); margin-bottom: 1.5rem; border-left: 6px solid var(--accent); padding-left: 15px; letter-spacing: -0.5px; }
-        .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 1rem; align-items:start; }
-        .match-card { background: var(--card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border); position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.04); transition: 0.3s; }
+        .pool-header { font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 900; color: var(--accent); margin-bottom: 1rem; border-left: 5px solid var(--accent); padding-left: 12px; letter-spacing: -0.5px; word-break: break-word; }
+        .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 1rem; align-items:start; width:100%; min-width:0; }
+        .match-card { background: var(--card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border); position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.04); transition: 0.3s; width:100%; min-width:0; box-sizing:border-box; overflow:hidden; }
         .match-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-        .team-row { display: grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items: center; padding: 8px 0; min-height: 55px; }
-        .team-row > span { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+        .team-row { display: grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items: center; padding: 6px 0; min-height: 48px; width:100%; min-width:0; box-sizing:border-box; }
+        .team-row > span { min-width:0; overflow:hidden; text-overflow:ellipsis; word-break:break-word; }
         
         .standings-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
         .competition-shell { display:grid; gap:18px; }
@@ -2537,16 +2537,16 @@
                     let inputArea = '';
                     if(match) {
                         inputArea = `
-                            <div class="team-row" style="min-height:45px; padding:4px 0;">
+                            <div class="team-row">
                                 <span style="font-weight:800; color:var(--text); line-height:1.4;">${match.s1 > match.s2 ? '<i data-lucide="trophy" class="trophy-icon" style="width:16px;"></i> ' : ''}${formatTeamName(pTeams[a])}</span>
-                                <div style="width:54px; text-align:center; font-weight:900; font-size:1.35rem; color:var(--text);">${match.s1}</div>
+                                <div style="width:50px; min-width:50px; text-align:center; font-weight:900; font-size:1.35rem; color:var(--text);">${match.s1}</div>
                             </div>
-                            <div class="team-row" style="min-height:45px; padding:4px 0;">
+                            <div class="team-row">
                                 <span style="font-weight:800; color:var(--text); line-height:1.4;">${match.s2 > match.s1 ? '<i data-lucide="trophy" class="trophy-icon" style="width:16px;"></i> ' : ''}${formatTeamName(pTeams[b])}</span>
-                                <div style="width:54px; text-align:center; font-weight:900; font-size:1.35rem; color:var(--text);">${match.s2}</div>
+                                <div style="width:50px; min-width:50px; text-align:center; font-weight:900; font-size:1.35rem; color:var(--text);">${match.s2}</div>
                             </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-                                <span style="font-size:0.8rem; color:var(--muted); font-weight:800; display:flex; align-items:center; gap:5px;"><i data-lucide="lock" style="width:14px;"></i> FINAL - MANAGER CAN CORRECT</span>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:8px;">
+                                <span style="font-size:0.75rem; color:var(--muted); font-weight:800; display:flex; align-items:center; gap:5px;"><i data-lucide="lock" style="width:14px;"></i> FINAL - MANAGER CAN CORRECT</span>
                                 <button class="btn-lock" onclick="unlockTourneyScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})" title="Edit or correct score">Correct <i data-lucide="pencil" style="width:16px;"></i></button>
                             </div>
                         `;
@@ -2555,31 +2555,31 @@
                         const reportB = report.teamB;
                         const isDisputed = reportA && reportB && (reportA.s1 !== reportB.s1 || reportA.s2 !== reportB.s2);
                         inputArea = `
-                            <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; color:var(--text);">${formatTeamName(pTeams[a])}</span><div style="min-width:54px; text-align:center; font-weight:900; font-size:1.2rem;">${reportA ? `${reportA.s1}-${reportA.s2}` : 'Waiting'}</div></div>
-                            <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; color:var(--text);">${formatTeamName(pTeams[b])}</span><div style="min-width:54px; text-align:center; font-weight:900; font-size:1.2rem;">${reportB ? `${reportB.s1}-${reportB.s2}` : 'Waiting'}</div></div>
-                            <div style="margin-top:12px; padding:10px; border-radius:8px; background:${isDisputed ? 'rgba(239,68,68,.12)' : 'var(--row-bg)'}; color:${isDisputed ? 'var(--danger)' : 'var(--muted)'}; font-size:.8rem; font-weight:800;">${isDisputed ? 'SCORE DISPUTED' : 'AWAITING BOTH TEAM REPORTS'}</div>
-                            ${isDisputed ? `<div style="display:flex; gap:8px; margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'a')">Accept Team A</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'b')">Accept Team B</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'custom')">Correct Score</button></div>` : `<div style="margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="forceEnterScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})" title="Lock in a final score without waiting for both teams to report"><i data-lucide="shield-alert"></i> Force Enter Score</button></div>`}
+                            <div class="team-row"><span style="font-weight:800; color:var(--text);">${formatTeamName(pTeams[a])}</span><div style="width:50px; min-width:50px; text-align:center; font-weight:900; font-size:1.2rem;">${reportA ? `${reportA.s1}-${reportA.s2}` : 'Waiting'}</div></div>
+                            <div class="team-row"><span style="font-weight:800; color:var(--text);">${formatTeamName(pTeams[b])}</span><div style="width:50px; min-width:50px; text-align:center; font-weight:900; font-size:1.2rem;">${reportB ? `${reportB.s1}-${reportB.s2}` : 'Waiting'}</div></div>
+                            <div style="margin-top:12px; padding:10px; border-radius:8px; background:${isDisputed ? 'rgba(239,68,68,.12)' : 'var(--row-bg)'}; color:${isDisputed ? 'var(--danger)' : 'var(--muted)'}; font-size:.8rem; font-weight:800; word-break:break-word;">${isDisputed ? 'SCORE DISPUTED' : 'AWAITING BOTH TEAM REPORTS'}</div>
+                            ${isDisputed ? `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:8px; margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'a')">Accept Team A</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'b')">Accept Team B</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'custom')">Correct Score</button></div>` : `<div style="margin-top:10px;"><button class="btn btn-outline btn-sm" style="width:100%;" onclick="forceEnterScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})" title="Lock in a final score without waiting for both teams to report"><i data-lucide="shield-alert"></i> Force Enter Score</button></div>`}
                         `;
                     } else {
                         inputArea = `
-                            <div class="team-row" style="min-height:45px; padding:4px 0;">
+                            <div class="team-row">
                                 <span style="font-weight:800; color:var(--text); line-height:1.4;">${formatTeamName(pTeams[a])}</span>
                                 <input type="number" min="0" id="s1-${mId}" class="score-input">
                             </div>
-                            <div class="team-row" style="min-height:45px; padding:4px 0;">
+                            <div class="team-row">
                                 <span style="font-weight:800; color:var(--text); line-height:1.4;">${formatTeamName(pTeams[b])}</span>
                                 <input type="number" min="0" id="s2-${mId}" class="score-input">
                             </div>
                             <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-                                <button class="btn btn-primary btn-sm" onclick="confirmScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})"><i data-lucide="check"></i> Confirm Score</button>
+                                <button class="btn btn-primary btn-sm" style="width:100%;" onclick="confirmScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})"><i data-lucide="check"></i> Confirm Score</button>
                             </div>
                         `;
                     }
 
                     matchesHTML += `
                         <div class="match-card">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                                <div style="font-size:0.9rem; color:var(--muted); font-weight:900; text-transform:uppercase;">Court: <input type="text" value="${state.courts[mId] || ''}" onchange="saveCourt('${mId}', this.value)" style="width:90px; height:32px; padding:2px 8px; text-align:center; font-size:1rem; border-radius:6px;" placeholder="TBD"></div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                                <div style="font-size:0.85rem; color:var(--muted); font-weight:900; text-transform:uppercase; display:flex; align-items:center; gap:6px;">Court: <input type="text" value="${state.courts[mId] || ''}" onchange="saveCourt('${mId}', this.value)" style="width:70px; height:30px; padding:2px 6px; text-align:center; font-size:0.9rem; border-radius:6px;" placeholder="TBD"></div>
                             </div>
                             ${inputArea}
                         </div>`;
