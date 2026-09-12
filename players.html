@@ -48,7 +48,19 @@
         .match-line:first-child { border-top:0; }
         .match-score { display:block; margin-top:6px; color:var(--accent-2); font-size:.8rem; }
         .bracket-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; padding-bottom:8px; scrollbar-color:var(--accent-2) transparent; }
-        .bracket { display:grid; grid-template-columns:repeat(4,minmax(190px,1fr)); gap:14px; min-width:820px; }
+        .bracket { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:14px; width:100%; min-width:0; }
+        .public-bracket-stages { display:grid; gap:14px; }
+        .public-bracket-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:8px; border:1px solid var(--border); border-radius:12px; background:var(--card); }
+        .public-bracket-tab { min-height:44px; padding:9px 10px; border:1px solid var(--border); border-radius:9px; background:var(--row-bg); color:var(--muted); font:800 .72rem 'Inter',sans-serif; text-transform:uppercase; cursor:pointer; }
+        .public-bracket-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+        .public-bracket-panel { display:none; }.public-bracket-panel.active { display:block; }
+        .public-bracket-heading { margin:0 0 10px; color:var(--text); font-size:1.15rem; font-weight:900; }
+        .public-bracket-panel .bracket-wrap { margin:0 auto; }.public-bracket-panel .bracket { margin:0 auto; justify-content:center; }
+        .public-bracket-empty { display:grid; place-items:center; min-height:180px; padding:24px; border:1px dashed var(--border); border-radius:12px; color:var(--muted); text-align:center; font-weight:800; }
+        .public-podium { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:end; gap:10px; padding:24px 10px 10px; text-align:center; }
+        .public-podium-place { display:flex; flex-direction:column; gap:7px; align-items:center; min-width:0; }.public-podium-team { width:100%; color:var(--text); font-weight:900; overflow-wrap:anywhere; }.public-podium-step { display:grid; place-items:center; width:100%; min-height:64px; border-radius:9px 9px 0 0; color:#172033; font-size:1.6rem; font-weight:900; }.public-podium-place.second .public-podium-step { min-height:54px; background:#cbd5e1; }.public-podium-place.first .public-podium-step { min-height:82px; background:#fbbf24; }.public-podium-place.third .public-podium-step { min-height:42px; background:#b45309; color:#fff; }
+        body.light-theme .public-bracket-tabs { background:#fff; border-color:#cbd5e1; } body.light-theme .public-bracket-tab { background:#f8fafc; color:#111827; border-color:#e2e8f0; } body.light-theme .public-bracket-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+        @media (max-width:760px) { .public-bracket-tabs { grid-template-columns:repeat(2,minmax(0,1fr)); } .public-bracket-tab { font-size:.68rem; } }
         .round h4 { margin:0 0 10px; color:var(--muted); font:700 .75rem Arial,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
         .bracket-match { min-height:72px; padding:12px; margin-bottom:12px; background:var(--row-bg); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:12px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); font:700 .82rem/1.45 'Inter',sans-serif; }
         .rules { border-left:4px solid var(--accent); }
@@ -745,8 +757,26 @@
         const rounds = [['Round of 32', bracket.r32], ['Round of 16', bracket.r16], ['Quarterfinals', bracket.qf], ['Semifinals', bracket.sf]];
         const visibleRounds = rounds.filter(([, matches]) => Array.isArray(matches) && matches.some(match => match && (match.t1 || match.t2 || match.winner)));
         if(!visibleRounds.length && !(bracket.final && (bracket.final.t1 || bracket.final.t2 || bracket.final.winner))) { container.innerHTML = '<p style="color:var(--muted);font:1rem Arial,sans-serif;">The elimination bracket will appear once pool play is complete.</p>'; return; }
-        const finalRound = bracket.final && (bracket.final.t1 || bracket.final.t2 || bracket.final.winner) ? [['Final', [bracket.final]]] : [];
-        container.innerHTML = `<div class="bracket">${visibleRounds.concat(finalRound).map(([title, matches]) => `<div class="round"><h4>${title}</h4>${matches.filter(Boolean).map(match => `<div class="bracket-match">${teamName(match.t1)}<br>${teamName(match.t2)}${match.winner ? `<span class="match-score">Winner: ${teamName(match.winner === 1 ? match.t1 : match.t2)}</span>` : ''}</div>`).join('')}</div>`).join('')}</div>`;
+        const renderRound = ([title, matches]) => `<div class="bracket"><div class="round"><h4>${title}</h4>${matches.filter(Boolean).map(match => `<div class="bracket-match">${teamName(match.t1)}<br>${teamName(match.t2)}${match.winner ? `<span class="match-score">Winner: ${teamName(match.winner === 1 ? match.t1 : match.t2)}</span>` : ''}</div>`).join('')}</div></div>`;
+        const playRounds = visibleRounds.filter(([title]) => title === 'Round of 32' || title === 'Round of 16');
+        const quarterfinals = visibleRounds.filter(([title]) => title === 'Quarterfinals');
+        const semifinals = visibleRounds.filter(([title]) => title === 'Semifinals');
+        const finalMatches = [];
+        if (bracket.final && (bracket.final.t1 || bracket.final.t2 || bracket.final.winner)) finalMatches.push(['Championship', [bracket.final]]);
+        if (bracket.third && (bracket.third.t1 || bracket.third.t2 || bracket.third.winner)) finalMatches.push(['3rd Place', [bracket.third]]);
+        const complete = bracket.final && bracket.third && bracket.final.winner !== null && bracket.third.winner !== null;
+        const champion = complete ? (bracket.final.winner === 1 ? bracket.final.t1 : bracket.final.t2) : null;
+        const second = complete ? (bracket.final.winner === 1 ? bracket.final.t2 : bracket.final.t1) : null;
+        const third = complete ? (bracket.third.winner === 1 ? bracket.third.t1 : bracket.third.t2) : null;
+        const winnerPanel = complete ? `<div class="card"><div class="section-heading"><h3>Tournament Winners</h3><span>Final results</span></div><div class="public-podium" aria-label="Tournament podium"><div class="public-podium-place second"><div class="public-podium-team">${teamName(second)}</div><div class="public-podium-step">2</div></div><div class="public-podium-place first"><div class="public-podium-team">${teamName(champion)}</div><div class="public-podium-step">1</div></div><div class="public-podium-place third"><div class="public-podium-team">${teamName(third)}</div><div class="public-podium-step">3</div></div></div><p style="margin:10px 0 0; color:var(--muted); text-align:center; font-weight:800;">Championship complete. Congratulations to the winners!</p></div>` : '<div class="public-bracket-empty">The podium and championship announcement will appear when the Championship and 3rd Place matches are complete.</div>';
+        container.innerHTML = `<div class="public-bracket-stages"><div class="public-bracket-tabs" role="tablist" aria-label="Public bracket stages"><button class="public-bracket-tab active" onclick="showPublicBracketStage(this, 'play')">Play to QF</button><button class="public-bracket-tab" onclick="showPublicBracketStage(this, 'qf-sf')">Quarterfinals + Semifinals</button><button class="public-bracket-tab" onclick="showPublicBracketStage(this, 'finals')">Finals</button><button class="public-bracket-tab" onclick="showPublicBracketStage(this, 'winners')">Winners</button></div><section class="public-bracket-panel active" data-stage="play"><h4 class="public-bracket-heading">Play to Quarterfinals</h4>${playRounds.length ? playRounds.map(renderRound).join('') : '<div class="public-bracket-empty">Play rounds will appear as teams advance.</div>'}</section><section class="public-bracket-panel" data-stage="qf-sf"><h4 class="public-bracket-heading">Quarterfinals + Semifinals</h4>${quarterfinals.concat(semifinals).length ? quarterfinals.concat(semifinals).map(renderRound).join('') : '<div class="public-bracket-empty">Quarterfinals and Semifinals will appear as teams advance.</div>'}</section><section class="public-bracket-panel" data-stage="finals"><h4 class="public-bracket-heading">Championship and 3rd Place</h4>${finalMatches.length ? finalMatches.map(renderRound).join('') : '<div class="public-bracket-empty">Final matches will appear when semifinal winners are assigned.</div>'}</section><section class="public-bracket-panel" data-stage="winners"><h4 class="public-bracket-heading">Tournament Winners</h4>${winnerPanel}</section></div>`;
+    }
+
+    function showPublicBracketStage(button, stage) {
+        const shell = button.closest('.public-bracket-stages');
+        if (!shell) return;
+        shell.querySelectorAll('.public-bracket-tab').forEach(tab => tab.classList.toggle('active', tab === button));
+        shell.querySelectorAll('.public-bracket-panel').forEach(panel => panel.classList.toggle('active', panel.dataset.stage === stage));
     }
 
     async function loginPlayer() {
