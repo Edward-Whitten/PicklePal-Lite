@@ -44,8 +44,8 @@
             --space-4: 16px;
             --space-5: 24px;
             --space-6: 32px;
-            --shadow-card: 0 12px 40px rgba(0,0,0,0.16);
-            --shadow-soft: 0 8px 24px rgba(0,0,0,0.12);
+            --shadow-card: 0 20px 25px -5px rgba(0,0,0,0.18), 0 8px 10px -6px rgba(0,0,0,0.12);
+            --shadow-soft: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
             --success-contrast: #052e16;
             --sidebar-width: 300px;
         }
@@ -155,7 +155,7 @@
         .share-link .btn { flex:0 0 44px; width:44px; min-width:44px; padding:0; }
         @media (max-width:640px) { .share-panel { grid-template-columns:minmax(0,1fr); gap:14px; } .share-qr { margin:auto; } .share-link { width:100%; } }
 
-        .format-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .format-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
         .format-card { background: var(--card); border: 2px solid var(--border); border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
         .format-card:hover { border-color: var(--muted); transform: translateY(-4px); box-shadow: 0 12px 25px rgba(0,0,0,0.08); }
         .format-card.active { border-color: var(--accent); background: rgba(168, 85, 247, 0.04); box-shadow: 0 0 0 1px var(--accent), 0 8px 20px rgba(168, 85, 247, 0.15); }
@@ -178,8 +178,8 @@
         .param-btn.active { background: var(--card); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid var(--border); }
 
         .roster-grid { display: flex; flex-direction: column; gap: 10px; }
-        .team-row-entry { display: grid; grid-template-columns: 36px minmax(180px, 1fr) minmax(180px, 1fr) minmax(150px,.55fr); gap: var(--space-3); align-items: center; background: var(--row-bg); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--border); transition: 0.2s; }
-        .team-row-entry:hover { border-color: var(--muted); }
+        .team-row-entry { display: grid; grid-template-columns: 36px minmax(180px, 1fr) minmax(180px, 1fr) minmax(150px,.55fr); gap: var(--space-3); align-items: center; background: var(--row-bg); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: var(--shadow-soft); transition: 0.2s; }
+        .team-row-entry:hover { border-color: var(--muted); transform: translateY(-1px); }
         .team-row-entry > div { min-width: 0; }
         .team-row-entry > div:nth-child(2), .team-row-entry > div:nth-child(3) { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 5px; align-items: center; }
         .team-row-entry > div input[type="text"] { min-width: 0; }
@@ -241,19 +241,15 @@
         .advance-medal.gold { color:#1f2937; background:var(--gold); }.advance-medal.silver { color:#172033; background:var(--silver); }.advance-medal.bronze { color:#fff; background:var(--bronze); }.advance-medal.wildcard { color:#fff; background:#2563eb; }
         .withdrawn { opacity: 0.4; text-decoration: line-through; filter: grayscale(1); }
 
-        .bracket-container { display: flex; gap: 24px; justify-content: flex-start; align-items: stretch; width: 100%; padding: 10px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .bracket-column { display: flex; flex-direction: column; justify-content: space-around; gap: 15px; flex: 1; min-width: 340px; }
+        /* Never let columns shrink below their natural width; the bracket must retain full width and let the wrapper scroll instead. */
+        .bracket-container { display: flex; gap: 24px; justify-content: flex-start; align-items: stretch; width: 100%; min-width: max-content; padding: 10px 0; }
+        .bracket-column { display: flex; flex-direction: column; justify-content: space-around; gap: 15px; flex: 0 0 340px; min-width: 340px; }
         /* Isolates horizontal bracket scrolling so the main body/header never scroll sideways. */
         .bracket-wrapper { min-width: 0; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
         .bracket-wrapper::-webkit-scrollbar { height: 8px; }
         .bracket-wrapper::-webkit-scrollbar-track { background: transparent; }
         .bracket-wrapper::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
-        /* Isolates horizontal bracket scrolling so the main body/header never scroll sideways. */
-        .bracket-wrapper { min-width: 0; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
-        .bracket-wrapper::-webkit-scrollbar { height: 8px; }
-        .bracket-wrapper::-webkit-scrollbar-track { background: transparent; }
-        .bracket-wrapper::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
-        .bracket-team-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--row-bg); border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); transition: 0.3s; }
+        .bracket-team-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--row-bg); border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); transition: 0.3s; }
         .bracket-team-name { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
         
         .seed-badge { font-size: 0.75rem; background: var(--input-bg); color: var(--muted); padding: 4px 8px; border-radius: 6px; font-weight: 900; border: 1px solid var(--input-border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -286,13 +282,14 @@
         .bo3-header { text-align: center; font-size: 0.85rem; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
         .bo3-score-input { width: 100%; height: 55px; font-size: 1.4rem; margin: 0; }
         
-        .btn { padding: 0.8rem 1.8rem; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); min-height: 48px; font-size: 1.05rem; }
+        .btn { padding: 0.8rem 1.8rem; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s ease-in-out; min-height: 48px; font-size: 1.05rem; }
+        .btn:active { transform: translateY(0) scale(0.97); filter: brightness(0.92); }
         .btn-primary { background: var(--gradient); color: #ffffff; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4); }
         .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); }
-        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-danger:hover { background: var(--danger); color: white; transform: translateY(-2px); }
         .btn-outline { background: transparent; border: 2px solid var(--input-border); color: var(--text); }
-        .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: var(--row-bg); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: var(--row-bg); transform: translateY(-2px); }
         .btn-sm { padding: 8px 16px; font-size: 0.95rem; min-height: 44px; border-radius: 8px; }
         .btn-success { background: var(--success); color: var(--success-contrast); box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
         .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4); }
@@ -515,11 +512,15 @@
             .mobile-nav {
                 display: flex !important; position: fixed; bottom: 0; left: 0; right: 0;
                 background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-                border-top: 1px solid var(--border); padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
-                justify-content: space-around; z-index: 1001;
+                border-top: 1px solid var(--border); padding: 8px 10px env(safe-area-inset-bottom, 20px);
+                justify-content: space-around; z-index: 1001; box-shadow: 0 -8px 24px rgba(0,0,0,.18);
             }
-            .mob-nav-item { display: flex; flex-direction: column; align-items: center; justify-content:center; gap: 4px; min-width:50px; min-height:44px; padding:4px 6px; color: var(--muted); text-decoration: none; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; opacity: 0.72; }
+            /* Light theme needs its own stark, solid background + dark icon color; the shared dark rgba() above is unreadable on light. */
+            body.light-theme .mobile-nav { background: #ffffff; border-top: 1px solid #e2e8f0; box-shadow: 0 -4px 20px rgba(15,23,42,.08); }
+            .mob-nav-item { display: flex; flex-direction: column; align-items: center; justify-content:center; gap: 4px; min-width:50px; min-height:44px; padding:4px 6px; color: var(--muted); text-decoration: none; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; opacity: 0.72; transition: color .2s ease, opacity .2s ease; }
+            body.light-theme .mob-nav-item { color: #111827; opacity: 0.6; }
             .mob-nav-item.active { color: var(--accent); opacity: 1; }
+            body.light-theme .mob-nav-item.active { color: var(--accent); opacity: 1; }
             .mob-nav-item i { width: 22px; height: 22px; }
 
             /* LAYOUT & SCALING */
@@ -560,9 +561,9 @@
             .standings-container { grid-template-columns: 1fr; gap: 1rem; }
             table { display: block; overflow-x: auto; white-space: nowrap; }
             
-            /* BRACKETS */
+            /* BRACKETS: never shrink below a legible width; force the wrapper to scroll instead. */
             .bracket-container { padding-bottom: 20px; }
-            .bracket-column { min-width: 290px; }
+            .bracket-column { flex: 0 0 290px; min-width: 290px; }
             .bracket-team-name { font-size: 0.85rem; }
             .bo3-grid { grid-template-columns: 1fr 50px 50px 50px; }
             .bo3-score-input { height: 44px; font-size: 1.1rem; }
@@ -2997,22 +2998,29 @@
     
     function advSF(i, teamNum) {
         const m = state.bracket.sf[i];
+        const slot = i === 0 ? 't1' : i === 1 ? 't2' : null;
+        if (!m || !slot) return;
         m.winner = teamNum;
-        const slot = (i === 0) ? 't1' : 't2';
         if(!state.bracket.final) state.bracket.final = {t1: null, t2: null, winner: null, scores: [], gameLocks: [false, false, false]};
         if(!state.bracket.third) state.bracket.third = {t1: null, t2: null, winner: null, scores: [], gameLocks: [false, false, false]};
+        // SF1 loser fills 3rd-place team 1; SF2 loser fills team 2.
         state.bracket.final[slot] = teamNum === 1 ? m.t1 : m.t2;
         state.bracket.third[slot] = teamNum === 1 ? m.t2 : m.t1;
         saveState(); renderBracketUI();
     }
 
     function retractSF(i) {
+        const slot = i === 0 ? 't1' : i === 1 ? 't2' : null;
+        if (!state.bracket.sf[i] || !slot) return;
         state.bracket.sf[i].winner = null;
-        const slot = (i === 0) ? 't1' : 't2';
-        state.bracket.final[slot] = null;
-        state.bracket.third[slot] = null;
-        state.bracket.final.winner = null;
-        state.bracket.third.winner = null;
+        if (state.bracket.final) {
+            state.bracket.final[slot] = null;
+            state.bracket.final.winner = null;
+        }
+        if (state.bracket.third) {
+            state.bracket.third[slot] = null;
+            state.bracket.third.winner = null;
+        }
         saveState(); renderBracketUI();
     }
 
@@ -3890,22 +3898,29 @@
     
     function advRRSF(i, teamNum) {
         const m = state.rr.bracket.sf[i];
+        const slot = i === 0 ? 't1' : i === 1 ? 't2' : null;
+        if (!m || !slot) return;
         m.winner = teamNum;
-        const slot = (i === 0) ? 't1' : 't2';
         if(!state.rr.bracket.final) state.rr.bracket.final = {t1: null, t2: null, winner: null, scores: [], gameLocks: [false, false, false]};
         if(!state.rr.bracket.third) state.rr.bracket.third = {t1: null, t2: null, winner: null, scores: [], gameLocks: [false, false, false]};
+        // SF1 loser fills 3rd-place team 1; SF2 loser fills team 2.
         state.rr.bracket.final[slot] = teamNum === 1 ? m.t1 : m.t2;
         state.rr.bracket.third[slot] = teamNum === 1 ? m.t2 : m.t1;
         saveState(); renderRRBracketUI();
     }
 
     function retractRRSF(i) {
+        const slot = i === 0 ? 't1' : i === 1 ? 't2' : null;
+        if (!state.rr.bracket.sf[i] || !slot) return;
         state.rr.bracket.sf[i].winner = null;
-        const slot = (i === 0) ? 't1' : 't2';
-        state.rr.bracket.final[slot] = null;
-        state.rr.bracket.third[slot] = null;
-        state.rr.bracket.final.winner = null;
-        state.rr.bracket.third.winner = null;
+        if (state.rr.bracket.final) {
+            state.rr.bracket.final[slot] = null;
+            state.rr.bracket.final.winner = null;
+        }
+        if (state.rr.bracket.third) {
+            state.rr.bracket.third[slot] = null;
+            state.rr.bracket.third.winner = null;
+        }
         saveState(); renderRRBracketUI();
     }
 
