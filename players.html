@@ -464,6 +464,10 @@
         if (overview && finder && dashboard) overview.append(finder, dashboard);
         applyPortalRole();
         renderPublicPools(); renderPublicStandings(); renderPublicBracket(); renderEventSummary(); renderExpressCheckIn();
+        const savedPlayerTab = sessionStorage.getItem('picklepal_player_tab');
+        if (savedPlayerTab && ['overview', 'pools', 'standings', 'bracket'].includes(savedPlayerTab)) {
+            showEventView(savedPlayerTab);
+        }
         setTournamentLoading(false);
         if (loadedFromLocal || liveSubscriptionStarted) return;
         liveSubscriptionStarted = true;
@@ -511,6 +515,7 @@
     }
 
     function showEventView(view) {
+        sessionStorage.setItem('picklepal_player_tab', view);
         document.querySelectorAll('.event-view').forEach(element => element.classList.remove('active'));
         document.querySelector(`#event-view-${view}`)?.classList.add('active');
         document.querySelectorAll('.event-tab').forEach(button => button.classList.toggle('active', button.textContent.trim().toLowerCase() === view));

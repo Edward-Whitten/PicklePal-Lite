@@ -200,38 +200,52 @@
         .team-row { display: grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items: center; padding: 6px 0; min-height: 48px; width:100%; min-width:0; box-sizing:border-box; }
         .team-row > span { min-width:0; overflow:hidden; text-overflow:ellipsis; word-break:break-word; }
         
-        .standings-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
-        .competition-shell { display:grid; gap:18px; }
-        .competition-hero { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr); gap:0; align-items:stretch; padding:0; overflow:hidden; }
-        .competition-hero-main { padding:28px; background:radial-gradient(circle at top left,rgba(6,182,212,.18),transparent 42%), linear-gradient(145deg,rgba(30,41,59,.72),rgba(15,23,42,.9)); }
+        .standings-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; width:100%; min-width:0; box-sizing:border-box; }
+        .competition-shell { display:grid; gap:16px; width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .competition-hero { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr); gap:0; align-items:stretch; padding:0; overflow:hidden; width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .competition-hero-main { padding:24px; background:radial-gradient(circle at top left,rgba(6,182,212,.18),transparent 42%), linear-gradient(145deg,rgba(30,41,59,.72),rgba(15,23,42,.9)); min-width:0; box-sizing:border-box; }
         .competition-kicker { margin:0 0 8px; color:var(--accent); font-size:.72rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
-        .competition-hero h2 { margin:0 0 10px; font-size:clamp(2rem,4vw,3.4rem); line-height:1; font-weight:900; letter-spacing:0; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
-        .competition-hero p { max-width:720px; margin:0; color:var(--muted); font-size:1rem; line-height:1.55; }
-        .competition-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:18px; background:var(--row-bg); border-left:1px solid var(--border); }
-        .tournament-status-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:18px; }
+        .competition-hero h2 { margin:0 0 10px; font-size:clamp(1.4rem,4vw,3rem); line-height:1.1; font-weight:900; letter-spacing:0; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; word-break:break-word; }
+        .competition-hero p { max-width:720px; margin:0; color:var(--muted); font-size:0.95rem; line-height:1.5; }
+        .competition-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:16px; background:var(--row-bg); border-left:1px solid var(--border); min-width:0; box-sizing:border-box; }
+        .tournament-status-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:16px; }
         .tournament-status-badge { padding:6px 14px; border-radius:999px; font-size:.75rem; font-weight:900; text-transform:uppercase; letter-spacing:.05em; border:1px solid var(--border); color:var(--muted); background:var(--row-bg); }
         .tournament-status-badge.status-setup { color:var(--muted); border-color:var(--border); }
         .tournament-status-badge.status-active { color:#fff; border-color:transparent; background:var(--success); }
         .tournament-status-badge.status-paused { color:#172033; border-color:transparent; background:#f59e0b; }
         .tournament-status-badge.status-completed { color:#fff; border-color:transparent; background:var(--accent); }
-        .competition-metric { min-height:88px; padding:14px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.035); }
-        .competition-metric strong { display:block; color:var(--text); font-size:1.65rem; line-height:1; font-weight:900; }
-        .competition-metric span { display:block; margin-top:7px; color:var(--muted); font-size:.68rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
-        .competition-tabs { position:sticky; top:12px; z-index:900; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:8px; border:1px solid var(--border); border-radius:14px; background:rgba(15,23,42,.82); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:0 12px 32px rgba(0,0,0,.12); }
+        .competition-metric { min-height:80px; padding:12px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.035); min-width:0; box-sizing:border-box; }
+        .competition-metric strong { display:block; color:var(--text); font-size:1.5rem; line-height:1; font-weight:900; }
+        .competition-metric span { display:block; margin-top:6px; color:var(--muted); font-size:.68rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+        
+        .competition-tabs { position:sticky; top:12px; z-index:900; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:8px; border:1px solid var(--border); border-radius:14px; background:rgba(15,23,42,.82); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:0 12px 32px rgba(0,0,0,.12); width:100%; min-width:0; box-sizing:border-box; }
         body.light-theme .competition-tabs { background:rgba(255,255,255,.86); }
-        .competition-tab { min-height:54px; border:0; border-radius:10px; background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; font-size:.86rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
+        .competition-tab { min-height:48px; border:0; border-radius:10px; background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; font-size:.84rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; min-width:0; }
         .competition-tab.active { color:#fff; background:var(--gradient); box-shadow:0 8px 22px rgba(59,130,246,.24); }
-        .manager-pool-tabs { display:flex; gap:8px; overflow-x:auto; padding:4px 0 12px; margin:-4px 0 16px; scrollbar-color:var(--accent) transparent; }
-        .manager-pool-tab { flex:0 0 auto; min-width:86px; min-height:44px; border:1px solid var(--border); border-radius:9px; padding:8px 12px; background:var(--row-bg); color:var(--muted); font-size:.78rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; cursor:pointer; }
+        
+        .competition-pane { display:none; width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .competition-pane.active { display:block; width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .competition-panel { padding:var(--space-5); margin-bottom:0; width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .competition-panel-head { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:20px; width:100%; min-width:0; box-sizing:border-box; }
+        .competition-panel-head > div:first-child { min-width:0; flex:1 1 200px; }
+        .competition-panel-head h3 { margin:0; font-size:1.5rem; font-weight:900; word-break:break-word; }
+        .competition-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; min-width:0; }
+        .competition-actions > div { min-width:0; }
+        .pool-active-badge { background:var(--row-bg); padding:10px 16px; border-radius:10px; display:flex; gap:10px; align-items:center; justify-content:center; border: 1px solid var(--border); white-space:nowrap; }
+        
+        .pool-admin-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:14px; margin-top:14px; border-top:1px dashed var(--border); width:100%; min-width:0; box-sizing:border-box; }
+        .pool-admin-actions .btn { flex:1 1 140px; min-width:0; }
+        
+        .manager-pool-tabs { display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding:4px 0 12px; margin:0 0 16px; scrollbar-color:var(--accent) transparent; width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .manager-pool-tab { flex:0 0 auto; min-width:76px; min-height:42px; border:1px solid var(--border); border-radius:9px; padding:8px 12px; background:var(--row-bg); color:var(--muted); font-size:.78rem; font-weight:900; text-transform:uppercase; letter-spacing:.04em; cursor:pointer; }
         .manager-pool-tab.active { color:#fff; border-color:transparent; background:var(--gradient); box-shadow:0 8px 22px rgba(59,130,246,.22); }
-        .competition-pane { display:none; }
-        .competition-pane.active { display:block; }
-        .competition-panel { padding:var(--space-5); margin-bottom:0; }
-        .competition-panel-head { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:22px; }
-        .competition-panel-head h3 { margin:0; font-size:1.6rem; font-weight:900; }
-        .competition-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-        .pool-admin-actions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding-top:14px; margin-top:14px; border-top:1px dashed var(--border); }
-        .pool-admin-actions .btn-sm { font-size:.8rem; }
+        
+        #pool-container { width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .pool-section { width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .pool-header { font-size: clamp(1.2rem, 4vw, 1.6rem); font-weight: 900; color: var(--accent); margin-bottom: 1rem; border-left: 5px solid var(--accent); padding-left: 12px; letter-spacing: -0.5px; word-break: break-word; }
+        .pool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; align-items:start; width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+        .match-card { background: var(--card); padding: 1rem; border-radius: 12px; border: 1px solid var(--border); position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.04); transition: 0.3s; width:100%; min-width:0; max-width:100%; box-sizing:border-box; overflow:hidden; }
+        .match-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { text-align: left; color: var(--muted); padding: 14px 12px; border-bottom: 2px solid var(--border); font-size: 0.85rem; text-transform: uppercase; font-weight: 900; letter-spacing: 0.5px; }
         td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-weight: 600; }
@@ -922,17 +936,17 @@
                     <div class="competition-panel-head">
                         <div><h3>Pool Play</h3><p style="margin:6px 0 0; color:var(--muted); font-weight:700;">Assign courts, enter scores, and resolve score reports.</p></div>
                         <div class="competition-actions">
-                            <div style="position:relative;">
+                            <div style="position:relative; flex:1 1 180px; min-width:0;">
                                 <i data-lucide="search" style="position:absolute; left:14px; top:14px; width:20px; color:var(--muted);"></i>
-                                <input type="text" id="pool-search" placeholder="Search match..." style="width:230px; padding-left:45px;" onkeyup="renderPools()">
+                                <input type="text" id="pool-search" placeholder="Search match..." style="padding-left:45px; width:100%;" onkeyup="renderPools()">
                             </div>
-                            <select id="pool-filter" style="width:180px;" onchange="renderPools()">
+                            <select id="pool-filter" style="flex:1 1 140px; min-width:0;" onchange="renderPools()">
                                 <option value="all">All Matches</option>
                                 <option value="pending">Pending</option>
                                 <option value="completed">Completed</option>
                             </select>
-                            <div style="background:var(--row-bg); padding:12px 20px; border-radius:10px; display:flex; gap:10px; align-items:center; border: 1px solid var(--border);">
-                                <span class="muted" id="pool-count-label" style="font-size:1rem; font-weight:800;">- Pools Active</span>
+                            <div class="pool-active-badge">
+                                <span class="muted" id="pool-count-label" style="font-size:0.95rem; font-weight:800;">- Pools Active</span>
                             </div>
                         </div>
                     </div>
@@ -1743,23 +1757,29 @@
         rrBtns.forEach(b => b ? b.classList.remove('active') : null);
         
         document.querySelectorAll('.nav-tabs').forEach(el => el.classList.add('hidden'));
+
+        const savedTab = sessionStorage.getItem('picklepal_manager_tab');
+        const savedGroup = sessionStorage.getItem('picklepal_manager_group');
+        const savedCompView = sessionStorage.getItem('picklepal_comp_view');
+        if (savedCompView && ['pools', 'standings', 'bracket'].includes(savedCompView)) {
+            activeCompetitionView = savedCompView;
+        }
         
         if(mode === 'tourney') {
             tourneyBtns.forEach(b => b ? b.classList.add('active') : null);
             document.getElementById('nav-tourney').classList.remove('hidden');
-            if(!isInit) showTab('home', 'tourney');
-            else { renderRoster(); renderBracketUI(); showTab('home', 'tourney'); }
+            const targetTab = (isInit && savedTab && savedGroup === 'tourney') ? savedTab : 'home';
+            renderRoster(); renderBracketUI();
+            showTab(targetTab, 'tourney');
         } else {
             rrBtns.forEach(b => b ? b.classList.add('active') : null);
             document.getElementById('nav-rr').classList.remove('hidden');
-            if(!isInit) showTab('rr-setup', 'rr');
-            else {
-                if(window.updateRRFormat) window.updateRRFormat(); 
-                if(window.filterRRCards) window.filterRRCards();
-                if(state.rr.format === 'fixed_bracket') renderRRBracketUI();
-                else { renderRRMatches(); renderRRLeaderboard(); }
-                showTab('rr-setup', 'rr');
-            }
+            if(window.updateRRFormat) window.updateRRFormat(); 
+            if(window.filterRRCards) window.filterRRCards();
+            if(state.rr.format === 'fixed_bracket') renderRRBracketUI();
+            else { renderRRMatches(); renderRRLeaderboard(); }
+            const targetTab = (isInit && savedTab && savedGroup === 'rr') ? savedTab : 'rr-setup';
+            showTab(targetTab, 'rr');
         }
         saveState(); lucide.createIcons();
     }
@@ -1782,6 +1802,9 @@
 
     function showCompetitionView(view = 'pools') {
         activeCompetitionView = ['pools', 'standings', 'bracket'].includes(view) ? view : 'pools';
+        sessionStorage.setItem('picklepal_comp_view', activeCompetitionView);
+        sessionStorage.setItem('picklepal_manager_tab', activeCompetitionView);
+        sessionStorage.setItem('picklepal_manager_group', 'tourney');
         document.querySelectorAll('.competition-tab').forEach(button => button.classList.toggle('active', button.id === `competition-tab-${activeCompetitionView}`));
         document.querySelectorAll('.competition-pane').forEach(pane => pane.classList.toggle('active', pane.id === `competition-pane-${activeCompetitionView}`));
         renderCompetitionSummary();
@@ -1795,8 +1818,11 @@
         const requestedTabId = tabId;
         if (group === 'tourney' && ['pools', 'standings', 'bracket'].includes(tabId)) {
             activeCompetitionView = tabId;
+            sessionStorage.setItem('picklepal_comp_view', activeCompetitionView);
             tabId = 'competition';
         }
+        sessionStorage.setItem('picklepal_manager_tab', requestedTabId);
+        sessionStorage.setItem('picklepal_manager_group', group);
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         const targetTab = document.getElementById(`tab-${tabId}`);
         if(targetTab) targetTab.classList.remove('hidden');
