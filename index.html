@@ -140,10 +140,10 @@
         input:not([readonly]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus, select:not(:disabled):focus, textarea:not([readonly]):focus, .editable-input:not([readonly]):focus { border-color: var(--accent); background: var(--input-bg); box-shadow: 0 0 0 3px rgba(168, 85, 247, .2), inset 0 1px rgba(255,255,255,.1); outline: none; }
         select option { background-color: var(--card); color: var(--text); font-weight: 600; }
         
-        .header-h1 { font-size: 3.5rem !important; font-weight: 900 !important; letter-spacing: -1.5px !important; width: 100% !important; padding: 0 !important; min-height: 70px !important; border: none !important; background: transparent !important; transition: 0.3s ease !important; }
+        .header-h1 { font-size: clamp(1.4rem, 5.5vw, 3.5rem) !important; font-weight: 900 !important; letter-spacing: -1.5px !important; width: 100% !important; padding: 0 !important; min-height: 70px !important; border: none !important; background: transparent !important; transition: 0.3s ease !important; overflow-wrap: anywhere; }
         .header-h1[readonly] { background: var(--gradient) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; -webkit-text-fill-color: transparent !important; opacity: 1 !important; pointer-events: none; }
-        .header-h1:not([readonly]) { background: var(--input-bg) !important; -webkit-background-clip: border-box !important; background-clip: border-box !important; color: var(--text) !important; -webkit-text-fill-color: var(--text) !important; border: 1px solid var(--accent) !important; padding: 10px 20px !important; border-radius: 16px !important; box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15) !important; font-size: 2.5rem !important; }
-        @media (max-width: 768px) { .header-h1 { font-size: 2.5rem !important; } .header-h1:not([readonly]) { font-size: 1.8rem !important; } }
+        .header-h1:not([readonly]) { background: var(--input-bg) !important; -webkit-background-clip: border-box !important; background-clip: border-box !important; color: var(--text) !important; -webkit-text-fill-color: var(--text) !important; border: 1px solid var(--accent) !important; padding: 10px 20px !important; border-radius: 16px !important; box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15) !important; font-size: clamp(1.1rem, 4vw, 2.5rem) !important; }
+        @media (max-width: 768px) { .header-h1 { font-size: clamp(1.1rem, 6.5vw, 2.5rem) !important; } .header-h1:not([readonly]) { font-size: clamp(1rem, 5vw, 1.8rem) !important; } }
 
         .editable-group { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
         .editable-group i { color: var(--accent); }
@@ -184,8 +184,9 @@
         .team-row-entry > div:nth-child(2), .team-row-entry > div:nth-child(3) { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 5px; align-items: center; }
         .team-row-entry > div input[type="text"] { min-width: 0; }
         .team-row-entry > select { width: 100%; min-width: 0 !important; }
-        .check-in-control { display:grid; grid-template-columns:minmax(100px,1fr) auto; gap:8px; align-items:center; }
-        .check-in-control .btn { white-space:nowrap; }
+        .check-in-control { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+        .check-in-control select { flex:1 1 140px; min-width:0; }
+        .check-in-control .btn { flex:0 0 auto; white-space:nowrap; }
         .registration-panel { background:var(--row-bg); padding:var(--space-5); border-radius:var(--radius-lg); margin-bottom:var(--space-5); border:1px solid var(--border); display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,auto); align-items:center; gap:var(--space-5); box-shadow:inset 0 2px 10px rgba(0,0,0,0.05); }
         .add-team-panel { flex:1 1 420px; min-width:0; }
         .add-team-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)) auto; gap:12px; align-items:center; min-width:0; }
@@ -242,6 +243,16 @@
 
         .bracket-container { display: flex; gap: 24px; justify-content: flex-start; align-items: stretch; width: 100%; padding: 10px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .bracket-column { display: flex; flex-direction: column; justify-content: space-around; gap: 15px; flex: 1; min-width: 340px; }
+        /* Isolates horizontal bracket scrolling so the main body/header never scroll sideways. */
+        .bracket-wrapper { min-width: 0; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+        .bracket-wrapper::-webkit-scrollbar { height: 8px; }
+        .bracket-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .bracket-wrapper::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
+        /* Isolates horizontal bracket scrolling so the main body/header never scroll sideways. */
+        .bracket-wrapper { min-width: 0; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; padding-bottom: 10px; scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+        .bracket-wrapper::-webkit-scrollbar { height: 8px; }
+        .bracket-wrapper::-webkit-scrollbar-track { background: transparent; }
+        .bracket-wrapper::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
         .bracket-team-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--row-bg); border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border); transition: 0.3s; }
         .bracket-team-name { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
         
@@ -316,7 +327,7 @@
         .modal-input { width: 100%; margin-bottom: 2rem; text-align:center; }
         .modal-actions { display: flex; gap: 12px; justify-content: center; }
         .modal-actions .btn { flex: 1; }
-        .data-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
+        .data-table-wrap { min-width:0; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:8px; }
         .data-table-wrap table { min-width:620px; margin:0; }.data-table-wrap th { position:sticky; top:0; z-index:1; background:var(--card); }
 
         @media (max-width:1100px) {
@@ -373,7 +384,7 @@
         .rr-current-mode strong { color:var(--accent); }
         .rr-current-mode i { color:var(--accent); width:16px; height:16px; }
         .rr-current-event { display:inline-flex; align-items:center; gap:6px; padding-left:10px; margin-left:2px; border-left:1px solid var(--border); color:var(--muted); }
-        .rr-match-scroll, .rr-table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; scrollbar-color:var(--accent) transparent; }
+        .rr-match-scroll, .rr-table-scroll { min-width:0; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; scrollbar-color:var(--accent) transparent; }
         .rr-match-scroll .pool-grid { min-width:min-content; }
         .rr-table-scroll table { min-width:760px; margin-top:0; }
         .rr-table-scroll th { position:sticky; top:0; z-index:1; background:var(--card); }
@@ -464,7 +475,7 @@
             .team-row-entry { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr); }
             .team-row-entry > div:first-child { grid-column: 1; grid-row: 1 / span 2; align-self: start; }
             .team-row-entry > select { grid-column: 2 / -1; }
-            .team-row-entry .check-in-control { grid-column: 2 / -1; grid-template-columns: minmax(0, 1fr) auto; }
+            .team-row-entry .check-in-control { grid-column: 2 / -1; }
             .format-grid { grid-template-columns: 1fr; }
         }
 
@@ -517,7 +528,7 @@
                 min-height: 0; overflow: visible; overflow-x: hidden; touch-action:pan-y;
             }
             .master-header { padding: 1.25rem; gap: 15px; text-align: left; }
-            .header-h1 { font-size: 1.8rem !important; min-height: 50px !important; line-height: 1.1 !important; }
+            .header-h1 { font-size: clamp(1rem, 7vw, 1.8rem) !important; min-height: 50px !important; line-height: 1.1 !important; }
             .tourney-logo-display { height: 80px; width: auto; align-self: flex-start; }
             
             /* FIELD SCALING (No off-screen bleeding) */
@@ -2794,12 +2805,14 @@
         }
 
         ui.innerHTML = `
-            <div class="bracket-container">
-                ${r32HTML !== '' ? `<div class="bracket-column">${r32HTML}</div>` : ''}
-                ${r16HTML !== '' ? `<div class="bracket-column">${r16HTML}</div>` : ''}
-                ${qfHTML !== '' ? `<div class="bracket-column">${qfHTML}</div>` : ''}
-                ${sfHTML !== '' ? `<div class="bracket-column">${sfHTML}</div>` : ''}
-                <div class="bracket-column" style="min-width:380px;">${finalsHTML}</div>
+            <div class="bracket-wrapper">
+                <div class="bracket-container">
+                    ${r32HTML !== '' ? `<div class="bracket-column">${r32HTML}</div>` : ''}
+                    ${r16HTML !== '' ? `<div class="bracket-column">${r16HTML}</div>` : ''}
+                    ${qfHTML !== '' ? `<div class="bracket-column">${qfHTML}</div>` : ''}
+                    ${sfHTML !== '' ? `<div class="bracket-column">${sfHTML}</div>` : ''}
+                    <div class="bracket-column" style="min-width:380px;">${finalsHTML}</div>
+                </div>
             </div>
             ${podiumHTML}
         `;
@@ -2986,6 +2999,8 @@
         const m = state.bracket.sf[i];
         m.winner = teamNum;
         const slot = (i === 0) ? 't1' : 't2';
+        if(!state.bracket.final) state.bracket.final = {t1: null, t2: null, winner: null, scores: [], gameLocks: [false, false, false]};
+        if(!state.bracket.third) state.bracket.third = {t1: null, t2: null, winner: null, scores: [], gameLocks: [false, false, false]};
         state.bracket.final[slot] = teamNum === 1 ? m.t1 : m.t2;
         state.bracket.third[slot] = teamNum === 1 ? m.t2 : m.t1;
         saveState(); renderBracketUI();
@@ -3809,10 +3824,12 @@
         }
 
         ui.innerHTML = `
-            <div class="bracket-container">
-                ${qfHTML !== '' ? `<div class="bracket-column">${qfHTML}</div>` : ''}
-                ${sfHTML !== '' ? `<div class="bracket-column">${sfHTML}</div>` : ''}
-                <div class="bracket-column" style="min-width:380px;">${finalsHTML}</div>
+            <div class="bracket-wrapper">
+                <div class="bracket-container">
+                    ${qfHTML !== '' ? `<div class="bracket-column">${qfHTML}</div>` : ''}
+                    ${sfHTML !== '' ? `<div class="bracket-column">${sfHTML}</div>` : ''}
+                    <div class="bracket-column" style="min-width:380px;">${finalsHTML}</div>
+                </div>
             </div>
             ${podiumHTML}
         `;
@@ -3875,6 +3892,8 @@
         const m = state.rr.bracket.sf[i];
         m.winner = teamNum;
         const slot = (i === 0) ? 't1' : 't2';
+        if(!state.rr.bracket.final) state.rr.bracket.final = {t1: null, t2: null, winner: null, scores: [], gameLocks: [false, false, false]};
+        if(!state.rr.bracket.third) state.rr.bracket.third = {t1: null, t2: null, winner: null, scores: [], gameLocks: [false, false, false]};
         state.rr.bracket.final[slot] = teamNum === 1 ? m.t1 : m.t2;
         state.rr.bracket.third[slot] = teamNum === 1 ? m.t2 : m.t1;
         saveState(); renderRRBracketUI();
@@ -3884,7 +3903,7 @@
         state.rr.bracket.sf[i].winner = null;
         const slot = (i === 0) ? 't1' : 't2';
         state.rr.bracket.final[slot] = null;
-        state.bracket.third[slot] = null;
+        state.rr.bracket.third[slot] = null;
         state.rr.bracket.final.winner = null;
         state.rr.bracket.third.winner = null;
         saveState(); renderRRBracketUI();
