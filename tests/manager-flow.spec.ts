@@ -177,12 +177,13 @@ test.describe('Home and manager workspace', () => {
     await expect(page.locator('#roster-list .team-row-entry')).toHaveCount(5);
     await page.evaluate(() => {
       state.tournamentStarted = true;
+      state.status = 'active';
       state.stranded = ['Late One', 'Late Two'];
       renderRoster();
     });
     await page.locator('.s-check').nth(0).check();
     await page.locator('.s-check').nth(1).check();
     await page.getByRole('button', { name: 'Form New Team' }).click();
-    await expect(page.locator('#modal-title')).toHaveText('Tournament Started');
+    await expect(page.locator('#modal-title')).toHaveText('Tournament Active');
   });
 });

@@ -207,6 +207,12 @@
         .competition-hero h2 { margin:0 0 10px; font-size:clamp(2rem,4vw,3.4rem); line-height:1; font-weight:900; letter-spacing:0; background:var(--gradient); -webkit-background-clip:text; background-clip:text; color:transparent; }
         .competition-hero p { max-width:720px; margin:0; color:var(--muted); font-size:1rem; line-height:1.55; }
         .competition-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:18px; background:var(--row-bg); border-left:1px solid var(--border); }
+        .tournament-status-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:18px; }
+        .tournament-status-badge { padding:6px 14px; border-radius:999px; font-size:.75rem; font-weight:900; text-transform:uppercase; letter-spacing:.05em; border:1px solid var(--border); color:var(--muted); background:var(--row-bg); }
+        .tournament-status-badge.status-setup { color:var(--muted); border-color:var(--border); }
+        .tournament-status-badge.status-active { color:#fff; border-color:transparent; background:var(--success); }
+        .tournament-status-badge.status-paused { color:#172033; border-color:transparent; background:#f59e0b; }
+        .tournament-status-badge.status-completed { color:#fff; border-color:transparent; background:var(--accent); }
         .competition-metric { min-height:88px; padding:14px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.035); }
         .competition-metric strong { display:block; color:var(--text); font-size:1.65rem; line-height:1; font-weight:900; }
         .competition-metric span { display:block; margin-top:7px; color:var(--muted); font-size:.68rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
@@ -786,7 +792,7 @@
                     <div class="add-team-fields">
                         <input type="text" id="new-p1" placeholder="Player 1 Name">
                         <input type="text" id="new-p2" placeholder="Player 2 Name">
-                        <button class="btn btn-success" onclick="submitNewTeam()"><i data-lucide="plus"></i> Submit Team</button>
+                        <button class="btn btn-success" id="submit-team-btn" onclick="submitNewTeam()"><i data-lucide="plus"></i> Submit Team</button>
                     </div>
                 </div>
                 <div class="registration-meter">
@@ -821,6 +827,11 @@
                     <p class="competition-kicker">Live competition desk</p>
                     <h2>Pool play, standings, and bracket in one command view.</h2>
                     <p>Move between match entry, qualification, and elimination seeding without leaving the manager workspace.</p>
+                    <div class="tournament-status-row">
+                        <span id="tournament-status-badge" class="tournament-status-badge">Setup</span>
+                        <button id="tournament-start-btn" class="btn btn-success btn-sm" onclick="startTournament()"><i data-lucide="play"></i> Start Tournament</button>
+                        <button id="tournament-pause-btn" class="btn btn-outline btn-sm hidden" onclick="pauseTournament()"><i data-lucide="pause"></i> Pause Tournament</button>
+                    </div>
                 </div>
                 <div id="competition-metrics" class="competition-metrics" aria-live="polite"></div>
             </section>
@@ -851,8 +862,8 @@
                         </div>
                     </div>
                     <div class="pool-admin-actions">
-                        <button class="btn btn-outline btn-sm" onclick="resetPoolScores()" title="Clear all entered pool play scores without touching teams or pool assignments"><i data-lucide="eraser"></i> Reset Scores</button>
-                        <button class="btn btn-danger btn-sm" onclick="randomizePools()" title="Reshuffle teams into new pools and clear pool play progress"><i data-lucide="shuffle"></i> Randomize Pools</button>
+                        <button class="btn btn-outline btn-sm" id="reset-scores-btn" onclick="resetPoolScores()" title="Clear all entered pool play scores without touching teams or pool assignments"><i data-lucide="eraser"></i> Reset Scores</button>
+                        <button class="btn btn-danger btn-sm" id="randomize-pools-btn" onclick="randomizePools()" title="Reshuffle teams into new pools and clear pool play progress"><i data-lucide="shuffle"></i> Randomize Pools</button>
                     </div>
                     <div id="manager-pool-tabs" class="manager-pool-tabs" aria-label="Pool selector"></div>
                     <div id="pool-container"></div>
@@ -884,7 +895,7 @@
                                     <option value="single">Single Game</option>
                                 </select>
                             </div>
-                            <button class="btn btn-primary" onclick="generateBracket()"><i data-lucide="git-merge"></i> Seed Bracket</button>
+                            <button class="btn btn-primary" id="seed-bracket-btn" onclick="generateBracket()"><i data-lucide="git-merge"></i> Seed Bracket</button>
                         </div>
                     </div>
                     <div id="bracket-ui"></div>
@@ -1120,7 +1131,7 @@
     };
 
     const DEFAULT_STATE = {
-        appMode: 'tourney', theme: "dark", setupMode: 'manual', poolSize: 5, advancementCount: 8, tournamentStarted: false,
+        appMode: 'tourney', theme: "dark", setupMode: 'manual', poolSize: 5, advancementCount: 8, tournamentStarted: false, status: 'setup',
         header: { title: "", date: "", loc: "", org: "", man: "", logoDarkTheme: "Compass-Logo-White.png", logoLightTheme: "Compass-Logo-White.png" },
         expectedTeams: "-", allowOddTeams: false, finalsFormat: "bo3", tournamentNickname: "", adminPinHash: "", teams: [], completedMatches: {}, scoreReports: {}, poolCount: 0, poolSchedule: [], courts: {}, stranded: [], bracketArchive: null,
         bracket: { 
@@ -1143,6 +1154,10 @@
 
     // 20 seeds a 32-slot bracket: 12 byes plus a 4-match preliminary round.
     const SUPPORTED_ADVANCEMENT = [4, 8, 16, 20, 32, 64];
+    // Mirrors the tournaments.status column on the server; that column is the source of truth.
+    const TOURNAMENT_STATUSES = ['setup', 'active', 'paused', 'completed'];
+    // Deep edits (roster changes, pool/bracket structure) are only safe when nobody is actively scoring.
+    function deepEditsAllowed() { return state.status === 'setup' || state.status === 'paused'; }
 
     function cloneDefaultState() {
         return JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -1193,6 +1208,8 @@
         normalized.poolSize = Math.min(8, Math.max(4, Number(source.poolSize) || DEFAULT_STATE.poolSize));
         normalized.advancementCount = Math.min(64, Math.max(4, Number(source.advancementCount) || DEFAULT_STATE.advancementCount));
         normalized.tournamentStarted = Boolean(source.tournamentStarted || (Array.isArray(source.poolSchedule) && source.poolSchedule.length));
+        // Pools being generated does not imply the tournament is active; status is explicit and defaults to 'setup'.
+        normalized.status = TOURNAMENT_STATUSES.includes(source.status) ? source.status : 'setup';
         normalized.rr.fixedSchedule = Array.isArray(normalized.rr.fixedSchedule) ? normalized.rr.fixedSchedule : [];
         normalized.rr.scheduleIndex = Number.isInteger(normalized.rr.scheduleIndex) ? normalized.rr.scheduleIndex : 0;
         normalized.courts = source.courts && typeof source.courts === 'object' ? source.courts : {};
@@ -1805,6 +1822,7 @@
     }
 
     function updateOddTeams(checked) {
+        if (!deepEditsAllowed()) return appAlert('Pause the tournament to change setup options.', 'Tournament Active', 'warning');
         state.allowOddTeams = checked;
         if (!checked && state.expectedTeams !== '-' && state.expectedTeams % 2 !== 0) { state.expectedTeams = '-'; }
         if (state.expectedTeams !== '-') state.poolCount = calculatePoolCount(state.expectedTeams);
@@ -1812,6 +1830,7 @@
     }
 
     function updateExpectedTeams(val) {
+        if (!deepEditsAllowed()) return appAlert('Pause the tournament to change setup options.', 'Tournament Active', 'warning');
         state.expectedTeams = val === '-' ? '-' : parseInt(val);
         if(state.expectedTeams !== '-') {
             state.poolCount = getOptimalPoolSizes(state.expectedTeams, state.poolSize).length;
@@ -1821,6 +1840,7 @@
     }
 
     function updatePoolSize(val) {
+        if (!deepEditsAllowed()) return appAlert('Pause the tournament to change setup options.', 'Tournament Active', 'warning');
         state.poolSize = Math.min(8, Math.max(4, parseInt(val) || DEFAULT_STATE.poolSize));
         const activeCount = state.teams.filter(team => team.active).length;
         const basis = activeCount || (state.expectedTeams === '-' ? 0 : state.expectedTeams);
@@ -1829,6 +1849,7 @@
     }
 
     function updateAdvancementCount(val) {
+        if (!deepEditsAllowed()) return appAlert('Pause the tournament to change setup options.', 'Tournament Active', 'warning');
         const total = state.expectedTeams === '-' ? state.teams.filter(team => team.active).length : Number(state.expectedTeams);
         const next = parseInt(val);
         if (!Number.isInteger(next) || next < 4 || (total && next > total)) return;
@@ -1951,6 +1972,7 @@
     }
 
     async function submitNewTeam() {
+        if (!deepEditsAllowed()) return await appAlert('Pause the tournament to add or edit teams.', 'Tournament Active', 'warning');
         if(state.setupMode === 'manual' && state.expectedTeams === '-') return await appAlert("Please select Target Teams first.", "Missing Selection", "warning");
 
         const p1Input = document.getElementById('new-p1'); const p2Input = document.getElementById('new-p2');
@@ -1980,6 +2002,7 @@
     }
 
     async function handleCSV(event) {
+        if (!deepEditsAllowed()) { event.target.value = ''; return await appAlert('Pause the tournament to import teams.', 'Tournament Active', 'warning'); }
         if(state.setupMode === 'manual' && state.expectedTeams === '-') {
             event.target.value = '';
             return await appAlert("Please select a Target Teams number first.", "Action Required", "warning");
@@ -2018,6 +2041,7 @@
     }
 
     async function executePoolAction() {
+        if (!deepEditsAllowed()) return await appAlert('Pause the tournament to change pool assignments.', 'Tournament Active', 'warning');
         const activeTeams = state.teams.filter(t => t.active);
         const tCount = activeTeams.length;
         const missingCheckIns = activeTeams.filter(team => !team.checkedIn);
@@ -2091,6 +2115,7 @@
     // Teams and the tournament record are never deleted; the bracket (if seeded) is untouched here
     // and should be re-seeded separately via Generate Bracket once new pool play concludes.
     async function randomizePools() {
+        if (!deepEditsAllowed()) return await appAlert('Pause the tournament to randomize pools.', 'Tournament Active', 'warning');
         const activeTeams = state.teams.filter(t => t.active);
         if (activeTeams.length < 4) return await appAlert("At least 4 active teams are required to randomize pools.", "Not Enough Teams", "warning");
 
@@ -2113,6 +2138,51 @@
         activeManagerPoolIndex = 0;
         saveState(); renderRoster(); renderPools(); renderStandings();
         await appAlert(`Teams reshuffled into ${poolCount} new pools. Pool play scores were cleared.`, "Pools Randomized", "success");
+    }
+
+    // Disables roster/pool/bracket structure controls while the tournament is active; scoring stays open.
+    function applyTournamentLockUI() {
+        const locked = !deepEditsAllowed();
+        ['csv-upload', 'new-p1', 'new-p2', 'submit-team-btn', 'pool-size-select', 'advancing-teams-select', 'odd-teams-check', 'seed-bracket-btn', 'randomize-pools-btn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = locked;
+        });
+        const poolActionBtn = document.getElementById('pool-action-btn');
+        if (poolActionBtn && locked) poolActionBtn.disabled = true;
+    }
+
+    function renderTournamentStatus() {
+        const badge = document.getElementById('tournament-status-badge');
+        const startBtn = document.getElementById('tournament-start-btn');
+        const pauseBtn = document.getElementById('tournament-pause-btn');
+        if (badge) {
+            const labels = { setup: 'Setup', active: 'Active', paused: 'Paused', completed: 'Completed' };
+            badge.textContent = labels[state.status] || 'Setup';
+            badge.className = `tournament-status-badge status-${state.status}`;
+        }
+        if (startBtn) startBtn.classList.toggle('hidden', !(state.status === 'setup' || state.status === 'paused'));
+        if (pauseBtn) pauseBtn.classList.toggle('hidden', state.status !== 'active');
+        applyTournamentLockUI();
+    }
+
+    async function startTournament() {
+        if (!(state.status === 'setup' || state.status === 'paused')) return;
+        if (state.status === 'setup') {
+            if (!state.poolCount || !state.teams.some(t => t.active)) return await appAlert("Generate pools before starting the tournament.", "Not Ready", "warning");
+            if (!await appConfirm("Start the tournament? Deep edits to teams, pools, and the bracket will be locked while it is active.", "Start Tournament", "Start Tournament")) return;
+        }
+        state.status = 'active';
+        state.tournamentStarted = true;
+        saveState(); renderTournamentStatus(); renderRoster(); renderPools(); renderStructureControls();
+        await appAlert("Tournament is now active. Deep edits are locked until you pause.", "Tournament Started", "success");
+    }
+
+    async function pauseTournament() {
+        if (state.status !== 'active') return;
+        if (!await appConfirm("Pause the tournament to allow manual edits to teams, seeds, or the bracket? Pool play scores and bracket results already recorded will not be affected.", "Pause Tournament", "Pause Tournament")) return;
+        state.status = 'paused';
+        saveState(); renderTournamentStatus(); renderRoster(); renderPools(); renderStructureControls();
+        await appAlert("Tournament paused. Deep edits are unlocked.", "Tournament Paused", "success");
     }
 
     function renderRoster() {
@@ -2166,20 +2236,21 @@
                     <div style="display:flex; gap:5px; align-items:center;">
                         <input type="text" id="p1-${t.id}" value="${t.p1}" placeholder="Player 1" ${t.p1Locked ? 'readonly' : ''} style="width:100%;">
                         ${t.p1CheckedIn || (t.checkedIn && t.p1CheckedIn !== false) ? '<span class="badge blue" title="Player checked in">Here</span>' : ''}
-                        <button class="btn btn-sm ${t.p1Locked ? 'btn-outline' : 'btn-success'}" style="${t.p1Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p1')" title="${t.p1Locked ? 'Edit' : 'Save'}"><i data-lucide="${t.p1Locked ? 'edit-2' : 'save'}"></i></button>
-                        <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p1')" title="${state.tournamentStarted ? 'No-show reform is locked after tournament start' : 'Mark No-Show'}" ${state.tournamentStarted ? 'disabled' : ''}><i data-lucide="user-x"></i></button>
+                        <button class="btn btn-sm ${t.p1Locked ? 'btn-outline' : 'btn-success'}" style="${t.p1Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p1')" title="${t.p1Locked ? 'Edit' : 'Save'}" ${deepEditsAllowed() ? '' : 'disabled'}><i data-lucide="${t.p1Locked ? 'edit-2' : 'save'}"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p1')" title="${deepEditsAllowed() ? 'Mark No-Show' : 'No-show reform is locked while the tournament is active'}" ${deepEditsAllowed() ? '' : 'disabled'}><i data-lucide="user-x"></i></button>
                     </div>
                     <div style="display:flex; gap:5px; align-items:center;">
                         <input type="text" id="p2-${t.id}" value="${t.p2}" placeholder="Player 2" ${t.p2Locked ? 'readonly' : ''} style="width:100%;">
                         ${t.p2CheckedIn || (t.checkedIn && t.p2CheckedIn !== false) ? '<span class="badge blue" title="Player checked in">Here</span>' : ''}
-                        <button class="btn btn-sm ${t.p2Locked ? 'btn-outline' : 'btn-success'}" style="${t.p2Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p2')" title="${t.p2Locked ? 'Edit' : 'Save'}"><i data-lucide="${t.p2Locked ? 'edit-2' : 'save'}"></i></button>
-                        <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p2')" title="${state.tournamentStarted ? 'No-show reform is locked after tournament start' : 'Mark No-Show'}" ${state.tournamentStarted ? 'disabled' : ''}><i data-lucide="user-x"></i></button>
+                        <button class="btn btn-sm ${t.p2Locked ? 'btn-outline' : 'btn-success'}" style="${t.p2Locked ? '' : 'border-color:var(--success);'}" onclick="toggleLock(${t.id}, 'p2')" title="${t.p2Locked ? 'Edit' : 'Save'}" ${deepEditsAllowed() ? '' : 'disabled'}><i data-lucide="${t.p2Locked ? 'edit-2' : 'save'}"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="markNoShow(${t.id}, 'p2')" title="${deepEditsAllowed() ? 'Mark No-Show' : 'No-show reform is locked while the tournament is active'}" ${deepEditsAllowed() ? '' : 'disabled'}><i data-lucide="user-x"></i></button>
                     </div>
-                    <div class="check-in-control"><select onchange="updatePool(${t.id}, this.value)">${Array.from({length: state.poolCount}).map((_, v) => `<option value="${v}" ${t.pool === v ? 'selected' : ''}>Pool ${String.fromCharCode(65+v)}</option>`).join('')}</select><button class="btn btn-sm ${t.checkedIn ? 'btn-success' : 'btn-outline'}" onclick="toggleTeamCheckIn(${t.id})" title="${t.checkedIn ? 'Mark not checked in' : 'Mark checked in'}"><i data-lucide="${t.checkedIn ? 'user-check' : 'user-round-check'}"></i> ${t.checkedIn ? 'Here' : 'Check in'}</button></div>
+                    <div class="check-in-control"><select onchange="updatePool(${t.id}, this.value)" ${deepEditsAllowed() ? '' : 'disabled'}>${Array.from({length: state.poolCount}).map((_, v) => `<option value="${v}" ${t.pool === v ? 'selected' : ''}>Pool ${String.fromCharCode(65+v)}</option>`).join('')}</select><button class="btn btn-sm ${t.checkedIn ? 'btn-success' : 'btn-outline'}" onclick="toggleTeamCheckIn(${t.id})" title="${t.checkedIn ? 'Mark not checked in' : 'Mark checked in'}"><i data-lucide="${t.checkedIn ? 'user-check' : 'user-round-check'}"></i> ${t.checkedIn ? 'Here' : 'Check in'}</button></div>
                 </div>
             `).join('');
         }
         renderStranded();
+        applyTournamentLockUI();
         lucide.createIcons();
     }
 
@@ -2217,6 +2288,7 @@
     async function copyAllPins() { const pins = state.teams.filter(t => t.active).map(t => `${t.p1} & ${t.p2}: ${t.pin || 'N/A'}`).join('\n'); if (pins) await navigator.clipboard.writeText(pins); }
 
     function toggleLock(id, playerKey) {
+        if (!deepEditsAllowed()) return appAlert('Pause the tournament to edit team names.', 'Tournament Active', 'warning');
         const team = state.teams.find(t => t.id === id);
         if (!team[`${playerKey}Locked`]) {
             team[playerKey] = document.getElementById(`${playerKey}-${id}`).value;
@@ -2226,7 +2298,7 @@
     }
 
     function updatePool(id, val) {
-        if (state.tournamentStarted) return appAlert('Pool changes are locked after tournament start.', 'Tournament Started', 'warning');
+        if (!deepEditsAllowed()) return appAlert('Pause the tournament to change pool assignments.', 'Tournament Active', 'warning');
         state.teams.find(t => t.id === id).pool = parseInt(val); saveState();
     }
 
@@ -2240,7 +2312,7 @@
     }
 
     async function markNoShow(id, missingKey) {
-        if (state.tournamentStarted) return await appAlert('No-show and team reform actions are locked after tournament start.', 'Tournament Started', 'warning');
+        if (!deepEditsAllowed()) return await appAlert('Pause the tournament to make no-show or team reform changes.', 'Tournament Active', 'warning');
         const t = state.teams.find(team => team.id === id);
         const p1Name = document.getElementById(`p1-${id}`).value.trim();
         const p2Name = document.getElementById(`p2-${id}`).value.trim();
@@ -2271,14 +2343,14 @@
     }
 
     async function removeStranded(index) {
-        if (state.tournamentStarted) return await appAlert('Stranded-player reform is locked after tournament start.', 'Tournament Started', 'warning');
+        if (!deepEditsAllowed()) return await appAlert('Pause the tournament to make stranded-player changes.', 'Tournament Active', 'warning');
         if(await appConfirm("Remove this player from the tournament entirely?", "Remove Player", "Remove", true)) {
             state.stranded.splice(index, 1); saveState(); renderRoster();
         }
     }
 
     async function formTeamFromStranded() {
-        if (state.tournamentStarted) return await appAlert('Team reform is locked after tournament start.', 'Tournament Started', 'warning');
+        if (!deepEditsAllowed()) return await appAlert('Pause the tournament to reform teams.', 'Tournament Active', 'warning');
         if(state.setupMode === 'manual' && state.expectedTeams === '-') return await appAlert("Please select Target Teams first.", "Action Required", "warning");
         const activeCount = state.teams.filter(t => t.active).length;
         
@@ -2688,6 +2760,7 @@
     }
 
     async function generateBracket() {
+        if (!deepEditsAllowed()) return await appAlert('Pause the tournament to re-seed the bracket.', 'Tournament Active', 'warning');
         const active = state.teams.filter(t => t.active);
         const tCount = active.length;
         
@@ -3770,6 +3843,7 @@
 
         renderTargetDropdown();
         renderStructureControls();
+        renderTournamentStatus();
         
         const headersTourney = {'head-title': state.header.title, 'head-date': state.header.date, 'head-loc': state.header.loc, 'head-org': state.header.org, 'head-man': state.header.man};
         for(let id in headersTourney) { if(document.getElementById(id)) document.getElementById(id).value = headersTourney[id] || ""; }
