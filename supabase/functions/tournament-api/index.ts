@@ -25,6 +25,11 @@ function resolvedStatus(candidate: unknown, fallback: string) {
 function withStatus<T extends Record<string, unknown>>(state: T, status: string): T {
   return { ...state, status };
 }
+// Falls back to the legacy single admin_pin_hash for rows the array-backfill migration hasn't reached.
+function managerPinHashes(tournament: Record<string, unknown>): string[] {
+  const hashes = Array.isArray(tournament.manager_pin_hashes) ? tournament.manager_pin_hashes as string[] : [];
+  return hashes.length ? hashes : [String(tournament.admin_pin_hash)];
+}
 function pin(value: unknown) {
   const valueText = String(value ?? '');
   if (!/^\d{4}$/.test(valueText)) throw new Error('A four-digit PIN is required.');
@@ -148,7 +153,8 @@ Deno.serve(async request => {
       const adminPin = pin(body.adminPin);
       if (tournament) return json({ error: 'That tournament code is already in use.' }, 409);
       const initialState = body.state || {};
-      const { data: created, error } = await supabase.from('tournaments').insert({ code: tournamentCode, event_type: kind, display_name: body.displayName || tournamentCode, admin_pin_hash: await hashPin(adminPin), status: 'setup', public_state: publicState(initialState) }).select().single();
+      const adminPinHash = await hashPin(adminPin);
+      const { data: created, error } = await supabase.from('tournaments').insert({ code: tournamentCode, event_type: kind, display_name: body.displayName || tournamentCode, admin_pin_hash: adminPinHash, manager_pin_hashes: [adminPinHash], status: 'setup', public_state: publicState(initialState) }).select().single();
       if (error) throw error;
       const teams = kind === 'round_robin' && initialState.rr && Array.isArray(initialState.rr.entities) ? initialState.rr.entities : (Array.isArray(initialState.teams) ? initialState.teams : []);
       const accessRows = await Promise.all((kind === 'tournament' ? teams : []).filter((team: Record<string, unknown>) => team?.id != null && /^\d{4}$/.test(String(team.pin || ''))).map(async (team: Record<string, unknown>) => ({ tournament_id: created.id, team_id: String(team.id), pin_hash: await hashPin(String(team.pin)), score_pin: String(team.pin) })));
@@ -158,12 +164,36 @@ Deno.serve(async request => {
     if (!tournament) return json({ error: 'Tournament not found.' }, 404);
 
     if (action === 'admin-login') {
-      if ((await hashPin(pin(body.adminPin))) !== tournament.admin_pin_hash) return json({ error: 'Incorrect tournament code or admin PIN.' }, 403);
+      if (!managerPinHashes(tournament).includes(await hashPin(pin(body.adminPin)))) return json({ error: 'Incorrect tournament code or admin PIN.' }, 403);
       return json({ sessionToken: await signSession({ tournament: tournamentCode, tournamentId: tournament.id, role: 'admin' }), state: withStatus(await managerState(tournament.id, tournament.public_state), tournament.status) });
     }
     if (action === 'admin-state') {
       await verifySession(authToken, 'admin', tournamentCode);
-      return json({ state: withStatus(await managerState(tournament.id, tournament.public_state), tournament.status), updatedAt: tournament.updated_at });
+      return json({ state: withStatus(await managerState(tournament.id, tournament.public_state), tournament.status), updatedAt: tournament.updated_at, managerPinCount: managerPinHashes(tournament).length });
+    }
+    if (action === 'add-manager-pin') {
+      await verifySession(authToken, 'admin', tournamentCode);
+      const newHash = await hashPin(pin(body.pin));
+      const existing = managerPinHashes(tournament);
+      if (existing.includes(newHash)) return json({ error: 'That PIN is already in use for this tournament.' }, 409);
+      if (existing.length >= 8) return json({ error: 'Maximum of 8 manager PINs reached.' }, 400);
+      const updated = [...existing, newHash];
+      const { error } = await supabase.from('tournaments').update({ manager_pin_hashes: updated }).eq('id', tournament.id);
+      if (error) throw error;
+      await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'admin', event_type: 'manager_pin_added' });
+      return json({ status: 'added', count: updated.length });
+    }
+    if (action === 'revoke-manager-pin') {
+      await verifySession(authToken, 'admin', tournamentCode);
+      const index = Number(body.index);
+      const existing = managerPinHashes(tournament);
+      if (!Number.isInteger(index) || index < 0 || index >= existing.length) throw new Error('Invalid PIN reference.');
+      if (existing.length <= 1) return json({ error: 'At least one manager PIN must remain.' }, 400);
+      const updated = existing.filter((_, i) => i !== index);
+      const { error } = await supabase.from('tournaments').update({ manager_pin_hashes: updated }).eq('id', tournament.id);
+      if (error) throw error;
+      await supabase.from('audit_events').insert({ tournament_id: tournament.id, actor_role: 'admin', event_type: 'manager_pin_revoked' });
+      return json({ status: 'revoked', count: updated.length });
     }
     if (action === 'player-login') {
       const { data: access } = await supabase.from('team_access').select('team_id').eq('tournament_id', tournament.id).eq('pin_hash', await hashPin(pin(body.playerPin))).maybeSingle();

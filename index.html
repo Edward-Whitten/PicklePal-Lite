@@ -464,6 +464,7 @@
             .team-row-entry { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr); }
             .team-row-entry > div:first-child { grid-column: 1; grid-row: 1 / span 2; align-self: start; }
             .team-row-entry > select { grid-column: 2 / -1; }
+            .team-row-entry .check-in-control { grid-column: 2 / -1; grid-template-columns: minmax(0, 1fr) auto; }
             .format-grid { grid-template-columns: 1fr; }
         }
 
@@ -493,7 +494,8 @@
             }
             .mobile-mode-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; }
             .mobile-mode-btn.active { background: var(--gradient); color: white; border: none; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.2); }
-            .sync-status { position:static; width:fit-content; max-width:calc(100% - 30px); margin:8px 15px 8px auto; padding:7px 10px; font-size:.68rem; box-shadow:0 4px 12px rgba(0,0,0,.12); }
+            /* Stays fixed and pinned top-right on every device; only the offset moves to clear the sticky header. */
+            .sync-status { position:fixed; top:70px; right:12px; width:fit-content; max-width:calc(100% - 24px); margin:0; padding:7px 10px; font-size:.68rem; box-shadow:0 4px 12px rgba(0,0,0,.12); }
 
             /* HIDE LEGACY ASIDE COMPLETELY */
             aside { display: none !important; }
@@ -704,6 +706,17 @@
 
         <section id="tournament-share-panel" class="card hidden">
             <div class="share-panel"><div id="tournament-qr" class="share-qr" role="img" aria-label="Tournament join QR code"></div><div><h2 style="margin:0 0 6px; font-size:1.45rem;">Share this tournament</h2><p style="margin:0 0 14px; color:var(--muted);">Players can scan the QR code or use this direct event link.</p><div class="share-link"><code id="tournament-share-url"></code><button class="btn btn-outline btn-sm" onclick="copyTournamentLink()" title="Copy player link" aria-label="Copy player link"><i data-lucide="copy"></i></button></div></div></div>
+        </section>
+
+        <section id="manager-pin-card" class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+                <div>
+                    <h4 style="margin:0 0 4px; font-size:1.15rem; font-weight:900;">Manager PINs</h4>
+                    <p style="margin:0; color:var(--muted); font-size:.85rem;">Give each co-manager their own PIN. Revoking one removes that manager's access immediately without affecting the others.</p>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="addManagerPin()"><i data-lucide="user-plus"></i> Add Manager PIN</button>
+            </div>
+            <div id="manager-pin-list" style="margin-top:14px; display:flex; flex-direction:column; gap:8px;"></div>
         </section>
 
         <div class="card">
@@ -1299,6 +1312,47 @@
         if (!link) return;
         await navigator.clipboard.writeText(link);
         await appAlert('Player link copied to your clipboard.', 'Link copied', 'success');
+    }
+
+    // Hashes only travel over the wire; the list shows a count of active PINs, never the PINs themselves.
+    async function refreshManagerPinList() {
+        const list = document.getElementById('manager-pin-list');
+        if (!list || !tournamentSlug || !window.supabaseBridge || sessionStorage.getItem('picklepal_supabase_role') !== 'admin') return;
+        try {
+            const result = await window.supabaseBridge.call('admin-state', { tournament: tournamentSlug, kind: 'tournament' });
+            const count = Math.max(1, Number(result.managerPinCount) || 1);
+            list.innerHTML = Array.from({ length: count }, (_, i) => `
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--row-bg);">
+                    <span style="font-weight:900; letter-spacing:.25em;">&bull;&bull;&bull;&bull; <span style="color:var(--muted); font-weight:700; letter-spacing:normal; font-size:.85rem;">Manager ${i + 1}</span></span>
+                    ${count > 1 ? `<button class="btn btn-sm btn-danger" onclick="revokeManagerPin(${i})"><i data-lucide="x"></i> Revoke</button>` : '<span style="color:var(--muted); font-size:.75rem; font-weight:700;">Only PIN &mdash; add another before revoking</span>'}
+                </div>`).join('');
+            lucide.createIcons();
+        } catch (error) {
+            console.warn('Manager PIN list unavailable:', error.message);
+        }
+    }
+
+    async function addManagerPin() {
+        const newPin = await appPrompt('Enter a new 4-digit PIN for the additional manager.', 'Add Manager PIN', '1234', 'Add PIN');
+        if (!newPin) return;
+        if (!/^\d{4}$/.test(newPin)) return await appAlert('Enter exactly 4 digits.', 'Invalid PIN', 'warning');
+        try {
+            await window.supabaseBridge.call('add-manager-pin', { tournament: tournamentSlug, pin: newPin, kind: 'tournament' });
+            await refreshManagerPinList();
+            await appAlert(`New manager PIN created: <strong>${newPin}</strong><br><br>Share this with your co-manager now &mdash; it will not be shown again.`, 'Manager PIN Added', 'success');
+        } catch (error) {
+            await appAlert(error.message || 'Could not add manager PIN.', 'Error', 'warning');
+        }
+    }
+
+    async function revokeManagerPin(index) {
+        if (!await appConfirm('Revoke this manager PIN? That manager will immediately lose access.', 'Revoke Manager PIN', 'Revoke', true)) return;
+        try {
+            await window.supabaseBridge.call('revoke-manager-pin', { tournament: tournamentSlug, index, kind: 'tournament' });
+            await refreshManagerPinList();
+        } catch (error) {
+            await appAlert(error.message || 'Could not revoke manager PIN.', 'Error', 'warning');
+        }
     }
 
     function updateSyncStatus() {
@@ -3858,6 +3912,7 @@
         if(state.theme === 'light') document.body.classList.add('light-theme');
         updateDisplayLogo();
         renderTournamentSharePanel();
+        refreshManagerPinList();
         
         setAppMode(state.appMode, true);
         lucide.createIcons();

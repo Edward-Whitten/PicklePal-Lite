@@ -31,16 +31,17 @@ export function tournamentState() {
   };
 }
 
-export async function seedTournament(page: Page, options: { manager?: boolean; player?: boolean; state?: ReturnType<typeof tournamentState> } = {}) {
+export async function seedTournament(page: Page, options: { manager?: boolean; player?: boolean; state?: ReturnType<typeof tournamentState>; managerPinCount?: number } = {}) {
   const state = options.state ?? tournamentState();
   let identifiedPlayer: { teamId: string; playerSlot: 'p1' | 'p2'; playerId: string } | null = null;
+  let managerPinCount = options.managerPinCount ?? 1;
   await page.route('**/functions/v1/tournament-api', async route => {
     const rawBody = route.request().postData();
     if (!rawBody) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
       return;
     }
-    const body = JSON.parse(rawBody) as { action?: string; tournament?: string; adminPin?: string; playerPin?: string; playerName?: string; state?: unknown };
+    const body = JSON.parse(rawBody) as { action?: string; tournament?: string; adminPin?: string; playerPin?: string; playerName?: string; state?: unknown; pin?: string; index?: number };
     if (body.action === 'public') {
       await route.abort();
       return;
@@ -51,6 +52,28 @@ export async function seedTournament(page: Page, options: { manager?: boolean; p
     }
     if (body.action === 'admin-login' && body.adminPin !== managerPin) {
       await route.fulfill({ status: 403, contentType: 'application/json', body: JSON.stringify({ error: 'Incorrect tournament code or admin PIN.' }) });
+      return;
+    }
+    if (body.action === 'admin-state') {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ state, updatedAt: new Date().toISOString(), managerPinCount }) });
+      return;
+    }
+    if (body.action === 'add-manager-pin') {
+      if (!/^\d{4}$/.test(String(body.pin || ''))) {
+        await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'A four-digit PIN is required.' }) });
+        return;
+      }
+      managerPinCount += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'added', count: managerPinCount }) });
+      return;
+    }
+    if (body.action === 'revoke-manager-pin') {
+      if (managerPinCount <= 1) {
+        await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'At least one manager PIN must remain.' }) });
+        return;
+      }
+      managerPinCount -= 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'revoked', count: managerPinCount }) });
       return;
     }
     if (body.action === 'player-login') {
