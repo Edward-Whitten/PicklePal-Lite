@@ -192,6 +192,8 @@
     let scoreNoticeTimer = null;
     let selectedCheckInEntry = null;
     let currentPlayerName = '';
+    // Locks the score desk to whichever team this browser first identified/logged in as this session.
+    let identifiedTeamId = null;
     const submittingScores = new Set();
     let portalRole = localStorage.getItem('picklepal_portal_role') || '';
 
@@ -504,6 +506,7 @@
         const entry = selectedCheckInEntry;
         if (!entry || playerCheckedIn(entry.team, entry.slot)) return;
         currentPlayerName = entry.name;
+        identifiedTeamId = entry.team.id;
         renderPlayerIdentity();
         if (button) { button.disabled = true; button.classList.add('submitting'); button.innerHTML = '<span class="checkin-spinner"></span> Checking in...'; }
         let scorePin = entry.team.pin || '';
@@ -676,6 +679,7 @@
         button.innerText = 'Checking...';
 
         let team = state.teams.find(t => t.pin === pin) || null;
+        let authError = '';
         if (!team) {
             try {
                 if(functions && auth) {
@@ -683,17 +687,28 @@
                 await auth.signInWithCustomToken(session.data.token);
                 team = state.teams.find(t => String(t.id) === String(session.data.teamId));
                 }
-            } catch (error) { console.warn('Secure player session unavailable:', error.message); }
+            } catch (error) {
+                authError = error.message || '';
+                console.warn('Secure player session unavailable:', error.message);
+            }
         } else if(functions && auth && tournamentSlug && !auth.currentUser) {
             functions.httpsCallable('playerSession')({ tournament: tournamentSlug, playerPin: pin })
                 .then(session => auth.signInWithCustomToken(session.data.token))
                 .catch(error => console.warn('Secure player session unavailable:', error.message));
         }
+
+        // Client-side failsafe: never let an already-identified player switch to a different team's score desk.
+        if (team && identifiedTeamId != null && String(team.id) !== String(identifiedTeamId)) {
+            authError = 'Unauthorized: This code does not match your registered team.';
+            team = null;
+        }
+
         button.disabled = false;
         button.classList.remove('submitting');
         button.innerText = 'Unlock scores';
-        if(!team) { setInlineMessage('player-pin-message', 'That PIN does not match this tournament. Check it or ask the organizer.'); return; }
+        if(!team) { setInlineMessage('player-pin-message', authError.startsWith('Unauthorized') ? authError : 'That PIN does not match this tournament. Check it or ask the organizer.'); return; }
 
+        identifiedTeamId = identifiedTeamId ?? team.id;
         loggedInTeam = team;
         currentPlayerName = currentPlayerName || teamName(team);
         renderPlayerIdentity();

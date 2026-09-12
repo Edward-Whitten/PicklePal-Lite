@@ -50,6 +50,20 @@ async function verifySession(token: string | null, expectedRole: string, tournam
   if (!valid || session.exp < Date.now() || session.role !== expectedRole || session.tournament !== tournament) throw new Error('Session expired or unauthorized.');
   return session;
 }
+// If this browser already holds a valid player session for a different team, refuse to switch teams silently.
+// A brand-new device (no prior session, or an unrelated/expired one) is unaffected and logs in normally.
+async function assertNoTeamSwitch(authToken: string | null, tournamentCode: string, newTeamId: unknown) {
+  if (!authToken) return;
+  try {
+    const existing = await verifySession(authToken, 'player', tournamentCode);
+    if (String(existing.teamId) !== String(newTeamId)) {
+      throw new Error('Unauthorized: This code does not match your registered team.');
+    }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('Unauthorized:')) throw error;
+    // Any other verification failure just means there is no valid prior player session to compare against.
+  }
+}
 function json(data: unknown, status = 200) { return new Response(status === 204 ? null : JSON.stringify(data), { status, headers: { 'content-type': 'application/json', 'access-control-allow-origin': '*', 'access-control-allow-headers': 'apikey,authorization,content-type', 'access-control-allow-methods': 'OPTIONS,POST' } }); }
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -118,7 +132,7 @@ function applyScoreReport(state: Record<string, unknown>, session: Record<string
   const teamAScore = Number(body.teamAScore);
   const teamBScore = Number(body.teamBScore);
   if (!Number.isInteger(teamAScore) || !Number.isInteger(teamBScore) || teamAScore < 0 || teamBScore < 0 || teamAScore === teamBScore) throw new Error('A valid non-tied score is required.');
-  if (String(session.teamId) !== teamAId && String(session.teamId) !== teamBId) throw new Error('This team is not part of the match.');
+  if (String(session.teamId) !== teamAId && String(session.teamId) !== teamBId) throw new Error('Unauthorized: This code does not match your registered team.');
   const teams = Array.isArray(state.teams) ? state.teams as Record<string, unknown>[] : [];
   if (!teams.some(team => String(team.id) === teamAId) || !teams.some(team => String(team.id) === teamBId)) throw new Error('This match is not part of the tournament.');
   const reports = state.scoreReports && typeof state.scoreReports === 'object' ? state.scoreReports as Record<string, Record<string, unknown>> : {};
@@ -198,6 +212,7 @@ Deno.serve(async request => {
     if (action === 'player-login') {
       const { data: access } = await supabase.from('team_access').select('team_id').eq('tournament_id', tournament.id).eq('pin_hash', await hashPin(pin(body.playerPin))).maybeSingle();
       if (!access) return json({ error: 'Incorrect tournament code or player PIN.' }, 403);
+      await assertNoTeamSwitch(authToken, tournamentCode, access.team_id);
       return json({ sessionToken: await signSession({ tournament: tournamentCode, tournamentId: tournament.id, role: 'player', teamId: access.team_id, playerId: `${access.team_id}:score` }), teamId: access.team_id, playerId: `${access.team_id}:score`, state: withStatus(tournament.public_state, tournament.status) });
     }
     if (action === 'player-identify') {
@@ -206,6 +221,7 @@ Deno.serve(async request => {
       const entries = playerEntries(tournament.public_state || {}).filter(entry => entry.name.trim().toLowerCase() === playerName);
       if (entries.length !== 1) return json({ error: entries.length ? 'More than one player matches that name. Ask the organizer for help.' : 'Player not found.' }, 403);
       const entry = entries[0];
+      await assertNoTeamSwitch(authToken, tournamentCode, entry.teamId);
       return json({ sessionToken: await signSession({ tournament: tournamentCode, tournamentId: tournament.id, role: 'player', teamId: entry.teamId, playerId: entry.playerId, playerSlot: entry.playerSlot }), teamId: entry.teamId, playerId: entry.playerId, playerSlot: entry.playerSlot, team: { id: entry.teamId, p1: entry.team.p1, p2: entry.team.p2 }, state: withStatus(tournament.public_state, tournament.status) });
     }
     if (action === 'admin-save') {

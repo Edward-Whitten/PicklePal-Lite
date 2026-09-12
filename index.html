@@ -2492,7 +2492,7 @@
                             <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; color:var(--text);">${formatTeamName(pTeams[a])}</span><div style="min-width:54px; text-align:center; font-weight:900; font-size:1.2rem;">${reportA ? `${reportA.s1}-${reportA.s2}` : 'Waiting'}</div></div>
                             <div class="team-row" style="min-height:45px; padding:4px 0;"><span style="font-weight:800; color:var(--text);">${formatTeamName(pTeams[b])}</span><div style="min-width:54px; text-align:center; font-weight:900; font-size:1.2rem;">${reportB ? `${reportB.s1}-${reportB.s2}` : 'Waiting'}</div></div>
                             <div style="margin-top:12px; padding:10px; border-radius:8px; background:${isDisputed ? 'rgba(239,68,68,.12)' : 'var(--row-bg)'}; color:${isDisputed ? 'var(--danger)' : 'var(--muted)'}; font-size:.8rem; font-weight:800;">${isDisputed ? 'SCORE DISPUTED' : 'AWAITING BOTH TEAM REPORTS'}</div>
-                            ${isDisputed ? `<div style="display:flex; gap:8px; margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'a')">Accept Team A</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'b')">Accept Team B</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'custom')">Correct Score</button></div>` : ''}
+                            ${isDisputed ? `<div style="display:flex; gap:8px; margin-top:10px;"><button class="btn btn-primary btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'a')">Accept Team A</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'b')">Accept Team B</button><button class="btn btn-outline btn-sm" onclick="resolveDispute('${mId}', ${pTeams[a].id}, ${pTeams[b].id}, 'custom')">Correct Score</button></div>` : `<div style="margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="forceEnterScore('${mId}', ${pTeams[a].id}, ${pTeams[b].id})" title="Lock in a final score without waiting for both teams to report"><i data-lucide="shield-alert"></i> Force Enter Score</button></div>`}
                         `;
                     } else {
                         inputArea = `
@@ -2602,6 +2602,16 @@
         const parts = value ? value.split('-').map(score => Number(score.trim())) : [];
         if(parts.length !== 2 || parts.some(score => !Number.isInteger(score) || score < 0) || parts[0] === parts[1]) return await appAlert('Enter a valid non-tied score, for example 11-8.', 'Invalid Score', 'warning');
         finalizePoolMatch(mId, id1, id2, parts[0], parts[1], 'admin-correction');
+    }
+
+    // Manager override: lock in a final score for a match still awaiting one or both team reports,
+    // bypassing the two-team confirmation requirement. Reuses the same correction prompt as "Correct".
+    async function forceEnterScore(mId, id1, id2) {
+        if (!await appConfirm('Lock in this score without waiting for both teams to confirm? This overrides the pending report.', 'Manager Override', 'Force Enter Score', true)) return;
+        const value = await appPrompt('Enter the official score as Team A-Team B, for example 11-8.', 'Manager Override', '11-8', 'Lock Score');
+        const parts = value ? value.split('-').map(score => Number(score.trim())) : [];
+        if(parts.length !== 2 || parts.some(score => !Number.isInteger(score) || score < 0) || parts[0] === parts[1]) return await appAlert('Enter a valid non-tied score, for example 11-8.', 'Invalid Score', 'warning');
+        finalizePoolMatch(mId, id1, id2, parts[0], parts[1], 'admin-override');
     }
 
     function renderStandings() {
