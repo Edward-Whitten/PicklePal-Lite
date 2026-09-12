@@ -267,6 +267,15 @@
         .podium-container::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, var(--gold), var(--bronze)); }
         .podium-title { font-size: 1.8rem; font-weight: 900; color: var(--gold); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
         .podium-row { font-size: 1.4rem; font-weight: 800; margin: 15px 0; display: flex; justify-content: center; gap: 12px; align-items: center; }
+        .podium-stage { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:end; gap:12px; max-width:760px; margin:26px auto 8px; }
+        .podium-place { display:flex; flex-direction:column; align-items:center; gap:9px; min-width:0; }
+        .podium-team { width:100%; min-height:42px; padding:9px 8px; border-radius:10px 10px 0 0; color:var(--text); font-weight:900; overflow-wrap:anywhere; }
+        .podium-step { display:grid; place-items:center; width:100%; min-height:88px; border-radius:10px 10px 0 0; color:#172033; font-size:2rem; font-weight:900; box-shadow:inset 0 2px rgba(255,255,255,.42), 0 8px 18px rgba(15,23,42,.16); }
+        .podium-place.second { order:1; }.podium-place.first { order:2; }.podium-place.third { order:3; }
+        .podium-place.second .podium-step { min-height:76px; background:linear-gradient(135deg,#e2e8f0,#94a3b8); }
+        .podium-place.first .podium-step { min-height:118px; background:linear-gradient(135deg,#fde68a,#f59e0b); }
+        .podium-place.third .podium-step { min-height:58px; background:linear-gradient(135deg,#fdba74,#b45309); color:#fff; }
+        @media (max-width:640px) { .podium-container { padding:2rem 1rem; } .podium-stage { gap:6px; } .podium-team { font-size:.78rem; padding:8px 4px; } .podium-step { font-size:1.5rem; } }
 
         input[type=number] {
             background-color: var(--input-bg); border: 2px solid var(--input-border); color: var(--text);
@@ -2799,9 +2808,11 @@
             podiumHTML = `
                 <div class="podium-container">
                     <div class="podium-title">Tournament Results</div>
-                    <div class="podium-row" style="color:var(--gold);">🥇 Champion: <span style="color:var(--text); margin-left:8px;">${formatTeamName(champion)}</span></div>
-                    <div class="podium-row" style="color:var(--silver);">🥈 2nd Place: <span style="color:var(--text); margin-left:8px;">${formatTeamName(secondPlace)}</span></div>
-                    <div class="podium-row" style="color:var(--bronze);">🥉 3rd Place: <span style="color:var(--text); margin-left:8px;">${formatTeamName(thirdPlace)}</span></div>
+                    <div class="podium-stage" aria-label="Tournament podium">
+                        <div class="podium-place second"><div class="podium-team">${formatTeamName(secondPlace)}</div><div class="podium-step">2</div></div>
+                        <div class="podium-place first"><div class="podium-team">${formatTeamName(champion)}</div><div class="podium-step">1</div></div>
+                        <div class="podium-place third"><div class="podium-team">${formatTeamName(thirdPlace)}</div><div class="podium-step">3</div></div>
+                    </div>
                 </div>
             `;
         }
@@ -3835,9 +3846,11 @@
                     <div class="podium-title">Mini Bracket Results</div>
                     <div class="final-results-card">
                         <p>Screenshot this screen to save your official final results before ending play!</p>
-                        <div class="podium-row" style="color:var(--gold);">Champion: <span style="color:var(--text); margin-left:8px;">${formatTeamName(champion)}</span></div>
-                        <div class="podium-row" style="color:var(--silver);">2nd Place: <span style="color:var(--text); margin-left:8px;">${formatTeamName(secondPlace)}</span></div>
-                        <div class="podium-row" style="color:var(--bronze);">3rd Place: <span style="color:var(--text); margin-left:8px;">${formatTeamName(thirdPlace)}</span></div>
+                        <div class="podium-stage" aria-label="Mini bracket podium">
+                            <div class="podium-place second"><div class="podium-team">${formatTeamName(secondPlace)}</div><div class="podium-step">2</div></div>
+                            <div class="podium-place first"><div class="podium-team">${formatTeamName(champion)}</div><div class="podium-step">1</div></div>
+                            <div class="podium-place third"><div class="podium-team">${formatTeamName(thirdPlace)}</div><div class="podium-step">3</div></div>
+                        </div>
                     </div>
                     <button class="btn btn-danger end-rr-btn" onclick="endRoundRobinPlay()">END ROUND ROBIN PLAY</button>
                 </div>
@@ -4086,6 +4099,91 @@
   html[data-theme="light"] body [class*="header"] *,
   html[data-theme="light"] body [class*="nav"] * {
       color: #000000 !important;
+  }
+
+  body.light-theme .competition-tabs {
+      background: #ffffff !important;
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 8px 22px rgba(15,23,42,.1) !important;
+  }
+
+  body.light-theme .competition-tab {
+      background: #f8fafc !important;
+      color: #111827 !important;
+      border: 1px solid #e2e8f0 !important;
+  }
+
+  body.light-theme .competition-tab:hover,
+  body.light-theme .competition-tab:focus-visible {
+      background: #e2e8f0 !important;
+      color: #111827 !important;
+  }
+
+  body.light-theme .competition-tab.active {
+      background: var(--accent) !important;
+      color: #ffffff !important;
+      border-color: var(--accent) !important;
+  }
+
+  body.light-theme .competition-panel-head h3,
+  body.light-theme .competition-panel-head span,
+  body.light-theme .pool-header {
+      color: #111827 !important;
+  }
+
+  body.light-theme .master-header,
+  body.light-theme .mobile-header,
+  body.light-theme .mobile-mode-switcher,
+  body.light-theme .competition-panel,
+  body.light-theme .competition-tabs {
+      background: #ffffff !important;
+      background-image: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-color: #cbd5e1 !important;
+  }
+
+  body.light-theme .master-header {
+      box-shadow: 0 12px 32px rgba(15,23,42,.08) !important;
+  }
+
+  body.light-theme .master-header::before {
+      background: #0284c7 !important;
+  }
+
+  body.light-theme .header-h1[readonly],
+  body.light-theme .master-header .header-h1,
+  body.light-theme .master-header .header-label,
+  body.light-theme .master-header .editable-group,
+  body.light-theme .master-header .editable-group i {
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
+  }
+
+  body.light-theme .header-h1[readonly] {
+      background: transparent !important;
+      background-image: none !important;
+      -webkit-background-clip: border-box !important;
+      background-clip: border-box !important;
+  }
+
+  body.light-theme .competition-hero-main {
+      background: #ffffff !important;
+      background-image: none !important;
+      color: #111827 !important;
+  }
+
+  body.light-theme .competition-hero-main .competition-kicker,
+  body.light-theme .competition-hero-main p {
+      color: #475569 !important;
+  }
+
+  body.light-theme .competition-hero-main h2 {
+      background: none !important;
+      -webkit-background-clip: initial !important;
+      background-clip: initial !important;
+      color: #111827 !important;
+      -webkit-text-fill-color: #111827 !important;
   }
 </style>
 </body>
