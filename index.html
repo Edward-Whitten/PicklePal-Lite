@@ -2719,6 +2719,7 @@
                 <div style="font-size:0.8rem; color:var(--muted); display:flex; gap:15px; justify-content:center; margin-bottom:15px; font-weight:700;">
                     <span style="display:flex; align-items:center; gap:5px;"><span class="neon-dot green"></span> Advantage</span>
                     <span style="display:flex; align-items:center; gap:5px;"><span class="neon-dot yellow"></span> Tied Series</span>
+                    ${m.gameLocks.some(Boolean) ? `<button class="btn btn-sm btn-outline" style="margin-left:auto; border-color:var(--accent); color:var(--accent);" onclick="undoFinalsGame('${type}', ${isRR})" title="Undo the most recently confirmed game"><i data-lucide="undo-2"></i> Undo Last Game</button>` : ''}
                 </div>
                 <div class="bo3-grid">
                     <div></div>
@@ -3082,6 +3083,18 @@
         }
         saveState();
         if(isRR) renderRRBracketUI(); else renderBracketUI();
+    }
+
+    function undoFinalsGame(type, isRR = false) {
+        const bracketState = isRR ? state.rr.bracket : state.bracket;
+        const m = bracketState && bracketState[type];
+        if (!m || !Array.isArray(m.gameLocks)) return;
+        const lastGame = [2, 1, 0].find(index => m.gameLocks[index] && m.scores && m.scores[index]);
+        if (lastGame === undefined) return;
+        m.gameLocks[lastGame] = false;
+        if (Array.isArray(m.scores)) m.scores[lastGame] = null;
+        m.winner = null;
+        checkBO3Winner(type, isRR);
     }
 
     async function unlockBracketScore(type) {
@@ -4053,6 +4066,25 @@
   [data-theme="light"] header *, .light-mode header *,
   [data-theme="light"] .master-header *, .light-mode .master-header *,
   [data-theme="light"] nav *, .light-mode nav * {
+      color: #000000 !important;
+  }
+
+  /* 3. AGGRESSIVE LIGHT MODE HEADER/MOBILE FIX */
+  html[data-theme="light"] body header,
+  html[data-theme="light"] body .master-header,
+  html[data-theme="light"] body nav,
+  html[data-theme="light"] body [class*="header"],
+  html[data-theme="light"] body [class*="nav"] {
+      background-color: #ffffff !important;
+      background: #ffffff !important; /* overrides gradients */
+      color: #000000 !important;
+  }
+  
+  html[data-theme="light"] body header *,
+  html[data-theme="light"] body .master-header *,
+  html[data-theme="light"] body nav *,
+  html[data-theme="light"] body [class*="header"] *,
+  html[data-theme="light"] body [class*="nav"] * {
       color: #000000 !important;
   }
 </style>
